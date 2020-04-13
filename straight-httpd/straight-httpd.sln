@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.779
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "straight-httpd", "straight-httpd\straight-httpd.vcxproj", "{0AC7D242-155F-457D-99F0-0DB7488C9344}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0AC7D242-155F-457D-99F0-0DB7488C9344}.Debug|x64.ActiveCfg = Debug|x64
+		{0AC7D242-155F-457D-99F0-0DB7488C9344}.Debug|x64.Build.0 = Debug|x64
+		{0AC7D242-155F-457D-99F0-0DB7488C9344}.Debug|x86.ActiveCfg = Debug|Win32
+		{0AC7D242-155F-457D-99F0-0DB7488C9344}.Debug|x86.Build.0 = Debug|Win32
+		{0AC7D242-155F-457D-99F0-0DB7488C9344}.Release|x64.ActiveCfg = Release|x64
+		{0AC7D242-155F-457D-99F0-0DB7488C9344}.Release|x64.Build.0 = Release|x64
+		{0AC7D242-155F-457D-99F0-0DB7488C9344}.Release|x86.ActiveCfg = Release|Win32
+		{0AC7D242-155F-457D-99F0-0DB7488C9344}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B9296463-078D-47F5-9863-339D996803F4}
+	EndGlobalSection
+EndGlobal
