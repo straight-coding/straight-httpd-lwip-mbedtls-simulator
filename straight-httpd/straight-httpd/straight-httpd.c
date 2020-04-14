@@ -10,8 +10,6 @@
 
 #include "../../lwip-port/win32/lwip_port.h"
 
-#define NO_LWIP		0
-
 #pragma warning(disable:4996)
 
 #include <winsock2.h>
@@ -34,46 +32,6 @@ extern long g_tcpipReady;
 HANDLE	g_dmaQLock = NULL;
 long	g_qLength = 0;
 struct packet_wrapper* g_dmaQueue = NULL;
-
-#if (NO_LWIP > 0)
-HANDLE	g_pcapSemaphore = NULL;
-void print_packet_info(const u_char *packet, long len)
-{
-	printf("Packet total length %d\n", len);
-}
-
-void packet_handler(u_char *args, long len, const u_char* packet)
-{
-	ETH_HEADER* ethHeader = (ETH_HEADER*)packet;
-
-	if (ntohs(ethHeader->frame_type) == IPv4_PACKET)
-	{
-		IP_HEADER* ipHeader = (IP_HEADER*)(packet + sizeof(ETH_HEADER));
-		int ip_header_length = ((ipHeader->ver_len_tos) & 0x0F);
-		ip_header_length *= 4;
-		printf("IP header length (IHL) in bytes: %d\n", ip_header_length);
-
-		if ((ipHeader->ttlandprotocol & 0x0F) == IPPROTO_TCP)
-		{
-			TCP_HEADER* tcpHeader = (TCP_HEADER*)(packet + sizeof(ETH_HEADER) + ip_header_length);
-		}
-	}
-	else  if (ntohs(ethHeader->frame_type) == ARP_PACKET)
-	{
-		ARP_HEADER* ipHeader = (ARP_HEADER*)(packet + sizeof(ETH_HEADER));
-		printf("ARP\n");
-	}
-	else  if (ntohs(ethHeader->frame_type) == RARP_PACKET)
-	{
-		ARP_HEADER* ipHeader = (ARP_HEADER*)(packet + sizeof(ETH_HEADER));
-		printf("Reverse ARP\n");
-	}
-
-	print_packet_info(packet, len);
-	return;
-}
-#else
-#endif
 
 void DMA_push(const struct pcap_pkthdr* packet_header, const u_char* packet)
 {
@@ -108,8 +66,6 @@ void DMA_push(const struct pcap_pkthdr* packet_header, const u_char* packet)
 				prev = prev->next;
 			prev->next = newPacket;
 		}
-
-		//printf("New packet arrived: length = %d\n", g_qLength);
 	}
 	else
 	{
@@ -119,11 +75,7 @@ void DMA_push(const struct pcap_pkthdr* packet_header, const u_char* packet)
 	if (g_dmaQLock != NULL)
 		ReleaseMutex(g_dmaQLock);
 
-#if (NO_LWIP > 0)
-	ReleaseSemaphore(g_pcapSemaphore, 1, NULL); // not interested in previous count
-#else
 	NotifyFromEthISR();
-#endif
 }
 
 struct packet_wrapper* DMA_pop()
@@ -278,15 +230,6 @@ int main()
 	}
 	pcap_freealldevs(allDevices);
 
-#if 0
-	//pcap_t* pcap_open_live(const char* device, int snaplen, int promisc, int to_ms, char* ebuf)
-	g_hPcap = pcap_open_live(szHostName, 	// name of the device
-		65536,		// portion of the packet to capture.
-					//65536 grants that the whole packet will be captured on all the MACs.
-		1,			// promiscuous mode (nonzero means promiscuous)
-		10,			// read timeout
-		szError);	// error buffer
-#endif
 	g_hPcap = pcap_open(szHostName,
 		65536,
 		PCAP_OPENFLAG_PROMISCUOUS | PCAP_OPENFLAG_MAX_RESPONSIVENESS,
@@ -299,31 +242,11 @@ int main()
 		return -2;
 	}
 
-	/* Set promiscuous mode */
-	pcap_set_promisc(g_hPcap, 1);
-
 	pcap_setdirection(g_hPcap, PCAP_D_INOUT);
-
 	pcap_setmode(g_hPcap, MODE_MON);// MODE_CAPT);
 
-/*
-	if (pcap_compile(g_hPcap, &filterCompile, szFilter, 0, ip) == -1)
-	{
-		fprintf(stderr, "Couldn't parse filter %s: %s\n", szFilter, pcap_geterr(g_hPcap));
-		return(2);
-	}
-
-	if (pcap_setfilter(g_hPcap, &filterCompile) == -1)
-	{
-		fprintf(stderr, "Couldn't install filter %s: %s\n", szFilter, pcap_geterr(g_hPcap));
-		return(2);
-	}
-*/
 	g_dmaQLock = CreateMutex(NULL, FALSE, NULL);
-#if (NO_LWIP > 0)
-	g_pcapSemaphore = CreateSemaphore(NULL, 0, MAX_DMA_QUEUE, NULL);
-#else
-#endif
+
 	InterlockedExchange(&g_nKeepRunning, 1);
 
 	g_appThread  = CreateThread(NULL, 0, AppThread, NULL, 0, NULL);
@@ -340,24 +263,17 @@ int main()
 
 		int  result = pcap_next_ex(g_hPcap, &pkt_header, &pkt_data);
 /*
-	1  if the packet has been read without problems
-	0  if the timeout set with pcap_open_live() has elapsed. In this case pkt_header and pkt_data don't point to a valid packet
-	-1 if an error occurred
-	-2 if EOF was reached reading from an offline capture
+		1  if the packet has been read without problems
+		0  if the timeout set with pcap_open_live() has elapsed. In this case pkt_header and pkt_data don't point to a valid packet
+		-1 if an error occurred
+		-2 if EOF was reached reading from an offline capture
 */
 		if (result == 1)
-		{
 			DMA_push(pkt_header, pkt_data);
-		}
-		else
-		{
-			//Sleep(10);
-		}
 
-		//check key press
 		{
 			int key = 0;
-			if (_kbhit())
+			if (_kbhit()) //check key press
 			{
 				key = _getch();
 				if (key == 27)
@@ -385,37 +301,6 @@ int main()
 	}
 }
 
-#if (NO_LWIP > 0)
-DWORD WINAPI MainLoopThread(void* data)
-{
-	long	nMore = 0;
-	long 	nextTimer = 200;
-
-	struct packet_wrapper* pkt = NULL;
-
-	printf("Monitor started\n ");
-
-	while (g_nKeepRunning)
-	{
-		DWORD dwWait = WaitForSingleObject(g_pcapSemaphore, 10);
-		if (dwWait == WAIT_TIMEOUT)
-			continue;
-		if (dwWait != WAIT_OBJECT_0)
-			continue;
-
-		pkt = DMA_pop();
-		if (pkt != NULL)
-		{
-			packet_handler(NULL, pkt->len, pkt->packet);
-
-			DMA_free(pkt);
-		}
-	}
-
-	printf("Monitor stopped\n ");
-	return 0;
-}
-#else
 DWORD WINAPI MainLoopThread(void* data)
 {
 	long	nNeedRecall = 0;
@@ -499,5 +384,3 @@ DWORD WINAPI AppThread(void* data)
 		restart = 1;
 	}
 }
-
-#endif
