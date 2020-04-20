@@ -18,12 +18,7 @@ void SSDP_OnAllSent(REQUEST_CONTEXT* context);
 
 struct CGI_Mapping g_cgiSSDP = {
 	"/upnp_device.xml", //char* path;
-	0, //authRequired;
-	1, //int   getEnabled;
-	0, //int   postEnabled;
-	0, //int   logEnabled;
-	0, //int   chunked;		//> 0: response with chunked data
-	0, //int   gzip;		//> 0: response with gzip compression
+	CGI_OPT_GET_ENABLED,// unsigned long options;
 
 	NULL, //void (*OnCancel)(REQUEST_CONTEXT* context);
 	NULL, //void (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line);

@@ -19,76 +19,107 @@ extern int  Strnicmp(char *str1, char *str2, int n);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct CGI_Mapping* g_CgiMapping = NULL;
-char webRoot[128];
-char webRootFile[128];
+struct CGI_Mapping* g_cgiMapping = NULL;
+
+char g_szWebDrive[16];
+char g_szWebRoot[128];
+char g_szWebRootFile[128];
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CGI_SetupMapping() //called from SetupHttpContext(), CGI handlers could be added here
 {
 	//extern struct CGI_Mapping g_cgiStatus;
-	extern struct CGI_Mapping g_cgiSSDP;
+	extern struct CGI_Mapping g_cgiSSDP; //"/upnp_device.xml"
 	//extern struct CGI_Mapping g_cgiCommand;
-	//extern struct CGI_Mapping g_cgiCncParam;
-	//extern struct CGI_Mapping g_cgiCncJob;
-	//extern struct CGI_Mapping g_cgiCncProbe;
-	//extern struct CGI_Mapping g_cgiWeb;
+	//extern struct CGI_Mapping g_cgiParam;
+	//extern struct CGI_Mapping g_cgiJob;
+	extern struct CGI_Mapping g_cgiWeb;	//"/*", MUST be the last one
 
-	//UpdateWebRoot();
+	SetWebRoot(WEB_DRIVE, WEB_ROOT, WEB_HOME_PAGE);
 	
-	//CGI_Append(&g_cgiStatus);		//"/cncstatus.json"
-	CGI_Append(&g_cgiSSDP);			//"/artcut_cnc.xml"
-	//CGI_Append(&g_cgiCommand);		//"/cnccmd.cgi"
-	//CGI_Append(&g_cgiCncParam);		//"/cncparam.json"
-	//CGI_Append(&g_cgiCncJob);		//"/cncjob.cgi"
-	//CGI_Append(&g_cgiCncProbe);		//"/cncprobe.json"
-	//CGI_Append(&g_cgiWeb);			//"/*", MUST be the last one
+	//CGI_Append(&g_cgiStatus);		//"/status.json"
+	CGI_Append(&g_cgiSSDP);			//"/upnp_device.xml"
+	//CGI_Append(&g_cgiCommand);	//"/cmd.cgi"
+	//CGI_Append(&g_cgiParam);		//"/param.json"
+	//CGI_Append(&g_cgiJob);		//"/job.cgi"
+	CGI_Append(&g_cgiWeb);		//"/*", MUST be the last one
 }
 
-int CheckWebRoot(char drive, char* root, char* file)
+int CheckWebRoot(char* drive, char* root, char* file)
 {
 	LWIP_FIL* fTest;
+
 	char szTemp[128];
-	
-	LWIP_sprintf(szTemp, "%c:%s%s", drive, root, file);
+	memset(szTemp, 0, sizeof(szTemp));
+
+	if (drive[0] != 0)
+	{
+		szTemp[0] = drive[0];
+		szTemp[1] = ':';
+	}
+	strcat(szTemp, root);
+	strcat(szTemp, file);
+
 	fTest = LWIP_fopen(szTemp, "r");
 	if (fTest == NULL)
 		return 0;
+
 	LWIP_fclose(fTest);
 	return 1;
 }
 
-void UpdateWebRoot(void)
+void SetWebRoot(char* drive, char* root, char* file)
 {
 	int i;
-	char* pDrive = "SU";
 	int rootResult = 0;
 	
-	memset(webRoot, 0, sizeof(webRoot));
-	memset(webRootFile, 0, sizeof(webRootFile));
-	
-	for(i = 0; i < strlen(pDrive); i ++)
+	memset(g_szWebDrive, 0, sizeof(g_szWebDrive));
+	memset(g_szWebRoot, 0, sizeof(g_szWebRoot));
+	memset(g_szWebRootFile, 0, sizeof(g_szWebRootFile));
+
+	if ((drive != NULL) && (*drive != 0))
+		strcpy(g_szWebDrive, drive);
+
+	if ((root != NULL) && (*root != 0))
 	{
-		rootResult = CheckWebRoot(pDrive[i], WEB_ROOT, "index.html");
+		strcpy(g_szWebRoot, root);
+
+		i = 0;
+		while (g_szWebRoot[i] != 0)
+		{
+			if (g_szWebRoot[i] == '\\')
+				g_szWebRoot[i] = '/';
+			i++;
+		}
+		if (g_szWebRoot[0] != '/')
+		{
+			memmove(g_szWebRoot+1, g_szWebRoot, strlen(g_szWebRoot));
+			g_szWebRoot[0] = '/';
+		}
+		if (g_szWebRoot[strlen(g_szWebRoot)-1] != '/')
+			strcat(g_szWebRoot, "/");
+	}
+
+	if ((file != NULL) && (*file != 0))
+		strcpy(g_szWebRootFile, file);
+
+	for (i = 0; i <= strlen(g_szWebDrive); i++)
+	{
+		rootResult = CheckWebRoot(g_szWebDrive + i, g_szWebRoot, g_szWebRootFile);
 		if (rootResult > 0)
 		{
-			LogPrint(LOG_DEBUG_ONLY, "WebRoot: %c:%s%s", pDrive[i], WEB_ROOT, "index.html");
-			LWIP_sprintf(webRoot, "%c:%s", pDrive[i], WEB_ROOT);
-			strcpy(webRootFile, "index.html");
+			LogPrint(LOG_DEBUG_ONLY, "WebRoot: %c:%s%s", g_szWebDrive[i], g_szWebRoot, g_szWebRootFile);
+			if (g_szWebDrive[i] != 0)
+			{
+				memmove(g_szWebRoot + 2, g_szWebRoot, strlen(g_szWebRoot));
+				g_szWebRoot[0] = g_szWebDrive[i];
+				g_szWebRoot[1] = ':';
+			}
 			break;
 		}
-		else
-		{
-			rootResult = CheckWebRoot(pDrive[i], WEB_ROOT, "index.shtml");
-			if (rootResult > 0)
-			{
-				LogPrint(LOG_DEBUG_ONLY, "WebRoot: %c:%s%s", pDrive[i], WEB_ROOT, "index.shtml");
-				LWIP_sprintf(webRoot, "%c:%s", pDrive[i], WEB_ROOT);
-				strcpy(webRootFile, "index.shtml");
-				break;
-			}
-		}
+		if (g_szWebDrive[i] == 0)
+			break;
 	}
 }
 
@@ -97,13 +128,13 @@ void CGI_Append(struct CGI_Mapping* newMapping)
 	struct CGI_Mapping* next;
 	
 	newMapping->next = NULL;
-	if (g_CgiMapping == NULL)
+	if (g_cgiMapping == NULL)
 	{
-		g_CgiMapping = newMapping;
+		g_cgiMapping = newMapping;
 		return;
 	}
 	
-	next = g_CgiMapping;
+	next = g_cgiMapping;
 	while(next != NULL)
 	{
 		if (next->next == NULL)
@@ -136,7 +167,7 @@ void CGI_Finish(REQUEST_CONTEXT* context) //called by FreeHttpContext()
 void CGI_SetCgiHandler(REQUEST_CONTEXT* context) //called when the first HTTP request line is received
 {
 	int nReqLen = strlen(context->_requestPath);
-	struct CGI_Mapping* next = g_CgiMapping;
+	struct CGI_Mapping* next = g_cgiMapping;
 	
 	while(next != NULL)
 	{
@@ -160,7 +191,7 @@ void CGI_SetCgiHandler(REQUEST_CONTEXT* context) //called when the first HTTP re
 		{ //full match test
 			if (nReqLen == nPrefix)
 			{ //same length
-				if (Strnicmp(context->_requestPath, next->path, nPrefix) == 0)	//such as "/cncstatus.json"
+				if (Strnicmp(context->_requestPath, next->path, nPrefix) == 0)	//such as "/status.json"
 				{
 					context->handler = next;
 					return;
@@ -198,7 +229,7 @@ void CGI_HeadersReceived(REQUEST_CONTEXT* context) //called when all HTTP reques
 {
 	if (context->handler != NULL)
 	{
-		if (context->handler->authRequired > 0)
+		if ((context->handler->options & CGI_OPT_AUTH_REQUIRED) != 0)
 		{
 			if (context->ctxResponse._authorized != 200)
 			{
@@ -209,7 +240,7 @@ void CGI_HeadersReceived(REQUEST_CONTEXT* context) //called when all HTTP reques
 		
 		if (context->_requestMethod == METHOD_GET) 
 		{
-			if (context->handler->getEnabled > 0)
+			if ((context->handler->options & CGI_OPT_GET_ENABLED) != 0)
 			{
 				if (context->handler->OnHeadersReceived != NULL)
 					context->handler->OnHeadersReceived(context);
@@ -218,7 +249,7 @@ void CGI_HeadersReceived(REQUEST_CONTEXT* context) //called when all HTTP reques
 		}
 		else if (context->_requestMethod == METHOD_POST)
 		{
-			if (context->handler->postEnabled > 0)
+			if ((context->handler->options & CGI_OPT_POST_ENABLED) != 0)
 			{
 				if (context->handler->OnHeadersReceived != NULL)
 					context->handler->OnHeadersReceived(context);
@@ -270,7 +301,7 @@ void CGI_RequestReceived(REQUEST_CONTEXT* context) //called when HTTP request bo
 	}
 }
 
-void CGI_SetResponseHeader(REQUEST_CONTEXT* context, char* HttpCodeInfo) //set response headers: content-type, length, connection, and http code
+void CGI_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo) //set response headers: content-type, length, connection, and http code
 {
 	if (context->_result < 0)
 	{
