@@ -12,7 +12,7 @@ unsigned long g_dwIP = 0;		// 0xC0A80563;
 unsigned long g_dwSubnet = 0;	// 0xFFFFFF00;
 unsigned long g_dwGateway = 0;	// 0xC0A80501;
 
-const char* g_szVendor = "Straight Coding";
+const char* g_szVendor = "Straight";
 const char* g_szVendorURL = "https://github.com/straight-coding/";
 
 const char* g_szModel = "straight-httpd";

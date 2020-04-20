@@ -50,7 +50,13 @@ void LwipInit(int reboot)
 
 	netif_set_flags(&main_netif, NETIF_FLAG_IGMP);
 	
-	netif_add(&main_netif, &main_netif_ipaddr, &main_netif_netmask, &main_netif_gw, NULL, ethernetif_init, tcpip_input);
+	netif_add(&main_netif, 
+			&main_netif_ipaddr, 
+			&main_netif_netmask, 
+			&main_netif_gw, 
+			NULL, 
+			ethernetif_init, 
+			tcpip_input);
 	netif_set_default(&main_netif);
 	
 	LwipLinkUp();
@@ -88,6 +94,7 @@ int tcpip_inloop(u32_t maxWait)
 			g_nTimerLastCheck = now;
 		}
 	}
+
 	UNLOCK_TCPIP_CORE();
 
 	if (needRecall == 0)
@@ -120,7 +127,8 @@ void LwipLinkUp(void)
 	netif_set_netmask(&main_netif, &main_netif_netmask);
 	netif_set_gw(&main_netif, &main_netif_gw);
 	
-	if (dhcp_start(&main_netif) != ERR_OK) {
+	if (dhcp_start(&main_netif) != ERR_OK) 
+	{
          LWIP_DEBUGF(LWIP_DBG_ON, ("DHCP failed"));
 	}  
 }
