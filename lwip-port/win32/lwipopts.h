@@ -1,35 +1,9 @@
 /*
-  @file    lwipopts.h
-  @brief   lwIP Options Configuration.
+  lwipopts.h, lwIP Options Configuration.
 */
 
 #ifndef __LWIPOPTS_H__
 #define __LWIPOPTS_H__
-
-#ifndef WIN32
-#include <includes.h>
-#endif
-
-/*----------------Thread Priority---------------------------------------------*/
-#ifndef TCPIP_THREAD_PRIO
-#define TCPIP_THREAD_PRIO		1
-#endif
-#undef  DEFAULT_THREAD_PRIO
-#define DEFAULT_THREAD_PRIO		2
-
-/**
- * SYS_LIGHTWEIGHT_PROT==1: if you want inter-task protection for certain
- * critical regions during buffer allocation, deallocation and memory
- * allocation and deallocation.
- */
-#define SYS_LIGHTWEIGHT_PROT    		1
-#define LWIP_TCPIP_CORE_LOCKING_INPUT   0
-
-/**
- * NO_SYS==1: Provides VERY minimal functionality. Otherwise,
- * use lwIP facilities.
- */
-#define NO_SYS                  0
 
 /* ---------- Memory options ---------- */
 /* MEM_ALIGNMENT: should be set to the alignment of the CPU for which
@@ -37,7 +11,6 @@
    byte alignment -> define MEM_ALIGNMENT to 2. */
 #undef  MEM_ALIGNMENT
 #define MEM_ALIGNMENT           4
-
 
 /* MEM_SIZE: the size of the heap memory. If the application will send
 a lot of data that needs to be copied, this should be set high. */
@@ -49,27 +22,26 @@ a lot of data that needs to be copied, this should be set high. */
    should be set high. */
 #undef MEMP_NUM_PBUF
 #define MEMP_NUM_PBUF           10
+
 /* MEMP_NUM_UDP_PCB: the number of UDP protocol control blocks. One
    per active UDP "connection". */
 #undef MEMP_NUM_UDP_PCB
 #define MEMP_NUM_UDP_PCB        6
-/* MEMP_NUM_TCP_PCB: the number of simulatenously active TCP
-   connections. */
+
+/* MEMP_NUM_TCP_PCB: the number of simulatenously active TCP connections. */
 #undef MEMP_NUM_TCP_PCB
 #define MEMP_NUM_TCP_PCB        12
-/* MEMP_NUM_TCP_PCB_LISTEN: the number of listening TCP
-   connections. */
+
+/* MEMP_NUM_TCP_PCB_LISTEN: the number of listening TCP connections. */
 #undef MEMP_NUM_TCP_PCB_LISTEN
 #define MEMP_NUM_TCP_PCB_LISTEN 6
-/* MEMP_NUM_TCP_SEG: the number of simultaneously queued TCP
-   segments. */
+
+/* MEMP_NUM_TCP_SEG: the number of simultaneously queued TCP segments. */
 #undef MEMP_NUM_TCP_SEG
 #define MEMP_NUM_TCP_SEG        32
-/* MEMP_NUM_SYS_TIMEOUT: the number of simulateously active
-   timeouts. */
 
+/* MEMP_NUM_SYS_TIMEOUT: the number of simulateously active timeouts. */
 #define MEMP_NUM_SYS_TIMEOUT    10
-
 
 /* ---------- Pbuf options ---------- */
 /* PBUF_POOL_SIZE: the number of buffers in the pbuf pool. */
@@ -80,16 +52,16 @@ a lot of data that needs to be copied, this should be set high. */
 #undef PBUF_POOL_BUFSIZE
 #define PBUF_POOL_BUFSIZE       1500 /* LWIP_MEM_ALIGN_SIZE(TCP_MSS+40+PBUF_LINK_HLEN) */
 
+/* ETH_PAD_SIZE: number of bytes added before the ethernet header to ensure
+ * alignment of payload after that header. Since the header is 14 bytes long,
+ * without this padding e.g. addresses in the IP header will not be aligned
+ * on a 32-bit boundary, so setting this to 2 can speed up 32-bit-platforms. */
+#define ETH_PAD_SIZE			0 
 
-/* ---------------------------------
-   ---------- ARP options ----------
-   ---------------------------------*/
-/*etharp.h */
-#define ETH_PAD_SIZE				0 
-
-/* ---------- TCP options ---------- */
+/* LWIP_TCP==1: Turn on TCP. */
 #define LWIP_TCP                1
 
+/* TCP_TTL: Default Time-To-Live value. */
 #undef TCP_TTL
 #define TCP_TTL                 255
 
@@ -98,31 +70,21 @@ a lot of data that needs to be copied, this should be set high. */
 #undef TCP_QUEUE_OOSEQ
 #define TCP_QUEUE_OOSEQ         0
 
-//#define LWIP_WND_SCALE          1
-//#define TCP_RCV_SCALE           1
-
-/**
- * TCPIP_MBOX_SIZE: The mailbox size for the tcpip thread messages
+/* TCPIP_MBOX_SIZE: The mailbox size for the tcpip thread messages
  * The queue size value itself is platform-dependent, but is passed to
- * sys_mbox_new() when tcpip_init is called.
- */
+ * sys_mbox_new() when tcpip_init is called. */
 #undef TCPIP_MBOX_SIZE
-#define TCPIP_MBOX_SIZE					MAX_QUEUE_ENTRIES
+#define TCPIP_MBOX_SIZE			MAX_QUEUE_ENTRIES
 
-/**
- * DEFAULT_TCP_RECVMBOX_SIZE: The mailbox size for the incoming packets on a
+/* DEFAULT_TCP_RECVMBOX_SIZE: The mailbox size for the incoming packets on a
  * NETCONN_TCP. The queue size value itself is platform-dependent, but is passed
- * to sys_mbox_new() when the recvmbox is created.
- */
+ * to sys_mbox_new() when the recvmbox is created. */
 #undef DEFAULT_TCP_RECVMBOX_SIZE
 #define DEFAULT_TCP_RECVMBOX_SIZE       MAX_QUEUE_ENTRIES
 
-
-/**
- * DEFAULT_ACCEPTMBOX_SIZE: The mailbox size for the incoming connections.
+/* DEFAULT_ACCEPTMBOX_SIZE: The mailbox size for the incoming connections.
  * The queue size value itself is platform-dependent, but is passed to
- * sys_mbox_new() when the acceptmbox is created.
- */
+ * sys_mbox_new() when the acceptmbox is created. */
 #undef DEFAULT_ACCEPTMBOX_SIZE
 #define DEFAULT_ACCEPTMBOX_SIZE         MAX_QUEUE_ENTRIES
 
@@ -142,49 +104,48 @@ a lot of data that needs to be copied, this should be set high. */
 #undef TCP_WND
 #define TCP_WND                 (4 * TCP_MSS)
 
-
-/* ---------- ICMP options ---------- */
+/* LWIP_ICMP==1: Enable ICMP module inside the IP stack.
+ * Be careful, disable that make your product non-compliant to RFC1122 */
 #define LWIP_ICMP               1
 
-
-/* ---------- DHCP options ---------- */
 /* Define LWIP_DHCP to 1 if you want DHCP configuration of
    interfaces. DHCP is not implemented in lwIP 0.5.1, however, so
    turning this on does currently not work. */
 #define LWIP_DHCP				1
 
-
-/* ---------- UDP options ---------- */
+/* LWIP_UDP==1: Turn on UDP. */
 #define LWIP_UDP                1
+
+/* UDP_TTL: Default Time-To-Live value. */
 #undef UDP_TTL
 #define UDP_TTL                 255
+
+/* DEFAULT_UDP_RECVMBOX_SIZE: The mailbox size for the incoming packets on a
+ * NETCONN_UDP. The queue size value itself is platform-dependent, but is passed
+ * to sys_mbox_new() when the recvmbox is created. */
 #undef DEFAULT_UDP_RECVMBOX_SIZE
 #define DEFAULT_UDP_RECVMBOX_SIZE       MAX_QUEUE_ENTRIES
 
-/* -----------RAW options -----------*/
+/* DEFAULT_RAW_RECVMBOX_SIZE: The mailbox size for the incoming packets on a
+ * NETCONN_RAW. The queue size value itself is platform-dependent, but is passed
+ * to sys_mbox_new() when the recvmbox is created. */
 #undef DEFAULT_RAW_RECVMBOX_SIZE
 #define DEFAULT_RAW_RECVMBOX_SIZE       MAX_QUEUE_ENTRIES
+
+/* DEFAULT_ACCEPTMBOX_SIZE: The mailbox size for the incoming connections.
+ * The queue size value itself is platform-dependent, but is passed to
+ * sys_mbox_new() when the acceptmbox is created. */
 #define DEFAULT_ACCEPTMBOX_SIZE         MAX_QUEUE_ENTRIES
 
-/* ---------- Statistics options ---------- */
+/* LWIP_STATS==1: Enable statistics collection in lwip_stats. */
 #undef LWIP_STATS
 #define LWIP_STATS				0
+
+/* LWIP_PROVIDE_ERRNO==1: Let lwIP provide ERRNO values and the 'errno' variable.
+ * If this is disabled, cc.h must either define 'errno', include <errno.h>,
+ * define LWIP_ERRNO_STDINCLUDE to get <errno.h> included or
+ * define LWIP_ERRNO_INCLUDE to <errno.h> or equivalent. */
 #define LWIP_PROVIDE_ERRNO		1
-
-
-/*
-   --------------------------------------
-   ---------- Checksum options ----------
-   --------------------------------------
-*/
-
-/* 
-The STM32F107 allows computing and verifying the IP, UDP, TCP and ICMP checksums by hardware:
- - To use this feature let the following define uncommented.
- - To disable it and process by CPU comment the  the checksum.
-*/
-//#define CHECKSUM_BY_HARDWARE 
-
 
 #ifdef CHECKSUM_BY_HARDWARE
   /* CHECKSUM_GEN_IP==0: Generate checksums by hardware for outgoing IP packets.*/
@@ -220,29 +181,13 @@ The STM32F107 allows computing and verifying the IP, UDP, TCP and ICMP checksums
   #define CHECKSUM_CHECK_TCP              1
 #endif
 
-
-/*
-   ----------------------------------------------
-   ---------- Sequential layer options ----------
-   ----------------------------------------------
-*/
-/**
- * LWIP_NETCONN==1: Enable Netconn API (require to use api_lib.c)
- */
+/* LWIP_NETCONN==1: Enable Netconn API (require to use api_lib.c) */
 #define LWIP_NETCONN                    0
 #define LWIP_NETCONN_FULLDUPLEX         0
 
-/*
-   ------------------------------------
-   ---------- Socket options ----------
-   ------------------------------------
-*/
-/**
- * LWIP_SOCKET==1: Enable Socket API (require to use sockets.c)
- */
+/* LWIP_SOCKET==1: Enable Socket API (require to use sockets.c) */
 #define LWIP_SOCKET                     0
 #define LWIP_COMPAT_MUTEX               0
-
 
 /*##############################################################################################*/
 #define LWIP_DEBUG						1
@@ -266,7 +211,7 @@ The STM32F107 allows computing and verifying the IP, UDP, TCP and ICMP checksums
 #define MEM_DEBUG                       LWIP_DBG_OFF
 #define MEMP_DEBUG                      LWIP_DBG_OFF
 #define SYS_DEBUG                       LWIP_DBG_OFF
-#define TIMERS_DEBUG                    LWIP_DBG_ON
+#define TIMERS_DEBUG                    LWIP_DBG_OFF
 #define TCP_DEBUG                       LWIP_DBG_OFF
 #define TCP_INPUT_DEBUG                 LWIP_DBG_OFF
 #define TCP_FR_DEBUG                    LWIP_DBG_OFF
@@ -279,9 +224,11 @@ The STM32F107 allows computing and verifying the IP, UDP, TCP and ICMP checksums
 #define UDP_DEBUG                       LWIP_DBG_OFF
 #define TCPIP_DEBUG                     LWIP_DBG_OFF
 #define SLIP_DEBUG                      LWIP_DBG_OFF
-#define DHCP_DEBUG                      LWIP_DBG_ON
+#define DHCP_DEBUG                      LWIP_DBG_OFF
 #define AUTOIP_DEBUG                    LWIP_DBG_OFF
 #define DNS_DEBUG                       LWIP_DBG_OFF
+#define SSDP_DEBUG                      LWIP_DBG_ON
+#define REST_DEBUG         				LWIP_DBG_ON
 
 #define LWIP_IPV4 						1
 #define LWIP_IPV6						0
@@ -293,7 +240,6 @@ The STM32F107 allows computing and verifying the IP, UDP, TCP and ICMP checksums
 #define LWIP_IGMP						1
 
 #define LWIP_TCP_SACK_OUT               0
-
 #define TCP_LISTEN_BACKLOG              4
 
 #define LWIP_SINGLE_NETIF				1
@@ -308,49 +254,20 @@ The STM32F107 allows computing and verifying the IP, UDP, TCP and ICMP checksums
 #define LWIP_ALTCP						0
 #define LWIP_ALTCP_TLS					0
 #define LWIP_ALTCP_TLS_MBEDTLS          0
-#define HTTPD_ENABLE_HTTPS				0
 
-#define ALTCP_MBEDTLS_DEBUG                           LWIP_DBG_ON
+#define ALTCP_MBEDTLS_DEBUG             LWIP_DBG_ON
 //#define ALTCP_MBEDTLS_SESSION_CACHE_TIMEOUT_SECONDS   (3*60)
 
-#define LWIP_HTTPD_SUPPORT_11_KEEPALIVE		1
-#define LWIP_HTTPD_CGI_SSI					1
-#define LWIP_HTTPD_CGI						1
-#define LWIP_HTTPD_SSI						1
+#define LWIP_SO_SNDTIMEO				1
+#define LWIP_SO_RCVTIMEO				1
+#define LWIP_SO_RCVBUF					1
 
-#define LWIP_HTTPD_MAX_TAG_NAME_LEN 		16
-#define LWIP_HTTPD_SSI_RAW					0
-#define LWIP_HTTPD_FILE_STATE         		0
-#define LWIP_HTTPD_SSI_INCLUDE_TAG          0
+#define HTTPD_SERVER_AGENT 				"Straight httpd/1.1"
 
-//#define LWIP_HTTPD_DYNAMIC_FILE_READ  		0
-//#define LWIP_HTTPD_FILE_STATE         		0
-//#define LWIP_HTTPD_FS_ASYNC_READ			0
-
-#define LWIP_HTTPD_SUPPORT_POST   			1
-#define HTTPD_DEBUG         				LWIP_DBG_OFF
-#define HTTPD_DEBUG_POST       				LWIP_DBG_OFF
-#define REST_DEBUG         					LWIP_DBG_ON
-
-#define HTTPD_USE_MEM_POOL  				1
-#define MEMP_NUM_PARALLEL_HTTPD_CONNS		8
-#define MEMP_NUM_PARALLEL_HTTPD_SSI_CONNS 	8
-
-#define LWIP_HTTPD_POST_MANUAL_WND			1
-#define HTTPD_MAX_RETRIES                   4
-#define LWIP_HTTPD_DYNAMIC_HEADERS 			1
-
-#define LWIP_SO_SNDTIMEO					1
-#define LWIP_SO_RCVTIMEO					1
-#define LWIP_SO_RCVBUF						1
-
-#define HTTPD_SERVER_AGENT 					"Straight httpd/1.1"
-
-#define PACK_STRUCT_USE_INCLUDES			1
+#define PACK_STRUCT_USE_INCLUDES		1
 
 /*##############################################################################################*/
 
 void LwipLogPrint(char* format, ... );
 
 #endif /* __LWIPOPTS_H__ */
-
