@@ -376,11 +376,11 @@ dhcp_handle_offer(struct netif *netif, struct dhcp_msg *msg_in)
     dhcp->request_timeout = 0; /* stop timer */
 
     ip_addr_set_ip4_u32(&dhcp->server_ip_addr, lwip_htonl(dhcp_get_option_value(dhcp, DHCP_OPTION_IDX_SERVER_ID)));
-    LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_STATE, ("dhcp_handle_offer(): server 0x%08"X32_F"\n",
+    LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_STATE, ("dhcp_handle_offer(): server 0x%0"X32_F"\n",
                 ip4_addr_get_u32(ip_2_ip4(&dhcp->server_ip_addr))));
     /* remember offered address */
     ip4_addr_copy(dhcp->offered_ip_addr, msg_in->yiaddr);
-    LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_STATE, ("dhcp_handle_offer(): offer for 0x%08"X32_F"\n",
+    LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_STATE, ("dhcp_handle_offer(): offer for 0x%0"X32_F"\n",
                 ip4_addr_get_u32(&dhcp->offered_ip_addr)));
 
     dhcp_select(netif);
@@ -1112,7 +1112,7 @@ dhcp_bind(struct netif *netif)
     ip4_addr_set_u32(&gw_addr, ip4_addr_get_u32(&gw_addr) | PP_HTONL(0x00000001UL));
   }
 
-  LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_STATE, ("dhcp_bind(): IP: 0x%08"X32_F" SN: 0x%08"X32_F" GW: 0x%08"X32_F"\n",
+  LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_STATE, ("dhcp_bind(): IP: 0x%0"X32_F" SN: 0x%0"X32_F" GW: 0x%0"X32_F"\n",
               ip4_addr_get_u32(&dhcp->offered_ip_addr), ip4_addr_get_u32(&sn_mask), ip4_addr_get_u32(&gw_addr)));
   /* netif is now bound to DHCP leased address - set this before assigning the address
      to ensure the callback can use dhcp_supplied_address() */
