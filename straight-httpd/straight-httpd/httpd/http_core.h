@@ -12,50 +12,47 @@
 #include "lwip_port.h"
 #include "arch/sys_arch.h"
 
-#define LOG_DEBUG_ONLY			6
+#define LOG_DEBUG_ONLY			6 //max level of debug output
 
-#define NON_BLOCKING_SERVICE	1
-
-#define USE_CHUNKED				1
-
-#define METHOD_GET				1
-#define METHOD_POST				2
+#define METHOD_GET				1 //request method GET
+#define METHOD_POST				2 //request method POST
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
+// HTTP receiving FSM state
 
 #define HTTP_STATE_IDLE					0 //nothing received
 
-#define HTTP_STATE_HEADER_RECEIVING		1 //something received
+#define HTTP_STATE_HEADER_RECEIVING		1 //something received ==> waiting request header
 #define HTTP_STATE_HEADER_DONE			2 //request header completed
 
-#define HTTP_STATE_CHUNK_LEN_RECEIVING	3 //
-#define HTTP_STATE_CHUNK_LEN_DONE		4 //
-#define HTTP_STATE_CHUNK_RECEIVING		5 //
-#define HTTP_STATE_CHUNK_DONE			6
+#define HTTP_STATE_CHUNK_LEN_RECEIVING	3 //if chunked header exists and no content-length, waiting chunk size
+#define HTTP_STATE_CHUNK_LEN_DONE		4 //chunk size received
+#define HTTP_STATE_CHUNK_RECEIVING		5 //receiving chunk data
+#define HTTP_STATE_CHUNK_DONE			6 //current chunk completely received
 
-#define HTTP_STATE_BODY_RECEIVING		7
-#define HTTP_STATE_BODY_DONE			8
+#define HTTP_STATE_BODY_RECEIVING		7 //receiving request body with content-length
+#define HTTP_STATE_BODY_DONE			8 //body completely received
 
-#define HTTP_STATE_SENDING_HEADER		9
-#define HTTP_STATE_SENDING_BODY			10
+#define HTTP_STATE_SENDING_HEADER		9  //sending response header
+#define HTTP_STATE_SENDING_BODY			10 //sending response body
 
-#define HTTP_STATE_REQUEST_END			11
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#define MAX_CONNECTIONS 				5
-#define MAX_REQ_BUF_SIZE				4096
-#define MAX_APP_CONTEXT_SIZE			4096
-
-#define MAX_COOKIE_SIZE					64
+#define HTTP_STATE_REQUEST_END			11 //response completely sent out
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define HTTP_PROC_CALLER_RECV			1
-#define HTTP_PROC_CALLER_POLL			2
-#define HTTP_PROC_CALLER_SENT			3
+#define MAX_CONNECTIONS 				5		//max concurrent socket connections
+#define MAX_REQ_BUF_SIZE				4096	//length of the request header is up to MAX_REQ_BUF_SIZE bytes
+#define MAX_APP_CONTEXT_SIZE			4096	//reserved buffer for app/cgi layer, such as SSI peocessing
 
-#define STAGE_END						0xFFFFFFFF
+#define MAX_COOKIE_SIZE					64		//max length of the cookie string
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#define HTTP_PROC_CALLER_RECV			1 //triggered by tcp/recv event
+#define HTTP_PROC_CALLER_POLL			2 //triggered by poll/timer
+#define HTTP_PROC_CALLER_SENT			3 //triggered by tcp/sent event
+
+#define STAGE_END						0xFFFFFFFF //response may be split into multi-steps because of memory limitation
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -64,13 +61,13 @@ typedef struct _RESPONSE_CONTEXT
 	char 	_cookie[128];	//for http_core.c
 	int 	_authorized;	//for http_core.c
 	
-	int 	_cmdType;		//for cgi_command.c, ATTACH / DETACH
+	int 	_cmdType;			//for cgi_command.c, ATTACH / DETACH
 	unsigned long _remote_ip;	//for cgi_command.c
 	
-	unsigned long _dwOperStage;	//[0, STAGE_END], for app layer
+	unsigned long _dwOperStage;	//[0, STAGE_END], for app layer, major progress
 	
-	int 	_dwOperIndex;   //[0, _dwTotal], for app layer
-	int 	_dwTotal;		//max. of _dwOperIndex, for app layer
+	int 	_dwOperIndex;   //[0, _dwTotal], for app layer, minor progress inside a stage
+	int 	_dwTotal;		//max. of _dwOperIndex, for app layer, total progress of a stage
 	
 	int 	_sendMaxBlock;	//TCP_MSS, for http_core.c
 	
@@ -120,8 +117,8 @@ typedef struct _REQUEST_CONTEXT
 	char _requestPath[128];	//full path
 	char _responsePath[128]; //use to redirect
 
-	//struct fs_file  file2Get;
-	//int nContentOffset;
+	LWIP_FIL* _file2Get;	//response with an existing file
+	int _nFileOffset;		//next position to be sent
 	
 	int  request_length;	//[0, max_level]
 	int  max_level; 		//MAX_REQ_BUF_SIZE

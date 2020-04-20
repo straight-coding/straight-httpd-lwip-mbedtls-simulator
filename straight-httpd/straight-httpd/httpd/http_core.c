@@ -14,7 +14,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define HTTP_TCP_PRIO         TCP_PRIO_MIN
-#define HTTP_POLL_INTERVAL    4
+#define HTTP_POLL_INTERVAL    4 //timer interval = 4*500ms = 2s
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -600,7 +600,6 @@ signed char OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *p, sign
 	signed char errRet = ERR_OK;
 	
 	REQUEST_CONTEXT* context = (REQUEST_CONTEXT*)arg;
-	//LWIP_DEBUGF(HTTPD_DEBUG | LWIP_DBG_TRACE, ("http_recv: pcb=%p pbuf=%p err=%s\n", (void *)pcb, (void *)p, lwip_strerr(err)));
 
 	if ((err != ERR_OK) || (p == NULL) || (context == NULL)) 
 	{ /* error or closed by other side? */
@@ -1461,7 +1460,7 @@ signed char HttpResponse(REQUEST_CONTEXT* context, int caller) //always return E
 		}
 		LogPrint(LOG_DEBUG_ONLY, "Sending response header: %s @%d", codeNinfo, context->_sid);
 
-		CGI_SetResponseHeader(context, codeNinfo);
+		CGI_SetResponseHeaders(context, codeNinfo);
 		
 		context->ctxResponse._bytesLeft = strlen(context->ctxResponse._sendBuffer);
 		
