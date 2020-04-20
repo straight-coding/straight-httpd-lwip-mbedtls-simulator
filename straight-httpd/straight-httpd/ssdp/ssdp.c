@@ -270,11 +270,11 @@ void ssdp_send_to(SSDP_TYPES type, ip_addr_t* ipDest, unsigned long portDest)
 			pbuf_free(udpbuf);
 
 			if (type == ADVERTISE_UP)
-				LogPrint(0, "Sending ADVERTISE_UP ==> %s:%d", htoa((ip_addr_t *)&reply_ip), reply_port);
+				LWIP_DEBUGF(SSDP_DEBUG, ("ssdp: advertise up"));
 			else if (type == ADVERTISE_DOWN)
-				LogPrint(0, "Sending ADVERTISE_DOWN ==> %s:%d", htoa((ip_addr_t *)&reply_ip), reply_port);
+				LWIP_DEBUGF(SSDP_DEBUG, ("ssdp: advertise down"));
 			else if (type == MSEARCH_REPLY)
-				LogPrint(0, "Sending MSEARCH_REPLY ==> %s:%d", htoa((ip_addr_t *)&reply_ip), reply_port); 
+				LWIP_DEBUGF(API_LIB_DEBUG, ("ssdp: reply ==> %s:%d", htoa((ip_addr_t *)&reply_ip), reply_port));
 		}
 	}
 }
