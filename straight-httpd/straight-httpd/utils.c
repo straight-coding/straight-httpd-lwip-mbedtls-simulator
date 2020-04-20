@@ -148,3 +148,21 @@ int Strnicmp(char *str1, char *str2, int n)
 
 	return 0;
 }
+
+void TrimFloat(char* floatString)
+{
+	int len = strlen(floatString);
+	if (strchr(floatString, '.') <= 0)
+		return;
+	while (len > 0)
+	{
+		if (floatString[len - 1] != '0')
+		{
+			if (floatString[len - 1] == '.')
+				floatString[len - 1] = 0;
+			break;
+		}
+		floatString[len - 1] = 0;
+		len--;
+	}
+}
