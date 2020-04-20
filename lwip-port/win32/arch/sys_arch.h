@@ -33,6 +33,7 @@ void sys_mutex_unlock(sys_mutex_t *mutex);
 #ifndef MAX_QUEUE_ENTRIES
 #define MAX_QUEUE_ENTRIES 512
 #endif
+
 struct lwip_mbox 
 {
 	void* sem;
@@ -50,7 +51,7 @@ typedef void* sys_thread_t;
 typedef unsigned int sys_prot_t;
 
 typedef struct FILE LWIP_FIL;
-LWIP_FIL* LWIP_fopen(char* szTemp, char* mode);
+LWIP_FIL* LWIP_fopen(const char* szTemp, const char* mode);
 void LWIP_fclose(LWIP_FIL* f);
 long LWIP_fsize(LWIP_FIL* f);
 int  LWIP_fread(LWIP_FIL* f, char* buf, int count, unsigned int* bytes); //0=success

@@ -1,5 +1,5 @@
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <windows.h>
 #include <time.h>
@@ -337,21 +337,45 @@ void LWIP_sprintf(char* buf, char* format, ...)
 	va_end(ap);
 }
 
-LWIP_FIL* LWIP_fopen(char* szTemp, char* mode)
+LWIP_FIL* LWIP_fopen(const char* szTemp, const char* mode)
 {
+	FILE *f;
+	if (0 == fopen_s(&f, szTemp, mode))
+		return f;
 	return 0;
 }
 
-int LWIP_fread(LWIP_FIL* f, char* buf, int count, unsigned int* bytes) //0=success
+int LWIP_fread(LWIP_FIL* f, char* buf, int toRead, unsigned int* outBytes) //0=success
 {
-	return 0;
+	unsigned int size = 0;
+	*outBytes = 0;
+	size = fread(buf, 1, toRead, (FILE*)f);
+	if (size >= 0)
+	{
+		*outBytes = size;
+		return 0;
+	}
+	return -1;
 }
 
 long LWIP_fsize(LWIP_FIL* f)
 {
-	return 0;
+	long size = 0;
+	int pos = 0;
+	
+	if (f == NULL)
+		return 0;
+
+	pos = ftell((FILE*)f);
+
+	fseek((FILE*)f, 0, SEEK_END);
+	size = ftell((FILE*)f);
+	fseek((FILE*)f, pos, SEEK_SET);
+
+	return size;
 }
 
 void LWIP_fclose(LWIP_FIL* f)
 {
+	fclose((FILE*)f);
 }
