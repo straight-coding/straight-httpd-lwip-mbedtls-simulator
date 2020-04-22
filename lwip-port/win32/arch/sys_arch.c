@@ -273,6 +273,10 @@ void LogPrint(int level, char* format, ...)
 	va_list ap;
 
 	SYSTEMTIME st, lt;
+
+	if (level > 2)
+		return;
+
 	GetSystemTime(&st);
 	GetLocalTime(&lt);
 
