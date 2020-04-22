@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html style='width:100%;height:100%;'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <title>Virtual Device</title>
+  <link rel="stylesheet" href="share.css">
+  <style>
+  </style>
+</head>
+<body class='fill'>
+  <div class='base columns center-item fill'>
+    <div class='base columns center-item'>
+      <div class='title margin-t36'>Virtual Device</div>
+      <div class='sub-title margin-t2'>Powered by <!--#DEV_VENDOR--></div>
+    </div>
+
+    <div class='base columns center-item fill'>
+      <div class='key margin-t24'>Model</div>           <div class='value margin-t2'><!--#DEV_MODEL--></div>
+      <div class='key margin-t8'>Name</div>             <div class='value margin-t2'><!--#DEV_NAME--></div>
+      <div class='key margin-t8'>Firmware Version</div> <div class='value margin-t2'><!--#DEV_VERSION--></div>
+      <div class='key margin-t8'>UUID</div>             <div class='value margin-t2'><!--#DEV_UUID--></div>
+      <div class='key margin-t8'>Serial Number</div>    <div class='value margin-t2'><!--#DEV_SN--></div>
+      <svg id="qrcode-svg" style="width:80px; height:80px; padding:4px; background-color:#E8E8E8; display:none;">
+        <rect width="100%" height="100%" fill="#FFFFFF" stroke-width="0"></rect>
+        <path d="" fill="#000000" stroke-width="0"></path>
+      </svg>
+	  </div>
+
+    <div class='base row between-content margin-t24'>
+      <button class='tab' id='home'>Home</button>
+      <button class='tab margin-l2' id='network'>Network</button>
+      <button class='tab margin-l2' id='help'>Help</button>
+    </div>
+  </div>
+  <script type="application/javascript" src="js/qrcodegen.js"></script>
+  <script>
+
+		var ecl = qrcodegen.QrCode.Ecc.MEDIUM;//MEDIUM,QUARTILE,HIGH,LOW
+		var text = "http://<!--#DEV_IP-->";
+		var segs = qrcodegen.QrSegment.makeSegments(text);
+		var minVer = 1;
+		var maxVer = 39;
+		var mask = -1; //-1=auto, 0-7 manual
+		var boostEcc = true; //Increase ECC level within same version
+    var border = 2;
+
+		var svg = document.getElementById("qrcode-svg");
+		svg.style.display = "none";
+
+		var qr = qrcodegen.QrCode.encodeSegments(segs, ecl, minVer, maxVer, mask, boostEcc);
+		var code = qr.toSvgString(border);
+
+		svg.setAttribute("viewBox", / viewBox="([^"]*)"/.exec(code)[1]);
+		svg.querySelector("path").setAttribute("d", / d="([^"]*)"/.exec(code)[1]);
+		svg.style.removeProperty("display");
+
+    document.getElementById('home').addEventListener('click', goHome);
+    document.getElementById('network').addEventListener('click', goNetwork);
+    document.getElementById('help').addEventListener('click', goHelp);
+
+    function goHome() { location.href = '/'; }
+    function goNetwork() { location.href = '/network.shtml'; }
+    function goHelp() { location.href = '/help.shtml'; }
+  </script>
+</body>
+</html>
