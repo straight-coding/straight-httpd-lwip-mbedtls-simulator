@@ -43,7 +43,7 @@
 		var maxVer = 39;
 		var mask = -1; //-1=auto, 0-7 manual
 		var boostEcc = true; //Increase ECC level within same version
-    var border = 2;
+		var border = 2;
 
 		var svg = document.getElementById("qrcode-svg");
 		svg.style.display = "none";
@@ -59,9 +59,9 @@
     document.getElementById('network').addEventListener('click', goNetwork);
     document.getElementById('help').addEventListener('click', goHelp);
 
-    function goHome() { location.href = '/'; }
-    function goNetwork() { location.href = '/network.shtml'; }
-    function goHelp() { location.href = '/help.shtml'; }
+    function goHome() { location.href = '/app/index.shtml'; }
+    function goNetwork() { location.href = '/app/network.shtml'; }
+    function goHelp() { location.href = '/app/help.shtml'; }
   </script>
 </body>
 </html>

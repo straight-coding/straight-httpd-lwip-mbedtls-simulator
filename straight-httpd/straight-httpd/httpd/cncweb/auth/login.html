@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html style="width:100%;height:100%;">
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <title>Login</title>
+  <style>
+	@viewport{ width: device-width; zoom: 1.0; }
+	@-ms-viewport{ width: device-width; }
+	@media screen and (max-width: 320px) {}
+	@media screen and (min-width: 321px) and (max-width: 480px) {}
+	@media screen and (min-width: 481px) {}
+
+	body{ font-family: Helvetica,Arial,'Microsoft Yahei'; margin: 0; }
+	.fill{ width:100%; height:100%; }
+	.base{ box-sizing: border-box; position: relative; display: -webkit-flex; display: -ms-flex; display: flex; }
+	.row{ -webkit-flex-flow: row nowrap; -ms-flex-flow: row nowrap; flex-flow: row nowrap;}
+	.columns{ -webkit-flex-flow: column nowrap; -ms-flex-flow: column nowrap; flex-flow: column nowrap;}
+	.center-item{ -webkit-align-items: center; -ms-align-items: center; align-items: center; }
+	.center-content{ -webkit-justify-content: center; -ms-justify-content: center; justify-content: center;}
+	.label
+	{
+		font-family: Helvetica,Arial,'Microsoft Yahei'; 
+		font-size: 20px; 
+	}
+	.separator 
+	{ 
+		border-top: 1px solid lightgray; 
+		width: 240px; 
+		height: 20px; 
+	}
+	.text-input 
+	{
+		margin: 8px; 
+		padding: 4px 16px 4px 16px; 
+		width: 140px; 
+		height: 28px; 
+		border: 1px solid white; 
+		text-align:left;
+	}
+	.text-input:hover
+	{ 
+		border: 0.5px solid #CCC !important; 
+		border-radius: 4px; 
+		
+		-moz-box-shadow: 1px 1px 2px #DDD;
+		-webkit-box-shadow: 1px 1px 2px #DDD;
+        box-shadow: 1px 1px 2px #DDD;
+	}
+	.login-button
+	{
+		border-radius: 19px; 
+		margin-top: 25px; 
+		width: 190px; 
+		height: 38px; 
+		background-color: #49B673; 
+		border: 0;
+	}
+	.login-button:hover
+	{
+		cursor: pointer;
+		
+		-moz-box-shadow: 1px 1px 10px #DDD;
+		-webkit-box-shadow: 1px 1px 10px #DDD;
+        box-shadow: 1px 1px 10px #DDD;
+	}
+  </style>
+</head>
+
+<body class="base fill row center-item center-content label">
+  <form class="base columns center-item" style="width: 250px; margin-bottom: 50px;" action="/auth/login.html" method="post">
+    <div class="base row center-item">
+		<div>
+			<svg class="" width="45px" height="45px" viewBox="0 0 299.997 299.997">
+				<path d="M149.996,0C67.157,0,0.001,67.158,0.001,149.997c0,82.837,67.156,150,149.995,150s150-67.163,150-150
+					C299.996,67.156,232.835,0,149.996,0z M150.453,220.763v-0.002h-0.916H85.465c0-46.856,41.152-46.845,50.284-59.097l1.045-5.587
+					c-12.83-6.502-21.887-22.178-21.887-40.512c0-24.154,15.712-43.738,35.089-43.738c19.377,0,35.089,19.584,35.089,43.738
+					c0,18.178-8.896,33.756-21.555,40.361l1.19,6.349c10.019,11.658,49.802,12.418,49.802,58.488H150.453z"/>
+			</svg>
+		</div>
+		<input name="username" type="text" class="label text-input" placeholder="Username"/>
+	</div>
+
+	<div class="base separator"></div>
+	
+    <div class="base row center-item">
+		<div>
+			<svg class="" width="45px" height="45px" viewBox="0 0 299.995 299.995">
+				<path d="M149.997,161.485c-8.613,0-15.598,6.982-15.598,15.598c0,5.776,3.149,10.807,7.817,13.505v17.341h15.562v-17.341
+					c4.668-2.697,7.817-7.729,7.817-13.505C165.595,168.467,158.611,161.485,149.997,161.485z"/>
+				<path d="M150.003,85.849c-13.111,0-23.775,10.665-23.775,23.775v25.319h47.548v-25.319
+					C173.775,96.516,163.111,85.849,150.003,85.849z"/>
+				<path d="M149.995,0.001C67.156,0.001,0,67.159,0,149.998c0,82.837,67.156,149.997,149.995,149.997s150-67.161,150-149.997
+					C299.995,67.159,232.834,0.001,149.995,0.001z M196.085,227.118h-92.173c-9.734,0-17.626-7.892-17.626-17.629v-56.919
+					c0-8.491,6.007-15.582,14.003-17.25v-25.697c0-27.409,22.3-49.711,49.711-49.711c27.409,0,49.709,22.3,49.709,49.711v25.697
+					c7.993,1.673,14,8.759,14,17.25v56.919h0.002C213.711,219.225,205.819,227.118,196.085,227.118z"/>
+			</svg>
+		</div>
+		<input name="password" type="password" class="label text-input" placeholder="Password"/>
+	</div>
+
+	<div class="base separator"></div>
+	
+    <button type="submit" class="base center-item center-content label login-button" id="login">Login</button>
+  </form>
+  
+  <script>
+    //document.getElementById('login').addEventListener('click', goLogin);
+    //function goLogin() { location.href = '/'; }
+  </script>
+</body>
+</html>
