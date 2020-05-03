@@ -69,4 +69,5 @@ void sys_arch_init();
 void sys_arch_protect();
 void sys_arch_unprotect();
 
+char* gmt4http(time_t* t);
 #endif

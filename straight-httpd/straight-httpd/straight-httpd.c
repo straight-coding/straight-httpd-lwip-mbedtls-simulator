@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <conio.h>
+#include <time.h>
 
 #include "../../lwip-port/win32/lwip_port.h"
 
@@ -153,6 +154,10 @@ int main()
 	char szHostSubnet[128];
 
 	char szFilter[512];
+
+	time_t now;
+	time(&now);
+	printf("Last-Modified: %s", gmt4http(&now));
 
 	memset(szHostName, 0, sizeof(szHostName));
 	memset(szFilter, 0, sizeof(szFilter));
@@ -334,7 +339,7 @@ DWORD WINAPI AppThread(void* data)
 
 	while (g_nKeepRunning)
 	{
-		ClearOwner(NULL);
+		SessionClearAll(); //lock used inside
 
 		while (g_tcpipReady == 0)
 		{

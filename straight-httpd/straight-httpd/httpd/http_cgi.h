@@ -12,27 +12,32 @@
 //the first matched folder will be the web home directory, 
 //  where the default homepage <WEB_DRIVE[i] + WEB_ROOT + WEB_ROOT_FILE> is located.
 #define WEB_DRIVE		"D"	//used for multiple dynamic disks ('CDEF' etc.), the first letter has the highest priority
-#define WEB_ROOT		"/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/"
-#define WEB_AUTH_PAGE	"login.html"
-#define WEB_HOME_PAGE	"index.shtml"
+#define WEB_ABS_ROOT	"/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/"
+
+#define WEB_DEFAULT_PAGE	"/auth/login.html"
+#define WEB_APP_PAGE		"/app/index.shtml"
+
+#define MAX_CGI_PATH	64
 
 #define CGI_OPT_AUTHENTICATOR	0x80000000	//this is the authentication responser, response with token header named 'X-Auth-Token'
 #define CGI_OPT_AUTH_REQUIRED	0x40000000	//MUST request with token header named 'X-Auth-Token'
 
-#define CGI_OPT_GET_ENABLED		0x00080000	//GET enabled
-#define CGI_OPT_POST_ENABLED	0x00040000	//POST enabled
-#define CGI_OPT_LOG_ENABLED		0x00020000	//LOG enabled, not used
+#define CGI_OPT_PREFIX_WILDCARD	0x08000000	//path with * wildcard
 
-#define CGI_OPT_CHUNKED			0x00000800	//response with chunked data
-#define CGI_OPT_GZIP			0x00000400	//response with gzip compression
+#define CGI_OPT_GET_ENABLED		0x00800000	//GET enabled
+#define CGI_OPT_POST_ENABLED	0x00400000	//POST enabled
+#define CGI_OPT_LOG_ENABLED		0x00200000	//LOG enabled, not used
+
+#define CGI_OPT_CHUNKED			0x00008000	//response with chunked data
+#define CGI_OPT_GZIP			0x00004000	//response with gzip compression
 
 struct CGI_Mapping
 {
-	char* path;			//constant string, request full path
-
+	char path[MAX_CGI_PATH];	//constant string, request full path
 	unsigned long options; //defined by CGI_OPT_xxxxxx
 
 	void (*OnCancel)(REQUEST_CONTEXT* context);
+
 	void (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line);
 	void (*OnHeadersReceived)(REQUEST_CONTEXT* context);
 	int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size);
@@ -47,8 +52,24 @@ struct CGI_Mapping
 	struct CGI_Mapping* next;
 };
 
+/*
+CGI_SetCgiHandler(context)
+	Cookie ==> SessionCheck(context) ==> context->_result=-403 if not 200
+CGI_HeaderReceived(context, line);				==> OnHeaderReceived(context, line)
+	SessionCheck(context) ==> context->ctxResponse._authorized=-403 or 200
+CGI_HeadersReceived(context);					==> OnHeadersReceived(context)
+CGI_ContentReceived(context, buffer, size);		==> OnContentReceived(context, buffer, size)
+CGI_RequestReceived(context);					==> OnRequestReceived(context)
+	HttpResponse(context, caller);
+CGI_SetResponseHeaders(context, codeNinfo);		==> SetResponseHeader(context, HttpCode);
+CGI_LoadContentToSend(context, caller);			==> OnAllSent(context)
+	FreeHttpContext ==> CGI_Finish(context);	==> OnFinished(context)
+
+CGI_Cancel(context) ==> OnCancel
+*/
+
 void CGI_SetupMapping(void); //setup mapping when initializing httpd context
-void CGI_Append(struct CGI_Mapping* newMapping); //append single CGI mapping
+void CGI_Append(struct CGI_Mapping* newMapping, const char* ovwPath, u32_t ovwOptions); //append single CGI mapping
 
 //cancel notification to app layer because of any HTTP fatal errors
 //  including timeout, format errors, sending failures, and stack keneral errors
@@ -87,13 +108,16 @@ int  CGI_LoadContentToSend(REQUEST_CONTEXT* context, int caller);
 extern const char no_cache[];
 extern const char response_header_chunked[];
 extern const char response_header_generic[];
+extern const char response_redirect_body1[];
+extern const char response_redirect_body2[];
 extern const char* Response_Status_Lines[];
 
 extern char g_szWebDrive[16];
-extern char g_szWebRoot[128];
-extern char g_szWebRootFile[128];
+extern char g_szWebAbsRoot[128];
+extern char g_szWebDefaultPage[128];
+extern char g_szWebAppHomePage[128];
 
-int CheckWebRoot(char* drive, char* root, char* file);
-void SetWebRoot(char* drive, char* root, char* file);
+int CheckWebRoot(char* drive, char* absRoot, char* defaultPage);
+void SetWebRoot(char* drive, char* absRoot, char* defaultPage);
 
 #endif

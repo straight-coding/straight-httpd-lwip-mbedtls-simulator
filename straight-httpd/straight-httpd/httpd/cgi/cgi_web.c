@@ -39,26 +39,26 @@ static const TypeHeader contentTypes[] = {
 	{ "shtml", "text/html"},
 	{ "shtm",  "text/html"},
 	{ "ssi",   "text/html"},
+	{ "css",   "text/css"},
+
+	{ "json",  "application/json"},
+	{ "js",    "application/javascript"},
 
 	{ "gif",   "image/gif"},
 	{ "png",   "image/png"},
 	{ "jpg",   "image/jpeg"},
 	{ "bmp",   "image/bmp"},
-
 	{ "ico",   "image/x-icon"},
+
 	{ "class", "application/octet-stream"},
 	{ "cls",   "application/octet-stream"},
 	{ "swf",   "application/x-shockwave-flash"},
-
-	{ "js",    "application/javascript"},
 	{ "ram",   "application/javascript"},
+	{ "pdf",   "application/pdf"},
 
-	{ "css",   "text/css"},
 	{ "xml",   "text/xml"},
 	{ "xsl",   "text/xml"},
 
-	{ "pdf",   "application/pdf"},
-	{ "json",  "application/json"},
 	{ "",    "text/plain"}
 };
 
@@ -73,22 +73,45 @@ extern int ReplaceTag(REQUEST_CONTEXT* context, char* tagName, char* appendTo, i
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Web_OnHeadersReceived(REQUEST_CONTEXT* context);
+void Web_OnLoginHeaders(REQUEST_CONTEXT* context);
+int  Web_OnLoginData(REQUEST_CONTEXT* context, char* buffer, int size);
+int  Web_OnLoginCheck(REQUEST_CONTEXT* context);
+
+void Web_OnRequestReceived(REQUEST_CONTEXT* context);
 	
 void Web_SetResponseHeader(REQUEST_CONTEXT* context, char* HttpCodeInfo);
 int  Web_LoadContentToSend(REQUEST_CONTEXT* context);
 void Web_OnAllSent(REQUEST_CONTEXT* context);
 void Web_OnFinished(REQUEST_CONTEXT* context);
 
-struct CGI_Mapping g_cgiWeb = {
-	"/*", //char* path;
-	CGI_OPT_GET_ENABLED,// unsigned long options;
+struct CGI_Mapping g_cgiWebLogin = {
+	"/auth/*", //char* path;
+	CGI_OPT_AUTHENTICATOR | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED,// unsigned long options;
 
 	NULL, //void (*OnCancel)(REQUEST_CONTEXT* context);
 	NULL, //void (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line);
-	Web_OnHeadersReceived, //void (*OnHeadersReceived)(REQUEST_CONTEXT* context);
+	Web_OnLoginHeaders, //Web_OnHeadersReceived, //void (*OnHeadersReceived)(REQUEST_CONTEXT* context);
+	Web_OnLoginData, //int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size);
+	Web_OnRequestReceived, //void (*OnRequestReceived)(REQUEST_CONTEXT* context);
+
+	Web_SetResponseHeader, //void (*SetResponseHeader)(REQUEST_CONTEXT* context, char* HttpCode);
+	Web_LoadContentToSend, //int  (*LoadContentToSend)(REQUEST_CONTEXT* context);
+
+	Web_OnAllSent, //int  (*OnAllSent)(REQUEST_CONTEXT* context);
+	Web_OnFinished, //void (*OnFinished)(REQUEST_CONTEXT* context);
+
+	NULL //struct CGI_Mapping* next;
+};
+
+struct CGI_Mapping g_cgiWebApp = {
+	"/app/*", //char* path;
+	CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED,// unsigned long options;
+
+	NULL, //void (*OnCancel)(REQUEST_CONTEXT* context);
+	NULL, //void (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line);
+	NULL, //Web_OnHeadersReceived, //void (*OnHeadersReceived)(REQUEST_CONTEXT* context);
 	NULL, //int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size);
-	NULL, //void (*OnRequestReceived)(REQUEST_CONTEXT* context);
+	Web_OnRequestReceived, //void (*OnRequestReceived)(REQUEST_CONTEXT* context);
 	
 	Web_SetResponseHeader, //void (*SetResponseHeader)(REQUEST_CONTEXT* context, char* HttpCode);
 	Web_LoadContentToSend, //int  (*LoadContentToSend)(REQUEST_CONTEXT* context);
@@ -99,11 +122,55 @@ struct CGI_Mapping g_cgiWeb = {
 	NULL //struct CGI_Mapping* next;
 };
 
-void Web_OnHeadersReceived(REQUEST_CONTEXT* context)
+void Web_OnLoginHeaders(REQUEST_CONTEXT* context)
+{
+	memset(context->ctxResponse._appContext, 0, sizeof(context->ctxResponse._appContext));
+}
+
+int  Web_OnLoginData(REQUEST_CONTEXT* context, char* buffer, int size)
+{
+	int len = strlen(context->ctxResponse._appContext);
+	int max = sizeof(context->ctxResponse._appContext);
+	strncpy(context->ctxResponse._appContext + len, buffer, (size < max-len-2) ? size : (max - len - 2));
+	return size;
+}
+
+int Web_OnLoginCheck(REQUEST_CONTEXT* context)
+{
+	if (context->ctxResponse._appContext[0] != 0)
+	{
+		LogPrint(0, "POST data: %s\r\n", context->ctxResponse._appContext);
+		context->ctxResponse._authorized = 200;
+		return 1;
+	}
+	return 0;
+}
+
+void Web_OnRequestReceived(REQUEST_CONTEXT* context)
 {
 	char szTemp[256];
 
 	SSI_Context* ctxSSI = (SSI_Context*)context->ctxResponse._appContext;
+	if ((context->_requestMethod == METHOD_POST) && (context->handler != NULL) && 
+		((context->handler->options & CGI_OPT_AUTHENTICATOR) != 0))
+	{
+		int success = Web_OnLoginCheck(context);
+
+		memset(ctxSSI, 0, sizeof(SSI_Context)); //clear for reuse
+		if (success > 0)
+		{
+			strcpy(context->_responsePath, WEB_APP_PAGE);
+			context->_result = -307;
+			return;
+		}
+		else
+		{
+			strcpy(context->_responsePath, WEB_DEFAULT_PAGE);
+			context->_result = -307;
+			return;
+		}
+	}
+
 	if (sizeof(context->ctxResponse._appContext) < sizeof(SSI_Context))
 	{
 		ctxSSI->_valid = 0;
@@ -125,19 +192,20 @@ void Web_OnHeadersReceived(REQUEST_CONTEXT* context)
 	
 	if ((context->_responsePath[0] == '/') && (context->_responsePath[1] == 0))
 	{ //default path
-		strcpy(context->_responsePath, WEB_HOME_PAGE);
-		char* ext = strstr(WEB_HOME_PAGE, ".");
+		strcpy(context->_responsePath, WEB_ABS_ROOT, WEB_DEFAULT_PAGE);
+		char* ext = strstr(WEB_DEFAULT_PAGE, ".");
 		if (ext != NULL)
 			strcpy(context->_extension, ext+1);
 	}
 
 	if (context->_responsePath[0] == '/')
-		LWIP_sprintf(szTemp, "%s%s", g_szWebRoot, context->_responsePath+1);
+		LWIP_sprintf(szTemp, "%s%s", g_szWebAbsRoot, context->_responsePath+1);
 	else
-		LWIP_sprintf(szTemp, "%s%s", g_szWebRoot, context->_responsePath);
+		LWIP_sprintf(szTemp, "%s%s", g_szWebAbsRoot, context->_responsePath);
 	ctxSSI->_fp = LWIP_fopen(szTemp, "r");
 	if (ctxSSI->_fp != NULL)
 	{
+		context->_file2Get = ctxSSI->_fp;
 		context->ctxResponse._dwTotal = LWIP_fsize(ctxSSI->_fp);
 		LogPrint(LOG_DEBUG_ONLY, "File opened: %s, len=%d", szTemp, context->ctxResponse._dwTotal);
 	}
@@ -193,7 +261,7 @@ int  Web_LoadContentToSend(REQUEST_CONTEXT* context)
 	int needSend = 0;
 	SSI_Context* ctxSSI = (SSI_Context*)context->ctxResponse._appContext;
 
-	if (context->_requestMethod == METHOD_GET)
+	if ((context->_requestMethod == METHOD_GET) || (context->_requestMethod == METHOD_POST))
 	{
 		int size;
 		char szSize[64];

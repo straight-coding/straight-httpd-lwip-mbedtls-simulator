@@ -12,7 +12,7 @@
 #include "lwip_port.h"
 #include "arch/sys_arch.h"
 
-#define LOG_DEBUG_ONLY			6 //max level of debug output
+#define LOG_DEBUG_ONLY			0 //max level of debug output
 
 #define METHOD_GET				1 //request method GET
 #define METHOD_POST				2 //request method POST
@@ -44,7 +44,12 @@
 #define MAX_REQ_BUF_SIZE				4096	//length of the request header is up to MAX_REQ_BUF_SIZE bytes
 #define MAX_APP_CONTEXT_SIZE			4096	//reserved buffer for app/cgi layer, such as SSI peocessing
 
-#define MAX_COOKIE_SIZE					64		//max length of the cookie string
+#define MAX_SESSIONS					5
+#define MAX_COOKIE_SIZE					32		//max length of the cookie string
+
+#define TO_SESSION						60*1000
+#define TO_RECV							60*1000
+#define TO_SENT							60*1000
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -56,9 +61,18 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+typedef struct _SESSION
+{
+	char _token[MAX_COOKIE_SIZE];	//for http_core.c
+
+	unsigned long _nUserIP;
+	unsigned long _tLastReceived;	//tick of the last received
+	unsigned long _tLastSent;		//tick of the last sent
+}SESSION;
+
 typedef struct _RESPONSE_CONTEXT
 {
-	char 	_cookie[128];	//for http_core.c
+	char 	_token[128];	//for http_core.c
 	int 	_authorized;	//for http_core.c
 	
 	int 	_cmdType;			//for cgi_command.c, ATTACH / DETACH
@@ -109,6 +123,8 @@ typedef struct _REQUEST_CONTEXT
 	int _contentReceived;	//count while receiving, for http_core.c
 	int _result;			//200 for success, 0 for pending, negative for failure, for http_core.c
 
+	SESSION* _session;
+
 	struct CGI_Mapping* handler;	//matched CGI handler
 	RESPONSE_CONTEXT ctxResponse;	
 	
@@ -125,12 +141,14 @@ typedef struct _REQUEST_CONTEXT
 	char http_request_buffer[MAX_REQ_BUF_SIZE + 20]; //receiving buffer, max space to hold the request
 }REQUEST_CONTEXT;
 
-int SetOwner(unsigned long owner_ip, char* computerid, char* setcookie); //success=200, Forbidden=-403
-int ClearOwner(char* cookie);
-int UpdateOwner(char* cookie);
+int  SessionAuthenticate(char* cookie);
+void SessionClearAll(); //lock used inside
+int  SessionControls(char* extension);
 
-int GetCookie(char* cookie);
-int IsAuthorized(char* cookie);
+int  SessionCheck(REQUEST_CONTEXT* context); //lock used inside
+void SessionTimeout(REQUEST_CONTEXT* context);
+void SessionReceived(REQUEST_CONTEXT* context);
+void SessionSent(REQUEST_CONTEXT* context);
 
 void PrintLwipStatus(void);
 

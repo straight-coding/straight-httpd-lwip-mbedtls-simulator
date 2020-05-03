@@ -27,16 +27,12 @@ extern struct tcp_pcb *tcp_tw_pcbs;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-unsigned long g_nOwnerIP = 0;
-unsigned long g_tOwnerLastAccess = 0;
-char  g_szComputerID[MAX_COOKIE_SIZE];
-char  g_szCookie[MAX_COOKIE_SIZE];
-
 /** Serve one HTTP connection accepted in the http thread */
 signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller);
 signed char HttpResponse(REQUEST_CONTEXT* context, int caller);
 
 sys_mutex_t		g_sessionMutex;
+SESSION			g_httpSessions[MAX_SESSIONS];
 REQUEST_CONTEXT g_httpContext[MAX_CONNECTIONS];
 sys_mutex_t	    g_httpMutex[MAX_CONNECTIONS];
 
@@ -99,153 +95,113 @@ static const char* Response_Status_Lines[] = {
 const char no_cache[] = "Cache-Control: no-cache, no-store, must-revalidate\r\nPragma: no-cache\r\nExpires: 0\r\n";
 const char response_header_generic[] = "HTTP/1.1 %s\r\nContent-type: %s\r\nContent-Length: %d\r\nConnection: %s\r\n\r\n";
 const char response_header_chunked[] = "HTTP/1.1 %s\r\nContent-type: %s\r\nTransfer-Encoding: chunked\r\n%sConnection: %s\r\n\r\n";
+const char response_redirect_body1[] = "<html><head/><body><script>location.href='";
+const char response_redirect_body2[] = "';</script></body></html>";
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int SetOwner(unsigned long owner_ip, char* computerid, char* setcookie) //success=200, Forbidden=-403
+int SessionAuthenticate(char* cookie)
 {
-	int result = -403; //Forbidden
-	
-	sys_mutex_lock(&g_sessionMutex);
-		if ((g_nOwnerIP == 0) && (g_szComputerID[0] == 0) && (g_szCookie[0] == 0))
-			result = 200; //idle
-		if (strcmp(g_szComputerID, computerid) == 0)
-			result = 200; //re-attach
-		
-		if (result > 0)
-		{ //idle
-			memset(g_szComputerID, 0, sizeof(g_szComputerID));
-			memset(g_szCookie, 0, sizeof(g_szCookie));
-		
-			g_nOwnerIP = owner_ip;
-			strncpy(g_szComputerID, computerid, sizeof(g_szComputerID)-2);
-			strncpy(g_szCookie, setcookie, sizeof(g_szCookie)-2);
-		}
-	sys_mutex_unlock(&g_sessionMutex);
-		
-	return result;
 }
 
-unsigned long GetRemoteIP(void)
+int SessionControls(char* extension)
 {
-	unsigned long ip = 0;
-	sys_mutex_lock(&g_sessionMutex);
-		ip = g_nOwnerIP;
-	sys_mutex_unlock(&g_sessionMutex);
-	return ip;
+	if ((extension[0] == 0) ||
+		(Strnicmp(extension, "htm", 3) == 0) ||
+		(Strnicmp(extension, "html", 4) == 0) ||
+		(Strnicmp(extension, "shtml", 5) == 0) ||
+		(Strnicmp(extension, "ssi", 3) == 0) ||
+		(Strnicmp(extension, "json", 4) == 0))
+	{
+		return 1;
+	}
+	return 0;
 }
 
-int GetCookie(char* cookie)
+int SessionCheck(REQUEST_CONTEXT* context) //called when header 'X-Auth-Token' or 'Cookie' received, also called after all headers received
 {
-	int result = -403;
+	int result = 200;
+
 	sys_mutex_lock(&g_sessionMutex);
-		if ((g_nOwnerIP != 0) && (g_szComputerID[0] != 0) && (g_szCookie[0] != 0))
+	if (context->handler != NULL)
+	{
+		if ((context->handler->options & CGI_OPT_AUTHENTICATOR) != 0)
 		{
-			strncpy(cookie, g_szCookie, sizeof(g_szCookie)-2);
-			result = 200; //idle
 		}
-	sys_mutex_unlock(&g_sessionMutex);
-		
-	return result;
-}
-
-int IsAuthorized(char* cookie)
-{
-	int result = -403;
-	
-	sys_mutex_lock(&g_sessionMutex);
-		if ((cookie[0] != 0) && (g_szCookie[0] != 0))
-		{
-			if (strcmp(cookie, g_szCookie) == 0)
+		else if ((context->handler->options & CGI_OPT_AUTH_REQUIRED) != 0)
+		{ //this scope needs authentication
+			if (SessionControls(context->_extension) > 0)
+			{
+				result = -307; //Temporary Redirect (since HTTP/1.1)
+				if (context->ctxResponse._token[0] != 0)
+				{
+					for (int i = 0; i < MAX_SESSIONS; i++)
+					{
+						if (strcmp(context->ctxResponse._token, g_httpSessions[i]._token) == 0)
+						{
+							result = 200;
+							break;
+						}
+					}
+				}
 				result = 200;
-		}
-	sys_mutex_unlock(&g_sessionMutex);
-		
-	return result;
-}
 
-int CheckOwner(int timeout)
-{
-	int occupied = 0;
-	unsigned long tSpan = LWIP_GetTickCount();
-	
-	sys_mutex_lock(&g_sessionMutex);
-		if ((g_nOwnerIP == 0) && (g_szComputerID[0] == 0) && (g_szCookie[0] == 0))
-		{
-			g_nOwnerIP = 0;
-			g_tOwnerLastAccess = 0;
-			occupied = 0;
-		}
-		else if (g_tOwnerLastAccess != 0)
-		{
-			if (tSpan >= g_tOwnerLastAccess)
-				tSpan -= g_tOwnerLastAccess;
-			else
-				tSpan += (0xFFFFFFFF - g_tOwnerLastAccess);
-			
-			if (tSpan >= timeout)
-			{
-				LWIP_DEBUGF(REST_DEBUG, ("Owner timeout @ %08lX", g_nOwnerIP));
-				
-				occupied = -1;
-				
-				g_nOwnerIP = 0;
-				g_tOwnerLastAccess = 0;
-				memset(g_szComputerID, 0, sizeof(g_szComputerID));
-				memset(g_szCookie, 0, sizeof(g_szCookie));
-			}
-			else
-			{
-				occupied = +1;
+				if (result == -307)
+					strcpy(context->_responsePath, WEB_DEFAULT_PAGE);
 			}
 		}
-	sys_mutex_unlock(&g_sessionMutex);
-		
-	return occupied;
-}
-
-int UpdateOwner(char* cookie)
-{
-	int result = -403; //Forbidden
-
-	sys_mutex_lock(&g_sessionMutex);
-	if (g_szCookie[0] == 0)
-	{
-		result = 200;
-	}
-	else if ((cookie[0] != 0) && (strcmp(cookie, g_szCookie) == 0))
-	{
-		g_tOwnerLastAccess = LWIP_GetTickCount();
-		if (g_tOwnerLastAccess == 0)
-			g_tOwnerLastAccess ++;
-		result = 200;
-	}
-	else
-	{
-		LogPrint(LOG_DEBUG_ONLY, "cookie:%s, wanted:%s\r\n", cookie, g_szCookie);
 	}
 	sys_mutex_unlock(&g_sessionMutex);
-	
+
 	return result;
 }
 
-int ClearOwner(char* cookie)
+void SessionClearAll() //called at the very beginning of AppThread
 {
-	int result = -403; //Forbidden
-	
 	sys_mutex_lock(&g_sessionMutex);
-	if ((cookie == NULL) || (strcmp(cookie, g_szCookie) == 0))
+		memset(g_httpSessions, 0, sizeof(g_httpSessions));
+	sys_mutex_unlock(&g_sessionMutex);
+}
+
+void SessionTimeout(REQUEST_CONTEXT* context) //called by IsContextTimeout
+{
+	sys_mutex_lock(&g_sessionMutex);
+	if (context->_session != NULL)
 	{
-		g_nOwnerIP = 0;
-		g_tOwnerLastAccess = 0;
-		memset(g_szComputerID, 0, sizeof(g_szComputerID));
-		memset(g_szCookie, 0, sizeof(g_szCookie));
-		
-		result = 200;
+		for (int i = 0; i < MAX_SESSIONS; i++)
+		{
+			if (strcmp(context->_session->_token, g_httpSessions[i]._token) == 0)
+			{
+				memset(&g_httpSessions[i], 0, sizeof(SESSION));
+				break;
+			}
+		}
 	}
 	sys_mutex_unlock(&g_sessionMutex);
-		
-	return result;
+}
+
+void SessionReceived(REQUEST_CONTEXT* context) //called by OnHttpReceive
+{
+	sys_mutex_lock(&g_sessionMutex);
+	if (context->_session != NULL)
+	{
+		context->_session->_tLastReceived = LWIP_GetTickCount();
+		if (context->_session->_tLastReceived == 0)
+			context->_session->_tLastReceived++;
+	}
+	sys_mutex_unlock(&g_sessionMutex);
+}
+
+void SessionSent(REQUEST_CONTEXT* context) //called by OnHttpSent
+{
+	sys_mutex_lock(&g_sessionMutex);
+	if (context->_session != NULL)
+	{
+		context->_session->_tLastSent = LWIP_GetTickCount();
+		if (context->_session->_tLastSent == 0)
+			context->_session->_tLastSent++;
+	}
+	sys_mutex_unlock(&g_sessionMutex);
 }
 
 void PrintLwipStatus(void)
@@ -272,7 +228,12 @@ void PrintLwipStatus(void)
 void SetupHttpContext(void)
 {
 	int i;
-	
+
+	LogPrint(0, "size of REQUEST_CONTEXT: %d\r\n", sizeof(REQUEST_CONTEXT));
+	LogPrint(0, "size of SESSION: %d\r\n", sizeof(SESSION));
+	LogPrint(0, "size of CGI_Mapping: %d\r\n", sizeof(struct CGI_Mapping));
+
+	memset(g_httpSessions, 0, sizeof(g_httpSessions)); //only when the task started
 	memset(g_httpContext, 0, sizeof(g_httpContext)); //only when the task started
 	
 	for(i = 0; i < MAX_CONNECTIONS; i ++)
@@ -302,10 +263,11 @@ REQUEST_CONTEXT* GetHttpContext(void)
 			g_httpContext[i]._reqBufList = NULL;
 			g_httpContext[i]._bufOffset = 0;
 
-			g_httpContext[i].ctxResponse._nSendTimeout = 60*1000;
-			g_httpContext[i]._nReceiveTimeout = 60*1000;
-			
 			ResetHttpContext(&g_httpContext[i]);
+
+			g_httpContext[i]._tLastReceived = LWIP_GetTickCount();
+			if (g_httpContext[i]._tLastReceived == 0)
+				g_httpContext[i]._tLastReceived++;
 			return &g_httpContext[i];
 		}
 	}
@@ -313,13 +275,39 @@ REQUEST_CONTEXT* GetHttpContext(void)
 	return NULL;
 }
 
-int IsContextTimeout(REQUEST_CONTEXT* context)
+int IsContextTimeout(REQUEST_CONTEXT* context) //called by OnHttpPoll
 {
 	unsigned long recvElapsed = LWIP_GetTickCount();
 	unsigned long sendElapsed = recvElapsed;
-	
+
 	if (context == NULL)
 		return -1;
+
+	if (context->_session != NULL)
+	{
+		if (context->_session->_tLastReceived != 0)
+		{
+			if (recvElapsed >= context->_session->_tLastReceived)
+				recvElapsed -= context->_session->_tLastReceived;
+			else
+				recvElapsed += (0xFFFFFFFF - context->_session->_tLastReceived);
+		}
+		else
+			recvElapsed = 0;
+
+		if (context->_session->_tLastSent != 0)
+		{
+			if (sendElapsed >= context->_session->_tLastSent)
+				sendElapsed -= context->_session->_tLastSent;
+			else
+				sendElapsed += (0xFFFFFFFF - context->_session->_tLastSent);
+		}
+		else
+			sendElapsed = 0;
+
+		if ((sendElapsed > TO_SESSION) || (recvElapsed > TO_SESSION))
+			SessionTimeout(context);
+	}
 	
 	if (context->_tLastReceived != 0)
 	{
@@ -387,8 +375,8 @@ void ResetHttpContext(REQUEST_CONTEXT* context)
 		context->_result = 0;
 		
 		memset(&context->ctxResponse, 0, sizeof(RESPONSE_CONTEXT));
-		context->ctxResponse._nSendTimeout = 60*1000;
-		context->_nReceiveTimeout = 60*1000;
+		context->ctxResponse._nSendTimeout = TO_SENT;
+		context->_nReceiveTimeout = TO_RECV;
 
 		memset(context->_ver, 0, sizeof(context->_ver));
 		memset(context->_extension, 0, sizeof(context->_extension));
@@ -396,8 +384,9 @@ void ResetHttpContext(REQUEST_CONTEXT* context)
 		memset(context->_responsePath, 0, sizeof(context->_responsePath));
 
 		context->handler = NULL;
-		//memset(&context->file2Get, 0, sizeof(context->file2Get));
-		
+		if (context->_file2Get != NULL)
+			LWIP_fclose(context->_file2Get);
+		context->_file2Get = NULL;
 		//context->nContentOffset = 0;
 	
 		//context->request_length = 0;
@@ -640,9 +629,7 @@ signed char OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *p, sign
 
 	if (context->ctxResponse._authorized == 200)
 	{ //POST large data
-		g_tOwnerLastAccess = LWIP_GetTickCount();
-		if (g_tOwnerLastAccess == 0)
-			g_tOwnerLastAccess ++;
+		SessionReceived(context); //lock used inside
 	}
 	
 	UnlockSession(context); //unlock queue
@@ -801,9 +788,7 @@ signed char OnHttpSent(void *arg, struct altcp_pcb *pcb, u16_t len)
 
 		if (context->ctxResponse._authorized == 200)
 		{ //GET large data
-			g_tOwnerLastAccess = LWIP_GetTickCount();
-			if (g_tOwnerLastAccess == 0)
-				g_tOwnerLastAccess ++;
+			SessionSent(context); //lock used inside
 		}
 		
 		return err;
@@ -958,7 +943,6 @@ void ParseQueryString(REQUEST_CONTEXT* context)
 		}
 	}*/
 }
-
 
 signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always return ERR_OK
 { //return 0, or http error code
@@ -1166,18 +1150,27 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 							else if (strstr((char*)buffer+nLinePos+18, "Chunked") != NULL)
 								context->_chunked = 1;
 						}
-						else if (Strnicmp(buffer+nLinePos, "Cookie:", 7) == 0)
+						else if ((Strnicmp(buffer + nLinePos, "X-Auth-Token:", 13) == 0) ||
+								 (Strnicmp(buffer + nLinePos, "Cookie:", 7) == 0))
 						{ //ignored if no method received ahead
 							int code = 0;
-							for(j = nLinePos+7; j < i; j ++)
+							for(j = nLinePos; j < i; j ++)
 							{
-								if (buffer[j] != ' ')
-									break;
+								if (code == 0)
+								{
+									if (buffer[j] == ':')
+										code = 1;
+								}
+								else
+								{
+									if (buffer[j] != ' ')
+										break;
+								}
 							}
-							memset(context->ctxResponse._cookie, 0, sizeof(context->ctxResponse._cookie));
-							strncpy(context->ctxResponse._cookie, (char*)buffer+j, sizeof(context->ctxResponse._cookie)-2);
+							memset(context->ctxResponse._token, 0, sizeof(context->ctxResponse._token));
+							strncpy(context->ctxResponse._token, (char*)buffer+j, sizeof(context->ctxResponse._token)-2);
 							
-							code = UpdateOwner(context->ctxResponse._cookie);
+							code = SessionCheck(context); //lock used inside
 							if (code != 200)
 								context->_result = code; //-403 Forbidden
 						}
@@ -1231,7 +1224,7 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 		if (afterHeader > 0)
 		{ //just after the complete header, or prepare to receive post data or chunks
 			context->max_level = TCP_MSS;
-			context->ctxResponse._authorized = IsAuthorized(context->ctxResponse._cookie); //return 200 or -403
+			context->ctxResponse._authorized = SessionCheck(context); //lock used inside
 			
 			if (context->_chunked > 0)
 			{

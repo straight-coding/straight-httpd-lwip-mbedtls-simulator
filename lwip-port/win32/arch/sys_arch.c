@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <time.h>
 #include <stdarg.h>
+#include <sys/stat.h>
 
 #include <lwip/arch.h>
 #include <lwip/stats.h>
@@ -265,6 +266,23 @@ u32_t sys_arch_mbox_tryfetch(sys_mbox_t *q, void **msg)
 	return SYS_MBOX_EMPTY;
 }
 
+char* gmt4http(time_t* t)
+{ //Last-Modified: Wed, 02 Oct 2015 07:28:00 GMT
+	static const char wday_name[][4] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+	static const char mon_name[][4] = {
+	  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+	  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+	};
+	static char result[32];
+	struct tm timeptr;
+	gmtime_s(&timeptr, t);
+	sprintf_s(result, 32, "%.3s, %02d %.3s %d %02d:%02d:%02d GMT\n",
+		wday_name[timeptr.tm_wday], timeptr.tm_mday,
+		mon_name[timeptr.tm_mon], 1900 + timeptr.tm_year,
+		timeptr.tm_hour, timeptr.tm_min, timeptr.tm_sec);
+	return result;
+}
+
 void LogPrint(int level, char* format, ...)
 {
 	u32_t len;
@@ -362,14 +380,29 @@ int LWIP_fread(LWIP_FIL* f, char* buf, int toRead, unsigned int* outBytes) //0=s
 	return -1;
 }
 
+void LWIP_ftime(LWIP_FIL* f, char* buf)
+{
+	struct stat sb;
+	if (f == NULL)
+		return;
+
+	fstat(f, &sb);
+	
+	strcpy_s(buf, 29, gmt4http(&sb.st_mtime));
+}
+
 long LWIP_fsize(LWIP_FIL* f)
 {
 	long size = 0;
 	int pos = 0;
-	
+	struct stat sb;
+
 	if (f == NULL)
 		return 0;
 
+	//fstat(f, &sb);
+
+	//return sb.st_size;
 	pos = ftell((FILE*)f);
 
 	fseek((FILE*)f, 0, SEEK_END);
@@ -383,3 +416,4 @@ void LWIP_fclose(LWIP_FIL* f)
 {
 	fclose((FILE*)f);
 }
+
