@@ -369,6 +369,8 @@ DWORD WINAPI AppThread(void* data)
 			if (g_tcpipReady == 0)
 				break;
 
+			SessionCheck(NULL);
+
 			Sleep(50);
 		}
 

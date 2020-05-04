@@ -73,28 +73,28 @@ extern int ReplaceTag(REQUEST_CONTEXT* context, char* tagName, char* appendTo, i
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Web_OnLoginHeaders(REQUEST_CONTEXT* context);
-int  Web_OnLoginData(REQUEST_CONTEXT* context, char* buffer, int size);
-int  Web_OnLoginCheck(REQUEST_CONTEXT* context);
+void Web_OnAuthHeaders(REQUEST_CONTEXT* context);
+int  Web_OnAuthData(REQUEST_CONTEXT* context, char* buffer, int size);
+int  Web_OnAuthCheck(REQUEST_CONTEXT* context);
 
 void Web_OnRequestReceived(REQUEST_CONTEXT* context);
 	
-void Web_SetResponseHeader(REQUEST_CONTEXT* context, char* HttpCodeInfo);
+void Web_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo);
 int  Web_LoadContentToSend(REQUEST_CONTEXT* context);
 void Web_OnAllSent(REQUEST_CONTEXT* context);
 void Web_OnFinished(REQUEST_CONTEXT* context);
 
-struct CGI_Mapping g_cgiWebLogin = {
+struct CGI_Mapping g_cgiWebAuth = {
 	"/auth/*", //char* path;
 	CGI_OPT_AUTHENTICATOR | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED,// unsigned long options;
 
 	NULL, //void (*OnCancel)(REQUEST_CONTEXT* context);
 	NULL, //void (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line);
-	Web_OnLoginHeaders, //Web_OnHeadersReceived, //void (*OnHeadersReceived)(REQUEST_CONTEXT* context);
-	Web_OnLoginData, //int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size);
+	Web_OnAuthHeaders, //Web_OnHeadersReceived, //void (*OnHeadersReceived)(REQUEST_CONTEXT* context);
+	Web_OnAuthData, //int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size);
 	Web_OnRequestReceived, //void (*OnRequestReceived)(REQUEST_CONTEXT* context);
 
-	Web_SetResponseHeader, //void (*SetResponseHeader)(REQUEST_CONTEXT* context, char* HttpCode);
+	Web_SetResponseHeaders, //void (*SetResponseHeader)(REQUEST_CONTEXT* context, char* HttpCode);
 	Web_LoadContentToSend, //int  (*LoadContentToSend)(REQUEST_CONTEXT* context);
 
 	Web_OnAllSent, //int  (*OnAllSent)(REQUEST_CONTEXT* context);
@@ -113,7 +113,7 @@ struct CGI_Mapping g_cgiWebApp = {
 	NULL, //int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size);
 	Web_OnRequestReceived, //void (*OnRequestReceived)(REQUEST_CONTEXT* context);
 	
-	Web_SetResponseHeader, //void (*SetResponseHeader)(REQUEST_CONTEXT* context, char* HttpCode);
+	Web_SetResponseHeaders, //void (*SetResponseHeader)(REQUEST_CONTEXT* context, char* HttpCode);
 	Web_LoadContentToSend, //int  (*LoadContentToSend)(REQUEST_CONTEXT* context);
 	
 	Web_OnAllSent, //int  (*OnAllSent)(REQUEST_CONTEXT* context);
@@ -122,12 +122,22 @@ struct CGI_Mapping g_cgiWebApp = {
 	NULL //struct CGI_Mapping* next;
 };
 
-void Web_OnLoginHeaders(REQUEST_CONTEXT* context)
+int CheckUser(char* u, char* p)
+{
+	int success = 0;
+	if ((stricmp(u, "admin") == 0) && (stricmp(p, "password") == 0))
+		success = 1;
+	else if ((stricmp(u, "user") == 0) && (stricmp(p, "password") == 0))
+		success = 1;
+	return success;
+}
+
+void Web_OnAuthHeaders(REQUEST_CONTEXT* context)
 {
 	memset(context->ctxResponse._appContext, 0, sizeof(context->ctxResponse._appContext));
 }
 
-int  Web_OnLoginData(REQUEST_CONTEXT* context, char* buffer, int size)
+int Web_OnAuthData(REQUEST_CONTEXT* context, char* buffer, int size)
 {
 	int len = strlen(context->ctxResponse._appContext);
 	int max = sizeof(context->ctxResponse._appContext);
@@ -135,39 +145,96 @@ int  Web_OnLoginData(REQUEST_CONTEXT* context, char* buffer, int size)
 	return size;
 }
 
-int Web_OnLoginCheck(REQUEST_CONTEXT* context)
+int Web_OnAuthCheck(REQUEST_CONTEXT* context)
 {
 	if (context->ctxResponse._appContext[0] != 0)
 	{
+		int success, i;
+		char* u;
+		char* p;
+		char szToken[32];
+
 		LogPrint(0, "POST data: %s\r\n", context->ctxResponse._appContext);
-		context->ctxResponse._authorized = 200;
-		return 1;
+		u = strstr(context->ctxResponse._appContext, "username=");
+		p = strstr(context->ctxResponse._appContext, "password=");
+		if ((u != NULL) && (p != NULL))
+		{
+			u += 9; p += 9;
+
+			i = 0;
+			while (u[i] != 0)
+			{
+				if (u[i] == '&')
+				{
+					u[i] = 0;
+					break;
+				}
+				i++;
+			}
+
+			i = 0;
+			while (p[i] != 0)
+			{
+				if (p[i] == '&')
+				{
+					p[i] = 0;
+					break;
+				}
+				i++;
+			}
+
+			if (CheckUser(u, p) > 0)
+			{
+				success = SessionCreate(context, szToken);
+				if (success > 0)
+				{
+					context->ctxResponse._authorized = CODE_OK;
+					strcpy(context->ctxResponse._token, szToken);
+					return 1;
+				}
+			}
+		}
 	}
 	return 0;
 }
 
 void Web_OnRequestReceived(REQUEST_CONTEXT* context)
 {
+	int success;
 	char szTemp[256];
 
 	SSI_Context* ctxSSI = (SSI_Context*)context->ctxResponse._appContext;
-	if ((context->_requestMethod == METHOD_POST) && (context->handler != NULL) && 
-		((context->handler->options & CGI_OPT_AUTHENTICATOR) != 0))
+	if ((context->handler != NULL) && ((context->handler->options & CGI_OPT_AUTHENTICATOR) != 0))
 	{
-		int success = Web_OnLoginCheck(context);
+		if (stricmp(context->_requestPath, WEB_LOGOUT_PAGE) == 0)
+		{ //logout
+			SessionKill(context, 1);
 
-		memset(ctxSSI, 0, sizeof(SSI_Context)); //clear for reuse
-		if (success > 0)
-		{
-			strcpy(context->_responsePath, WEB_APP_PAGE);
-			context->_result = -307;
+			strcpy(context->_responsePath, WEB_DEFAULT_PAGE);
+			context->ctxResponse._authorized = 0;
+			context->ctxResponse._token[0] = 0;
+			context->_result = CODE_REDIRECT;
 			return;
 		}
-		else
-		{
-			strcpy(context->_responsePath, WEB_DEFAULT_PAGE);
-			context->_result = -307;
-			return;
+
+		if ((context->_requestMethod == METHOD_POST) && (stricmp(context->_requestPath, WEB_DEFAULT_PAGE) == 0))
+		{ //login
+			success = Web_OnAuthCheck(context);
+			memset(ctxSSI, 0, sizeof(SSI_Context)); //clear after Web_OnAuthCheck
+			if (success > 0)
+			{
+				strcpy(context->_responsePath, WEB_APP_PAGE);
+				context->ctxResponse._authorized = CODE_OK;
+				context->_result = CODE_REDIRECT;
+				return;
+			}
+			else
+			{
+				strcpy(context->_responsePath, WEB_DEFAULT_PAGE);
+				context->ctxResponse._authorized = 0;
+				context->_result = CODE_REDIRECT;
+				return;
+			}
 		}
 	}
 
@@ -243,17 +310,27 @@ char* GetContentType(REQUEST_CONTEXT* context)
 	}
 }
 
-void Web_SetResponseHeader(REQUEST_CONTEXT* context, char* HttpCodeInfo)
+void Web_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 {
 	SSI_Context* ctxSSI = (SSI_Context*)context->ctxResponse._appContext;
 	if (ctxSSI->_valid == 0)
 	{
-		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)response_header_generic, HttpCodeInfo, GetContentType(context), 0, "close"); //length
+		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, GetContentType(context), 0, "close"); //length
 	}
 	else
 	{
-		LWIP_sprintf(context->ctxResponse._sendBuffer, response_header_chunked, HttpCodeInfo, GetContentType(context), no_cache, "close");
+		LWIP_sprintf(context->ctxResponse._sendBuffer, header_chunked, HttpCodeInfo, GetContentType(context), header_nocache, "close");
 	}
+
+	if ((context->_requestMethod == METHOD_GET) && 
+		(context->handler != NULL) &&
+		((context->handler->options & CGI_OPT_AUTHENTICATOR) != 0))
+	{ //clear cookie with login page
+		char szCookie[128];
+		LWIP_sprintf(szCookie, "X-Auth-Token: SID=\r\nSet-Cookie: SID=; Path=/; HttpOnly; max-age=3600\r\n");
+		strcat(context->ctxResponse._sendBuffer, szCookie);
+	}
+	strcat(context->ctxResponse._sendBuffer, CRLF);
 }
 
 int  Web_LoadContentToSend(REQUEST_CONTEXT* context)
@@ -280,7 +357,7 @@ int  Web_LoadContentToSend(REQUEST_CONTEXT* context)
 		}
 		else
 		{
-			strcpy(szCRLF, "\r\n");
+			strcpy(szCRLF, CRLF);
 		}
 		
 		if (context->ctxResponse._dwOperStage == 1)

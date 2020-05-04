@@ -9,12 +9,15 @@
 
 #include "http_core.h"
 
+#define CRLF	"\r\n"
+
 //the first matched folder will be the web home directory, 
 //  where the default homepage <WEB_DRIVE[i] + WEB_ROOT + WEB_ROOT_FILE> is located.
 #define WEB_DRIVE		"D"	//used for multiple dynamic disks ('CDEF' etc.), the first letter has the highest priority
 #define WEB_ABS_ROOT	"/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/"
 
 #define WEB_DEFAULT_PAGE	"/auth/login.html"
+#define WEB_LOGOUT_PAGE		"/auth/logout.html"
 #define WEB_APP_PAGE		"/app/index.shtml"
 
 #define MAX_CGI_PATH	64
@@ -43,7 +46,7 @@ struct CGI_Mapping
 	int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size);
 	void (*OnRequestReceived)(REQUEST_CONTEXT* context);
 	
-	void (*SetResponseHeader)(REQUEST_CONTEXT* context, char* HttpCode);
+	void (*SetResponseHeaders)(REQUEST_CONTEXT* context, char* HttpCode);
 	int  (*LoadContentToSend)(REQUEST_CONTEXT* context);
 	
 	void (*OnAllSent)(REQUEST_CONTEXT* context);
@@ -105,11 +108,12 @@ void CGI_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo);
 //	  data MUST be put in context->ctxResponse._sendBuffer, and the buffer size set to context->ctxResponse._bytesLeft in advance
 int  CGI_LoadContentToSend(REQUEST_CONTEXT* context, int caller);
 
-extern const char no_cache[];
-extern const char response_header_chunked[];
-extern const char response_header_generic[];
-extern const char response_redirect_body1[];
-extern const char response_redirect_body2[];
+extern const char header_nocache[];
+extern const char header_generic[];
+extern const char header_chunked[];
+extern const char redirect_body1[];
+extern const char redirect_body2[];
+
 extern const char* Response_Status_Lines[];
 
 extern char g_szWebDrive[16];

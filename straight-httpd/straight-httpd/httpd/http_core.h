@@ -12,10 +12,13 @@
 #include "lwip_port.h"
 #include "arch/sys_arch.h"
 
-#define LOG_DEBUG_ONLY			0 //max level of debug output
+#define LOG_DEBUG_ONLY		6 //max level of debug output
 
-#define METHOD_GET				1 //request method GET
-#define METHOD_POST				2 //request method POST
+#define METHOD_GET			1 //request method GET
+#define METHOD_POST			2 //request method POST
+
+#define CODE_OK				200
+#define CODE_REDIRECT		-307
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // HTTP receiving FSM state
@@ -47,7 +50,7 @@
 #define MAX_SESSIONS					5
 #define MAX_COOKIE_SIZE					32		//max length of the cookie string
 
-#define TO_SESSION						60*1000
+#define TO_SESSION						3*60*1000
 #define TO_RECV							60*1000
 #define TO_SENT							60*1000
 
@@ -141,12 +144,13 @@ typedef struct _REQUEST_CONTEXT
 	char http_request_buffer[MAX_REQ_BUF_SIZE + 20]; //receiving buffer, max space to hold the request
 }REQUEST_CONTEXT;
 
-int  SessionAuthenticate(char* cookie);
+int  SessionCreate(REQUEST_CONTEXT* context, char* outCookie);
+void SessionKill(REQUEST_CONTEXT* context, int matchIP);
+
 void SessionClearAll(); //lock used inside
 int  SessionControls(char* extension);
 
 int  SessionCheck(REQUEST_CONTEXT* context); //lock used inside
-void SessionTimeout(REQUEST_CONTEXT* context);
 void SessionReceived(REQUEST_CONTEXT* context);
 void SessionSent(REQUEST_CONTEXT* context);
 

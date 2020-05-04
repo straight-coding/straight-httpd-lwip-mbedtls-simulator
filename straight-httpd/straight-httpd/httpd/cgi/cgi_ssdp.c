@@ -39,7 +39,8 @@ void SSDP_SendHeader(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 {
 	if (context->_requestMethod == METHOD_GET)
 	{
-		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)response_header_chunked, "200 OK", "text/xml; charset=\"utf-8\"", no_cache, "close");
+		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_chunked, "200 OK", "text/xml; charset=\"utf-8\"", header_nocache, "close");
+		strcat(context->ctxResponse._sendBuffer, CRLF);
 	}
 }
 

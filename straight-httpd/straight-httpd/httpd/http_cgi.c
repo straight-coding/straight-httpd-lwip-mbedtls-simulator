@@ -35,17 +35,17 @@ void CGI_SetupMapping() //called from SetupHttpContext(), CGI handlers could be 
 	//extern struct CGI_Mapping g_cgiCommand;
 	//extern struct CGI_Mapping g_cgiParam;
 	//extern struct CGI_Mapping g_cgiJob;
-	extern struct CGI_Mapping g_cgiWebLogin;// "/auth/login.html"
+	extern struct CGI_Mapping g_cgiWebAuth; // "/auth/*"
 	extern struct CGI_Mapping g_cgiWebApp;	// "/app/*", MUST be the last one
 
 	SetWebRoot(WEB_DRIVE, WEB_ABS_ROOT, WEB_DEFAULT_PAGE); //default path
 	
 	//CGI_Append(&g_cgiStatus);		//"/status.json"
-	CGI_Append(&g_cgiSSDP, NULL, 0);			//"/upnp_device.xml"
+	CGI_Append(&g_cgiSSDP, NULL, 0);	//"/upnp_device.xml"
 	//CGI_Append(&g_cgiCommand);	//"/cmd.cgi"
 	//CGI_Append(&g_cgiParam);		//"/param.json"
 	//CGI_Append(&g_cgiJob);		//"/job.cgi"
-	CGI_Append(&g_cgiWebLogin, "/auth/login.html", CGI_OPT_AUTHENTICATOR | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED);	//"/auth/login.html"
+	CGI_Append(&g_cgiWebAuth, "/auth/*", CGI_OPT_AUTHENTICATOR | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED);	//"/auth/login.html"
 	CGI_Append(&g_cgiWebApp, "/app/*", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED);	//"/app/*", MUST be the last one
 }
 
@@ -276,7 +276,7 @@ void CGI_HeadersReceived(REQUEST_CONTEXT* context) //called when all HTTP reques
 	{
 		if ((context->handler->options & CGI_OPT_AUTH_REQUIRED) != 0)
 		{
-			if (context->ctxResponse._authorized != 200)
+			if (context->ctxResponse._authorized != CODE_OK)
 			{
 				context->_result = context->ctxResponse._authorized; //403 forbidden
 				return;
@@ -310,7 +310,8 @@ void CGI_HeadersReceived(REQUEST_CONTEXT* context) //called when all HTTP reques
 	{
 		LogPrint(0, "No CGI for: %s, @%d", context->_requestPath, context->_sid);
 		strcpy(context->_responsePath, WEB_DEFAULT_PAGE);
-		context->_result = -307; //redirect
+		context->ctxResponse._authorized = 0;
+		context->_result = CODE_REDIRECT; //redirect
 	}
 	else if (context->_requestMethod == METHOD_GET)
 	{
@@ -356,41 +357,50 @@ void CGI_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo) //set 
 {
 	if (context->_result < 0)
 	{
-		if (context->_result == -307)
+		if (context->_result == CODE_REDIRECT)
 		{
-			LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)response_header_generic, "200 OK", "text/html", strlen(response_redirect_body1)+ strlen(response_redirect_body2) + strlen(context->_responsePath), "close");//, context->_responsePath);
-			strcat(context->ctxResponse._sendBuffer, response_redirect_body1);
+			LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, "200 OK", "text/html", strlen(redirect_body1)+ strlen(redirect_body2) + strlen(context->_responsePath), "close");//, context->_responsePath);
+			if ((context->ctxResponse._authorized == CODE_OK) && (context->ctxResponse._token[0] != 0))
+			{
+				char szCookie[128];
+				LWIP_sprintf(szCookie, "X-Auth-Token: %s\r\nSet-Cookie: %s; Path=/; HttpOnly; max-age=3600\r\n", context->ctxResponse._token, context->ctxResponse._token);
+				strcat(context->ctxResponse._sendBuffer, szCookie);
+			}
+			strcat(context->ctxResponse._sendBuffer, CRLF);
+			strcat(context->ctxResponse._sendBuffer, redirect_body1);
 			strcat(context->ctxResponse._sendBuffer, context->_responsePath);
-			strcat(context->ctxResponse._sendBuffer, response_redirect_body2);
+			strcat(context->ctxResponse._sendBuffer, redirect_body2);
 		}
 		else
 		{
-			LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)response_header_generic, HttpCodeInfo, "text/html", 0, "close");
+			LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, "text/html", 0, "close");
+			strcat(context->ctxResponse._sendBuffer, CRLF);
 		}
 		return;
 	}
 	
 	if (context->handler != NULL)
 	{
-		if (context->handler->SetResponseHeader != NULL)
+		if (context->handler->SetResponseHeaders != NULL)
 		{
-			context->handler->SetResponseHeader(context, HttpCodeInfo);
+			context->handler->SetResponseHeaders(context, HttpCodeInfo);
 			return;
 		}
 	}
 	
 	if (context->_requestMethod == METHOD_GET)
 	{
-		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)response_header_generic, HttpCodeInfo, "text/html", 0, "close");
+		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, "text/html", 0, "close");
 	}
 	else if (context->_requestMethod == METHOD_POST)
 	{
-		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)response_header_generic, HttpCodeInfo, "text/html", 0, "keep-alive");
+		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, "text/html", 0, "close");
 	}
 	else
 	{
-		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)response_header_generic, HttpCodeInfo, "text/html", 0, "close");
+		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, "text/html", 0, "close");
 	}
+	strcat(context->ctxResponse._sendBuffer, CRLF);
 }
 
 int CGI_LoadContentToSend(REQUEST_CONTEXT* context, int caller) //load response body chunk by chunk

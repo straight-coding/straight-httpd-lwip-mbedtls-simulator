@@ -11,13 +11,49 @@
 	@media screen and (min-width: 321px) and (max-width: 480px) {}
 	@media screen and (min-width: 481px) {}
 
-	body{ font-family: Helvetica,Arial,'Microsoft Yahei'; margin: 0; }
-	.fill{ width:100%; height:100%; }
-	.base{ box-sizing: border-box; position: relative; display: -webkit-flex; display: -ms-flex; display: flex; }
-	.row{ -webkit-flex-flow: row nowrap; -ms-flex-flow: row nowrap; flex-flow: row nowrap;}
-	.columns{ -webkit-flex-flow: column nowrap; -ms-flex-flow: column nowrap; flex-flow: column nowrap;}
-	.center-item{ -webkit-align-items: center; -ms-align-items: center; align-items: center; }
-	.center-content{ -webkit-justify-content: center; -ms-justify-content: center; justify-content: center;}
+	body
+	{ 
+		font-family: Helvetica,Arial,'Microsoft Yahei'; 
+		margin: 0; 
+	}
+	.fill
+	{ 
+		width:100%; 
+		height:100%; 
+	}
+	.base
+	{ 
+		box-sizing: border-box; 
+		position: relative; 
+		
+		display: -webkit-flex; 
+		display: -ms-flex; 
+		display: flex; 
+	}
+	.row
+	{ 
+		-webkit-flex-flow: row nowrap; 
+		-ms-flex-flow: row nowrap; 
+		flex-flow: row nowrap;
+	}
+	.columns
+	{ 
+		-webkit-flex-flow: column nowrap; 
+		-ms-flex-flow: column nowrap; 
+		flex-flow: column nowrap;
+	}
+	.center-item
+	{ 
+		-webkit-align-items: center; 
+		-ms-align-items: center; 
+		align-items: center; 
+	}
+	.center-content
+	{ 
+		-webkit-justify-content: center; 
+		-ms-justify-content: center; 
+		justify-content: center;
+	}
 	.label
 	{
 		font-family: Helvetica,Arial,'Microsoft Yahei'; 
@@ -54,11 +90,15 @@
 		width: 190px; 
 		height: 38px; 
 		background-color: #49B673; 
+		
 		border: 0;
+		outline: 0;
 	}
-	.login-button:hover
+	.login-button:hover,
+	.login-button:active
 	{
 		cursor: pointer;
+		border: 0;
 		
 		-moz-box-shadow: 1px 1px 10px #DDD;
 		-webkit-box-shadow: 1px 1px 10px #DDD;
@@ -105,8 +145,6 @@
   </form>
   
   <script>
-    //document.getElementById('login').addEventListener('click', goLogin);
-    //function goLogin() { location.href = '/'; }
   </script>
 </body>
 </html>

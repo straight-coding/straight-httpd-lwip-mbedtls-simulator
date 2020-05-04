@@ -24,16 +24,21 @@
       <button class='tab' id='home'>Home</button>
       <button class='tab margin-l2' id='network'>Network</button>
       <button class='tab margin-l2' id='help'>Help</button>
+      <button class='tab margin-l2' id='logout'>Logout</button>
     </div>
  </div>
  <script>
    document.getElementById('home').addEventListener('click', goHome);
+   function goHome() { location.href = '/app/index.shtml'; }
+   
    document.getElementById('network').addEventListener('click', goNetwork);
+   function goNetwork() { location.href = '/app/network.shtml'; }
+   
    document.getElementById('help').addEventListener('click', goHelp);
-
-    function goHome() { location.href = '/app/index.shtml'; }
-    function goNetwork() { location.href = '/app/network.shtml'; }
-    function goHelp() { location.href = '/app/help.shtml'; }
+   function goHelp() { location.href = '/app/help.shtml'; }
+	
+   document.getElementById('logout').addEventListener('click', goLogout);
+   function goLogout() { location.href = '/auth/logout.html'; }
  </script>
 </body>
 </html>
