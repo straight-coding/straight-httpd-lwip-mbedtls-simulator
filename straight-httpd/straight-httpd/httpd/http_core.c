@@ -404,16 +404,12 @@ int IsContextTimeout(REQUEST_CONTEXT* context) //called by OnHttpPoll
 }
 
 void ResetHttpContext(REQUEST_CONTEXT* context)
-{
+{ //called when every request finished
 	LockSession(context);
 		//if (context->_reqBufList != NULL)
 			//pbuf_free(context->_reqBufList);
 		//context->_reqBufList = NULL;
 		//context->_bufOffset = 0;
-	
-		//context->_sid; readonly
-		//context->_pMutex;
-		//context->_pcb = NULL;
 
 		context->_state = HTTP_STATE_IDLE;
 		
@@ -442,8 +438,8 @@ void ResetHttpContext(REQUEST_CONTEXT* context)
 		if (context->_file2Get != NULL)
 			LWIP_fclose(context->_file2Get);
 		context->_file2Get = NULL;
-		//context->nContentOffset = 0;
 	
+		//can't clear right now because of pipline
 		//context->request_length = 0;
 		//memset(context->http_request_buffer, 0, sizeof(context->http_request_buffer));
 		context->max_level = MAX_REQ_BUF_SIZE;
@@ -529,8 +525,9 @@ void FreeHttpContext(REQUEST_CONTEXT* context)
 		memset(context->_responsePath, 0, sizeof(context->_responsePath));
 
 		context->handler = NULL;
-		//memset(&context->file2Get, 0, sizeof(context->file2Get));
-		//context->nContentOffset = 0;
+		if (context->_file2Get != NULL)
+			LWIP_fclose(context->_file2Get);
+		context->_file2Get = NULL;
 	
 		context->request_length = 0;
 		context->max_level = MAX_REQ_BUF_SIZE;

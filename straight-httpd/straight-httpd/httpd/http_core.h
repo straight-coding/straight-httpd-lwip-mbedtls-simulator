@@ -12,7 +12,7 @@
 #include "lwip_port.h"
 #include "arch/sys_arch.h"
 
-#define LOG_DEBUG_ONLY		6 //max level of debug output
+#define LOG_DEBUG_ONLY		0 //max level of debug output
 
 #define METHOD_GET			1 //request method GET
 #define METHOD_POST			2 //request method POST
@@ -75,8 +75,8 @@ typedef struct _SESSION
 
 typedef struct _RESPONSE_CONTEXT
 {
-	char 	_token[128];	//for http_core.c
-	int 	_authorized;	//for http_core.c
+	char 	_token[128];		//for http_core.c
+	int 	_authorized;		//for http_core.c
 	
 	int 	_cmdType;			//for cgi_command.c, ATTACH / DETACH
 	unsigned long _remote_ip;	//for cgi_command.c
@@ -88,7 +88,7 @@ typedef struct _RESPONSE_CONTEXT
 	
 	int 	_sendMaxBlock;	//TCP_MSS, for http_core.c
 	
-	int 	_sending;	//=0 if it is the first response block, for http_core.c
+	int 	_sending;		//=0 if it is the first response block, for http_core.c
 	
 	unsigned long _tLastSent;		//tick of the last sent, for http_core.c
 	unsigned long _nSendTimeout; 	//60*1000, for http_core.c
@@ -137,7 +137,6 @@ typedef struct _REQUEST_CONTEXT
 	char _responsePath[128]; //use to redirect
 
 	LWIP_FIL* _file2Get;	//response with an existing file
-	int _nFileOffset;		//next position to be sent
 	
 	int  request_length;	//[0, max_level]
 	int  max_level; 		//MAX_REQ_BUF_SIZE

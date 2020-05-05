@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html style='width:100%;height:100%;'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <title>Virtual Device</title>
+  <link rel="stylesheet" href="share.css">
+  <script type="application/javascript" src="js/base64js.min.js"></script>
+  <style>
+    #file-list {
+        list-style: none;
+        margin: 0px;
+        padding: 0px;
+    }
+
+    #file-list li {
+        border-bottom: 1px solid #000;
+    }
+
+    #file-list li.no-items {
+        border-bottom: none;
+    }
+
+    #file-list li img {
+        max-width: 400px;
+    }
+    #file-list li > div {
+            display: -webkit-flex;
+            display: -ms-flex;
+            display: flex;
+            
+            -webkit-flex-flow: row nowrap;
+            -ms-flex-flow: row nowrap;
+            flex-flow: row nowrap;
+            
+            -webkit-align-items: center;
+            -ms-align-items: center;
+            align-items: center;
+            
+            -webkit-justify-content: flex-start;
+            -ms-justify-content: flex-start;
+            justify-content: flex-start;
+        }
+        
+    #file-list li > div > div {
+        display: -webkit-flex;
+        display: -ms-flex;
+        display: flex;
+        
+        -webkit-flex-flow: row nowrap;
+        -ms-flex-flow: row nowrap;
+        flex-flow: row nowrap;
+        
+        -webkit-align-items: center;
+        -ms-align-items: center;
+        align-items: center;
+        
+        -webkit-justify-content: flex-start;
+        -ms-justify-content: flex-start;
+        justify-content: flex-start;
+        
+        height: 30px;
+        padding: 4px 10px 4px 10px;
+        margin: 4px;
+        
+        border: 1px solid WhiteSmoke;
+    }
+    
+    #file-list li > div > div:nth-of-type(1) {
+        width: 300px;
+    }
+
+    #file-list li > div > div:nth-of-type(2) {
+        width: 240px;
+    }
+
+    #file-list li > div > div:nth-of-type(3) {
+        width: 140px;
+    }
+
+    #file-list li > div > div:nth-of-type(4) {
+        width: 300px;
+    }
+
+    #file-list .progress-bar-container {
+      height: 24px;
+      width: 100%;
+      /*background-color: #c9c9c9; */
+      position: relative;
+    }
+    
+    #file-list .progress-bar-container:before {
+      content: attr(data-label);
+      font-size: 0.8em;
+      position: absolute;
+      text-align: center;
+      top: 5px;
+      left: 0;
+      right: 0;
+    }
+    
+    #file-list .progress-bar-container .value {
+      background-color: #7cc4ff;
+      display: inline-block;
+      height: 100%;
+    }
+
+    #file-list .progress-bar {
+        display: -webkit-flex;
+        display: -ms-flex;
+        display: flex;
+        
+        width: 0;
+        height: 24px;
+
+        -webkit-align-items: center;
+        -ms-align-items: center;
+        align-items: center;
+        
+        -webkit-justify-content: center;
+        -ms-justify-content: center;
+        justify-content: center;
+        
+        font-weight: bold;
+        background: #6787e3;
+        
+        color: #ffffff;            
+    }
+
+    #file-list .progress-bar-container.uploaded .progress-bar {
+        background-color: #28a745; /*success*/
+        color: #ffffff;            
+    }
+    
+    .no-used{
+        background-color: #007bff; /*primary*/
+        background-color: #6c757d; /*secondary*/
+        background-color: #28a745; /*success*/
+        background-color: #dc3545; /*danger*/
+        background-color: #ffc107; /*warning*/
+        background-color: #17a2b8; /*info*/
+        background-color: #f8f9fa; /*light*/
+        background-color: #343a40; /*dark*/
+    }
+    
+    #sendfw:not(:disabled):hover
+    {
+        cursor: pointer;
+    }
+
+    #file-list .progress-bar-container.failed .progress-bar {
+        background-color: #dc3545; /*danger*/
+        color: #ffffff;            
+    }
+
+  </style>
+</head>
+<body class='fill'>
+  <div class='base columns center-item fill'>
+    <div class='base columns center-item'>
+      <div class='title margin-t36'>Virtual Device</div>
+      <div class='sub-title margin-t2'>Powered by <!--#DEV_VENDOR--></div>
+    </div>
+
+    <div class='base columns center-item fill'>
+      <div class="base columns center-item fill margin-t24">
+        <input id="file2send" style="height:30px; padding:4px;" type="file" multiple/>
+        <button class="tab" id="sendfw" style="" title="Browse...">Send</button>
+      </div>
+      <ul id="file-list">
+        <li class="no-items">(尚未选择 NC 路径文件)</li>
+      </ul>
+    </div>
+
+    <div class='base row between-content margin-t24'>
+      <button class='tab' id='home'>Home</button>
+      <button class='tab margin-l2' id='network'>Network</button>
+      <button class='tab margin-l2' id='test'>Test</button>
+      <button class='tab margin-l2' id='logout'>Logout</button>
+    </div>
+ </div>
+ <script>
+   document.getElementById('home').addEventListener('click', goHome);
+   function goHome() { location.href = '/app/index.shtml'; }
+   
+   document.getElementById('network').addEventListener('click', goNetwork);
+   function goNetwork() { location.href = '/app/network.shtml'; }
+   
+   document.getElementById('test').addEventListener('click', goHelp);
+   function goHelp() { location.href = '/app/test.shtml'; }
+	
+   document.getElementById('logout').addEventListener('click', goLogout);
+   function goLogout() { location.href = '/auth/logout.html'; }
+
+    var toSend = null;
+    var filesUpload = document.getElementById("file2send");
+    var sendJob = document.getElementById("sendfw");
+    var fileList = document.getElementById("file-list");
+    var allowPrompt = true;
+
+    filesUpload.multiple = true;
+
+    function formatFileSize(size)
+    {
+        var size1 = size;
+        var size2 = '';
+        if (size >= 1000000000)
+            size2 += parseInt(size / 1000000000,10) + ',';
+        if (size >= 1000000)
+            size2 += parseInt((size%1000000000)/1000000,10) + ',';
+        if (size >= 1000)
+            size2 += parseInt((size%1000000)/1000,10) + ',';
+        size2 += (size%1000);
+        return size2;
+    }
+
+    function Base64Encode(str, encoding = 'utf-8') 
+    {
+        var bytes = new(TextEncoder || TextEncoderLite)(encoding).encode(str);
+        return base64js.fromByteArray(bytes);
+    }
+
+    function Base64Decode(str, encoding = 'utf-8') 
+    {
+        var bytes = base64js.toByteArray(str);
+        return new(TextDecoder || TextDecoderLite)(encoding).decode(bytes);
+    }
+
+    function traverseFiles(files) 
+    {
+      document.querySelectorAll('.no-items').forEach(function(a){
+        a.remove();
+      });
+
+      if (typeof files !== "undefined") {
+          for (var i = 0, l = files.length; i < l; i++) {
+              uploadFile(files[i]);
+          }
+      } else {
+          //fileList.innerHTML = "No support for the File API in this web browser";
+      }
+    }
+
+    window.onload = function(e)
+    {
+      filesUpload.style.color='#F00';
+      sendJob.disabled = true;
+    }
+
+    window.beforeunload = function()
+    {
+        if (allowPrompt){
+            var confMessage  = "#######################################\n\n";
+                confMessage += "==============  请等一等 ===============\n\n";
+                confMessage += "   作业传输尚未结束，退出后，作业将自动终止\n\n";
+                confMessage += "                确定退出吗？";
+            
+            return confMessage;
+        }
+        return '';
+    }
+
+    filesUpload.addEventListener("change", function() 
+    {
+        //allowPrompt = true;
+        sendJob.disabled = !(this.files.length > 0);
+        if (!sendJob.disabled)
+            sendJob.title='点击发送文件';
+        //traverseFiles(this.files);
+        //toSend = this.files;
+    }, false);
+            
+    sendJob.addEventListener("click", function(evt) 
+    {
+      if (toSend != null)
+        traverseFiles(toSend);
+
+      evt.preventDefault();
+      evt.stopPropagation();
+      if (filesUpload.files.length > 0)
+      {
+          allowPrompt = true;
+          traverseFiles(filesUpload.files);
+      }
+      //toSend = this.files;
+    }, false);
+
+    function uploadFile(file) 
+    {
+        var img;
+        var reader;
+        var xhr;
+        var fileInfo;
+        var ext = file.type;
+        if (!ext)
+        {
+            var idx = file.name.lastIndexOf('.');
+            if (idx >= 0)
+                ext = file.name.substring(idx+1);
+        }
+        
+        var li = document.createElement("li");
+        var div = document.createElement("div");
+        li.appendChild(div);
+        
+        var progressBarContainer = document.createElement("div");
+            progressBarContainer.className = "progress-bar-container";
+            progressBarContainer.setAttribute("data-label", "");
+        var progressBar = document.createElement("div");
+            progressBar.className = "progress-bar";
+        
+        progressBarContainer.appendChild(progressBar);
+        li.appendChild(progressBarContainer);
+
+        // Present file info and append it to the list of files
+        fileInfo  = "<div><span><strong>文件名:</strong> " + file.name + "</span></div>";
+        fileInfo += "<div><span><strong>文件尺寸:</strong> " + formatFileSize(parseInt(file.size, 10)) + " Bytes</span></div>";
+        //fileInfo += "<div><span><strong>文件类型:</strong> " + ext + "</span></div>";
+        div.innerHTML = fileInfo;
+        
+        div.appendChild(progressBarContainer);
+
+        fileList.appendChild(li);
+        
+        /*
+        If the file is an image and the web browser supports FileReader,
+        present a preview in the file list
+        */
+        if (typeof FileReader !== "undefined" && (/image/i).test(file.type)) {
+            img = document.createElement("img");
+            li.appendChild(img);
+            reader = new FileReader();
+            reader.onload = (function(theImg) {
+                return function(evt) {
+                    theImg.src = evt.target.result;
+                };
+            }(img));
+            reader.readAsDataURL(file);
+        }
+
+        // Uploading - for Firefox, Google Chrome and Safari
+        xhr = new XMLHttpRequest();
+
+        // Update progress bar
+        xhr.upload.addEventListener("progress", function(evt) {
+            if (evt.lengthComputable) {
+                var percent = (evt.loaded / evt.total) * 100;
+                progressBar.style.width = percent + "%";
+                progressBarContainer.setAttribute("data-label", parseInt(percent,10)+"%");
+                //progressText.innerHTML = "<span>"+parseInt(percent,10)+"&#37;</span>";
+            } else {
+                // No data to calculate on
+            }
+        }, false);
+
+        // File uploaded
+        xhr.addEventListener("load", function() {
+            progressBarContainer.setAttribute("data-label", "");
+            progressBarContainer.className += " uploaded";
+            progressBar.style.width = "100%";
+            progressBar.innerHTML = "<span>上载成功</span>";
+            allowPrompt = false;
+        }, false);
+
+        xhr.open("post", "/app/upgrade.cgi", true);
+        
+        xhr.onerror = function () {
+            progressBarContainer.setAttribute("data-label", "");
+            progressBarContainer.className += " failed";
+            progressBar.style.width = "100%";
+            progressBar.innerHTML = "<span>上载失败</span>";
+            allowPrompt = false;
+        };
+
+        // Set appropriate headers
+        xhr.setRequestHeader("Content-Type", "multipart/form-data");
+        xhr.setRequestHeader("X-File-Name", Base64Encode(file.name));
+        xhr.setRequestHeader("X-File-Size", file.size);
+        xhr.setRequestHeader("X-File-Type", file.type);
+
+        // Send the file (doh)
+        xhr.send(file);
+    }
+ </script>
+</body>
+</html>

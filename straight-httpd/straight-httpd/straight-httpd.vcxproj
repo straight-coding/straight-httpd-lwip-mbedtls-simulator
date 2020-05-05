@@ -54,6 +54,7 @@
     <ClCompile Include="..\..\lwip-port\win32\netif\ethernetif.c" />
     <ClCompile Include="httpd\cgi\cgi_ssdp.c" />
     <ClCompile Include="httpd\cgi\cgi_ssi.c" />
+    <ClCompile Include="httpd\cgi\cgi_upgrade.c" />
     <ClCompile Include="httpd\cgi\cgi_web.c" />
     <ClCompile Include="httpd\http_cgi.c" />
     <ClCompile Include="httpd\http_core.c" />

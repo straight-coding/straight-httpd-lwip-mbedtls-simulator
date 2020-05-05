@@ -34,7 +34,7 @@ void CGI_SetupMapping() //called from SetupHttpContext(), CGI handlers could be 
 	extern struct CGI_Mapping g_cgiSSDP; //"/upnp_device.xml"
 	//extern struct CGI_Mapping g_cgiCommand;
 	//extern struct CGI_Mapping g_cgiParam;
-	//extern struct CGI_Mapping g_cgiJob;
+	extern struct CGI_Mapping g_cgiUpgrade;
 	extern struct CGI_Mapping g_cgiWebAuth; // "/auth/*"
 	extern struct CGI_Mapping g_cgiWebApp;	// "/app/*", MUST be the last one
 
@@ -44,7 +44,7 @@ void CGI_SetupMapping() //called from SetupHttpContext(), CGI handlers could be 
 	CGI_Append(&g_cgiSSDP, NULL, 0);	//"/upnp_device.xml"
 	//CGI_Append(&g_cgiCommand);	//"/cmd.cgi"
 	//CGI_Append(&g_cgiParam);		//"/param.json"
-	//CGI_Append(&g_cgiJob);		//"/job.cgi"
+	CGI_Append(&g_cgiUpgrade, "/app/upgrade.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_POST_ENABLED);		//"/app/upgrade.cgi"
 	CGI_Append(&g_cgiWebAuth, "/auth/*", CGI_OPT_AUTHENTICATOR | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED);	//"/auth/login.html"
 	CGI_Append(&g_cgiWebApp, "/app/*", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED);	//"/app/*", MUST be the last one
 }
