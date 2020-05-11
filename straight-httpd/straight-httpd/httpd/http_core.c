@@ -24,6 +24,7 @@ extern int  Strnicmp(char *str1, char *str2, int n);
 
 extern struct tcp_pcb *tcp_active_pcbs;
 extern struct tcp_pcb *tcp_tw_pcbs;
+extern void tcp_kill_timewait(void);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -290,7 +291,9 @@ void PrintLwipStatus(void)
 	int activeCount = 0;
 	int waitCount = 0;
 	struct tcp_pcb *pcb;
-	
+
+	tcp_kill_timewait();
+
 	for (pcb = tcp_active_pcbs; pcb != NULL; ) //active
 	{
 		activeCount ++;

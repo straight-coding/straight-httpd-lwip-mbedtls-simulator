@@ -1784,7 +1784,7 @@ tcp_kill_state(enum tcp_state state)
  * Kills the oldest connection that is in TIME_WAIT state.
  * Called from tcp_alloc() if no more connections are available.
  */
-static void
+void
 tcp_kill_timewait(void)
 {
   struct tcp_pcb *pcb, *inactive;
