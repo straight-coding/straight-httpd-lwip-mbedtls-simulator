@@ -47,11 +47,33 @@ body
 	-ms-align-items: center; 
 	align-items: center; 
 }
+.right-item
+{ 
+	-webkit-align-items: flex-end; 
+	-ms-align-items: flex-end; 
+	align-items: flex-end; 
+}
+.stretch-item
+{ 
+	-webkit-flex: 1 0 auto;
+	-ms-flex: 1 0 auto;
+	flex: 1 0 auto;
+
+	-webkit-align-items: stretch; 
+	-ms-align-items: stretch; 
+	align-items: stretch; 
+}
 .center-content
 { 
 	-webkit-justify-content: center; 
 	-ms-justify-content: center; 
 	justify-content: center;
+}
+.right-content
+{ 
+	-webkit-justify-content: flex-end; 
+	-ms-justify-content: flex-end; 
+	justify-content: flex-end;
 }
 .between-content
 { 
@@ -81,7 +103,7 @@ body
 }
 button
 { 
-	min-height: 35px; 
+	min-height: 30px; 
 	font-size: 14px; 
 	padding: 2px 10px 2px 10px; 
 }
