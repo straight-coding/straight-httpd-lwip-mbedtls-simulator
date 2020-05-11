@@ -90,7 +90,6 @@
         <button class="tab" id="sendfw" title="Send">Send</button>
       </div>
       <ul id="file-list" style="width: 330px; list-style: none; margin: 0; padding: 0;">
-        <li class="no-items">(No file selected)</li>
       </ul>
     </div>
 
@@ -194,11 +193,6 @@
 
     function traverseFiles(files, idFrom) 
     {
-        document.querySelectorAll('.no-items').forEach(function(e)
-        {
-            e.remove();
-        });
-
         if (files) 
         {
             for (var i = 0, l = files.length; i < l; i++)
@@ -207,7 +201,7 @@
                 qUploads.push(task);
             }
 
-            if (!running)
+            if (!running && (qUploads.length > 0))
             {
                 running = qUploads[0];
                 running.start();
