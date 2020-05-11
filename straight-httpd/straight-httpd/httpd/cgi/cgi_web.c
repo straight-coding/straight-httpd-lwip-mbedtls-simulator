@@ -416,7 +416,7 @@ int  Web_LoadContentToSend(REQUEST_CONTEXT* context)
 					}
 					totalToParse = ctxSSI->_cacheOffset + canRead;
 					
-					LogPrint(LOG_DEBUG_ONLY, "Tag: append data: state=%d, off=%d, new=%d", ctxSSI->_ssiState, ctxSSI->_cacheOffset, canRead);
+					LogPrint(LOG_DEBUG_ONLY, "SSI append data: state=%d, off=%d, new=%d", ctxSSI->_ssiState, ctxSSI->_cacheOffset, canRead);
 					
 					consumed = 0;  	//consumed source
 					dataCount = 0; 	//data that will be sent
@@ -469,7 +469,7 @@ int  Web_LoadContentToSend(REQUEST_CONTEXT* context)
 								}
 							}
 						}
-						LogPrint(LOG_DEBUG_ONLY, "Tag cache remain: consumed=%d, left=%d", consumed, totalToParse - consumed);
+						LogPrint(LOG_DEBUG_ONLY, "SSI cache remain: consumed=%d, left=%d", consumed, totalToParse - consumed);
 						
 						memmove(pCache, pCache + consumed, totalToParse - consumed); //shift consumed out
 						ctxSSI->_cacheOffset = totalToParse - consumed;
@@ -483,7 +483,7 @@ int  Web_LoadContentToSend(REQUEST_CONTEXT* context)
 					
 					if (lastBlock > 0)
 					{
-						LogPrint(LOG_DEBUG_ONLY, "Tag final remain: off=%d, read=%d", ctxSSI->_cacheOffset, canRead);
+						LogPrint(LOG_DEBUG_ONLY, "SSI final remain: off=%d, read=%d", ctxSSI->_cacheOffset, canRead);
 						
 						memcpy(context->ctxResponse._sendBuffer+offset+dataCount, pCache, ctxSSI->_cacheOffset + canRead);
 						dataCount += ctxSSI->_cacheOffset + canRead;

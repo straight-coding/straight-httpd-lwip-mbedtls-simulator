@@ -663,7 +663,7 @@ signed char OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *p, sign
 			if (context != NULL)
 			{
 				if (context->_state == HTTP_STATE_IDLE)
-				{
+				{ //receiving the inbound request
 					CloseHttpContext(context);
 					return ERR_OK;
 				}
@@ -1411,6 +1411,14 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 				LogPrint(0, "Close without keepalive: @%d", context->_sid);
 				CloseHttpContext(context);
 			}
+		}
+	}
+	else
+	{ //
+		if (context->_peer_closing > 0)
+		{
+			LogPrint(0, "OnClose by peer: @%d", context->_sid);
+			context->_result = -500;
 		}
 	}
 	return ERR_OK; //continue the session
