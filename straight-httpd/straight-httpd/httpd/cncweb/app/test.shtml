@@ -230,14 +230,14 @@
         return '';
     }
 
-    filesUpload.addEventListener("change", function() 
+    filesUpload.addEventListener('change', function() 
     {
         sendJob.disabled = !(this.files.length > 0);
         if (!sendJob.disabled)
             sendJob.title = 'Click to send';
     }, false);
             
-    sendJob.addEventListener("click", function(e) 
+    sendJob.addEventListener('click', function(e) 
     {
         e.preventDefault();
         e.stopPropagation();
@@ -265,8 +265,8 @@
         _this.abtTimer = null;
         _this.fileid = fileIndex ++;
         
-        var li = document.createElement("li");
-            li.setAttribute("id", "file_" + _this.fileid);
+        var li = document.createElement('li');
+            li.setAttribute('id', 'file_' + _this.fileid);
 
         var htmlFileItem  = '<div class="base row center-item between-content file-item">';
             htmlFileItem += '  <div class="base columns stretch-item">';
@@ -311,48 +311,70 @@
             if (e.lengthComputable) 
             {
                 var rate = (e.loaded / e.total) * 100;
-                progress.style.width = rate + "%";
-                percent.innerHTML = "<span>"+parseInt(rate,10)+"&#37;</span>";
+                progress.style.width = rate + '%';
+                percent.innerHTML = '<span>' + parseInt(rate,10) + '&#37;</span>';
             }
         }, false);
 
-        _this.opStop.addEventListener("click", function(e)
+        _this.opStop.addEventListener('click', function(e)
         {
             _this.xhr.abort();
         }, false);
 
-        _this.opDelete.addEventListener("click", function(e)
+        _this.opDelete.addEventListener('click', function(e)
         {
-            var item = e.target.closest("li");
+            var item = e.target.closest('li');
             item.remove();
         }, false);
 
-        function onCanceled()
+        function onFailed(check_session)
         {
             if (_this.abtTimer != null)
                 clearTimeout(_this.abtTimer);
             _this.abtTimer = null;
 
+            percent.style.color = '#dc3545';
             progress.style.backgroundColor = '#dc3545';
+
             _this.opStop.style.display = 'none'; //hide stop
             _this.opDelete.style.display = ''; //show delete
             allowPrompt = false;
 
             if (typeof cbFinished == 'function')
                 cbFinished(_this);
+
+            if (!check_session)
+                return;
+
+            var session = new XMLHttpRequest();
+            session.onload = function()
+            {
+                console.log('session.onload', session.status); 
+                if (session.status != 200)
+                    location.href='/';
+            }
+            session.onerror = function () 
+            {
+                console.log('session.onerror', session.status); 
+                location.href='/';
+            }
+            session.open("GET", "/auth/session_check.html");
+            session.send();
         }
 
-        function onLoaded()
+        function onSucceeded()
         {
             if (_this.abtTimer != null)
                 clearTimeout(_this.abtTimer);
             _this.abtTimer = null;
 
-            progress.style.width = "100%";
-            percent.innerHTML = "<span>100&#37;</span>";
+            progress.style.width = '100%';
+            percent.innerHTML = '<span>100&#37;</span>';
             allowPrompt = false;
 
+            percent.style.color = '#28a745';
             progress.style.backgroundColor = '#28a745';
+
             _this.opStop.style.display = 'none'; //hide stop
             _this.opDelete.style.display = ''; //show delete
 
@@ -360,24 +382,61 @@
                 cbFinished(_this);
         }
 
-        _this.xhr.onload  = function() { onLoaded(); }
-        _this.xhr.onabort = function () { onCanceled(); }
-        _this.xhr.onerror = function () { onCanceled(); }
+        _this.xhr.onreadystatechange = function() 
+        { 
+            console.log('onreadystatechange', _this.xhr.status); 
+        }
+        _this.xhr.onloadstart = function() 
+        { 
+            console.log('onloadstart', _this.xhr.status); 
+        }
+        _this.xhr.onload  = function() 
+        { 
+            console.log('onload', _this.xhr.status); 
+            onSucceeded(); 
+        }
+        _this.xhr.onabort = function () 
+        { 
+            console.log('onabort', _this.xhr.status); 
+            onFailed(); 
+        }
+        _this.xhr.onerror = function () 
+        { 
+            console.log('onerror', _this.xhr.status); 
+            onFailed(1); 
+        }
+        _this.xhr.ontimeout = function() 
+        { 
+            console.log('ontimeout', _this.xhr.status); 
+            onFailed();
+        }
+        _this.xhr.onloadend = function() 
+        { 
+            console.log('onloadend', _this.xhr.status); 
+        }
 
         _this.start = function()
         {
             var _this= this;
 
-            _this.opStop.style.display = ''; //show stop
+            try
+            {
+                _this.opStop.style.display = ''; //show stop
 
-            _this.xhr.open("post", "/app/upgrade.cgi", true);
+                _this.xhr.open('post', '/app/upgrade.cgi', true);
 
-            _this.xhr.setRequestHeader("Content-Type", "multipart/form-data");
-            _this.xhr.setRequestHeader("X-File-Name", Base64Encode(_this.file.name));
-            _this.xhr.setRequestHeader("X-File-Size", _this.file.size);
-            _this.xhr.setRequestHeader("X-File-Type", _this.file.type);
+                _this.xhr.setRequestHeader('Content-Type', 'multipart/form-data');
+                _this.xhr.setRequestHeader('X-File-Name', Base64Encode(_this.file.name));
+                _this.xhr.setRequestHeader('X-File-Size', _this.file.size);
+                _this.xhr.setRequestHeader('X-File-Type', _this.file.type);
+                //_this.xhr.setRequestHeader('Expect', '100-continue');
 
-            _this.xhr.send(_this.file);
+                _this.xhr.send(_this.file);
+            }
+            catch(e)
+            {
+                console.log(e);
+            }
 
             _this.abtTimer = setTimeout(function(){ _this.xhr.abort(); }, max_timeout*1000);
         }
