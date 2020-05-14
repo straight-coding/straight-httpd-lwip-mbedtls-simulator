@@ -14,7 +14,6 @@ extern void LogPrint(int level, char* format, ... );
 
 void SSDP_SendHeader(REQUEST_CONTEXT* context, char* HttpCodeInfo);
 int  SSDP_Sending(REQUEST_CONTEXT* context);
-void SSDP_OnAllSent(REQUEST_CONTEXT* context);
 
 struct CGI_Mapping g_cgiSSDP = {
 	"/upnp_device.xml", //char* path;
@@ -29,7 +28,7 @@ struct CGI_Mapping g_cgiSSDP = {
 	SSDP_SendHeader, //void (*SetResponseHeader)(REQUEST_CONTEXT* context, char* HttpCode);
 	SSDP_Sending, //int  (*LoadContentToSend)(REQUEST_CONTEXT* context);
 	
-	SSDP_OnAllSent, //int  (*OnAllSent)(REQUEST_CONTEXT* context);
+	NULL, //int  (*OnAllSent)(REQUEST_CONTEXT* context);
 	NULL, //void (*OnFinished)(REQUEST_CONTEXT* context);
 	
 	NULL //struct CGI_Mapping* next;
@@ -46,7 +45,7 @@ void SSDP_SendHeader(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 
 int  SSDP_Sending(REQUEST_CONTEXT* context)
 {
-	int needSend = 0;
+	int hasData2Send = 0;
 	if (context->_requestMethod == METHOD_GET)
 	{
 		int size, i;
@@ -136,7 +135,7 @@ int  SSDP_Sending(REQUEST_CONTEXT* context)
 			memmove(context->ctxResponse._sendBuffer, context->ctxResponse._sendBuffer+10-prefixLen, size2Send); //move to the head
 			
 			context->ctxResponse._bytesLeft = size2Send;
-			needSend = 1;
+			hasData2Send = 1;
 			context->ctxResponse._dwOperStage = STAGE_END;
 			
 			LogPrint(LOG_DEBUG_ONLY, "CGI_SSDP_PROFILE response sending: %d @%d", size2Send, context->_sid);
@@ -147,9 +146,5 @@ int  SSDP_Sending(REQUEST_CONTEXT* context)
 		context->_state = HTTP_STATE_REQUEST_END;
 	}
 	
-	return needSend;
-}
-
-void SSDP_OnAllSent(REQUEST_CONTEXT* context)
-{
+	return hasData2Send;
 }
