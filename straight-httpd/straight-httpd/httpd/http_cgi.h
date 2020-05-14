@@ -17,6 +17,7 @@
 #define WEB_ABS_ROOT	"/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/"
 
 #define WEB_DEFAULT_PAGE	"/auth/login.html"
+#define WEB_SESSION_CHECK	"/auth/session_check.html"
 #define WEB_LOGOUT_PAGE		"/auth/logout.html"
 #define WEB_APP_PAGE		"/app/index.shtml"
 

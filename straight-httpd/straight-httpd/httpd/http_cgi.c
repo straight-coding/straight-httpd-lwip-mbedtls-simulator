@@ -33,7 +33,7 @@ void CGI_SetupMapping() //called from SetupHttpContext(), CGI handlers could be 
 	//extern struct CGI_Mapping g_cgiStatus;
 	extern struct CGI_Mapping g_cgiSSDP; //"/upnp_device.xml"
 	//extern struct CGI_Mapping g_cgiCommand;
-	//extern struct CGI_Mapping g_cgiParam;
+	extern struct CGI_Mapping g_cgiLog;
 	extern struct CGI_Mapping g_cgiUpgrade;
 	extern struct CGI_Mapping g_cgiWebAuth; // "/auth/*"
 	extern struct CGI_Mapping g_cgiWebApp;	// "/app/*", MUST be the last one
@@ -43,10 +43,10 @@ void CGI_SetupMapping() //called from SetupHttpContext(), CGI handlers could be 
 	//CGI_Append(&g_cgiStatus);		//"/status.json"
 	CGI_Append(&g_cgiSSDP, NULL, 0);	//"/upnp_device.xml"
 	//CGI_Append(&g_cgiCommand);	//"/cmd.cgi"
-	//CGI_Append(&g_cgiParam);		//"/param.json"
-	CGI_Append(&g_cgiUpgrade, "/app/upgrade.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_POST_ENABLED);		//"/app/upgrade.cgi"
-	CGI_Append(&g_cgiWebAuth, "/auth/*", CGI_OPT_AUTHENTICATOR | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED);	//"/auth/login.html"
-	CGI_Append(&g_cgiWebApp, "/app/*", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED);	//"/app/*", MUST be the last one
+	CGI_Append(&g_cgiLog,     "/app/log.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_CHUNKED);
+	CGI_Append(&g_cgiUpgrade, "/app/upgrade.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_POST_ENABLED);
+	CGI_Append(&g_cgiWebAuth, "/auth/*", CGI_OPT_AUTHENTICATOR | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED);
+	CGI_Append(&g_cgiWebApp,  "/app/*", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED); //"/app/*", MUST be the last one
 }
 
 int CheckWebRoot(char* drive, char* absRoot, char* defaultPage)
@@ -306,7 +306,7 @@ void CGI_HeadersReceived(REQUEST_CONTEXT* context) //called when all HTTP reques
 	if (context->_result < 0)
 		return;
 	
-	if ((SessionControls(context->_extension) > 0) && (context->handler == NULL))
+	if ((SessionTypes(context->_extension) > 0) && (context->handler == NULL))
 	{
 		LogPrint(0, "No CGI for: %s, @%d", context->_requestPath, context->_sid);
 		strcpy(context->_responsePath, WEB_DEFAULT_PAGE);
@@ -405,7 +405,7 @@ void CGI_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo) //set 
 
 int CGI_LoadContentToSend(REQUEST_CONTEXT* context, int caller) //load response body chunk by chunk
 {
-	int needSend = 0;
+	int hasData2Send = 0;
 
 	if (context->_requestMethod == METHOD_GET)
 	{
@@ -419,7 +419,7 @@ int CGI_LoadContentToSend(REQUEST_CONTEXT* context, int caller) //load response 
 				
 				if (context->handler->OnAllSent != NULL)
 					context->handler->OnAllSent(context);
-				return needSend;
+				return hasData2Send;
 			}
 		}
 	}
@@ -433,5 +433,5 @@ int CGI_LoadContentToSend(REQUEST_CONTEXT* context, int caller) //load response 
 	}
 	
 	context->_state = HTTP_STATE_REQUEST_END; //no body to send, just end
-	return needSend;
+	return hasData2Send;
 }

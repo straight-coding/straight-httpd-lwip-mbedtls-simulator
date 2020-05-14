@@ -75,8 +75,6 @@ extern int ReplaceTag(REQUEST_CONTEXT* context, char* tagName, char* appendTo, i
 
 void Web_OnAuthHeaders(REQUEST_CONTEXT* context);
 int  Web_OnAuthData(REQUEST_CONTEXT* context, char* buffer, int size);
-int  Web_OnAuthCheck(REQUEST_CONTEXT* context);
-
 void Web_OnRequestReceived(REQUEST_CONTEXT* context);
 	
 void Web_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo);
@@ -132,20 +130,7 @@ int CheckUser(char* u, char* p)
 	return success;
 }
 
-void Web_OnAuthHeaders(REQUEST_CONTEXT* context)
-{
-	memset(context->ctxResponse._appContext, 0, sizeof(context->ctxResponse._appContext));
-}
-
-int Web_OnAuthData(REQUEST_CONTEXT* context, char* buffer, int size)
-{
-	int len = strlen(context->ctxResponse._appContext);
-	int max = sizeof(context->ctxResponse._appContext);
-	strncpy(context->ctxResponse._appContext + len, buffer, (size < max-len-2) ? size : (max - len - 2));
-	return size;
-}
-
-int Web_OnAuthCheck(REQUEST_CONTEXT* context)
+int AuthCheck(REQUEST_CONTEXT* context)
 {
 	if (context->ctxResponse._appContext[0] != 0)
 	{
@@ -198,6 +183,22 @@ int Web_OnAuthCheck(REQUEST_CONTEXT* context)
 	return 0;
 }
 
+void Web_OnAuthHeaders(REQUEST_CONTEXT* context)
+{
+	memset(context->ctxResponse._appContext, 0, sizeof(context->ctxResponse._appContext));
+}
+
+int Web_OnAuthData(REQUEST_CONTEXT* context, char* buffer, int size)
+{
+	if (size > 0)
+	{
+		int len = strlen(context->ctxResponse._appContext);
+		int max = sizeof(context->ctxResponse._appContext);
+		strncpy(context->ctxResponse._appContext + len, buffer, (size < max - len - 2) ? size : (max - len - 2));
+	}
+	return size;
+}
+
 void Web_OnRequestReceived(REQUEST_CONTEXT* context)
 {
 	int success;
@@ -206,6 +207,15 @@ void Web_OnRequestReceived(REQUEST_CONTEXT* context)
 	SSI_Context* ctxSSI = (SSI_Context*)context->ctxResponse._appContext;
 	if ((context->handler != NULL) && ((context->handler->options & CGI_OPT_AUTHENTICATOR) != 0))
 	{
+		if (stricmp(context->_requestPath, WEB_SESSION_CHECK) == 0)
+		{ //session exists?
+			if (context->_session == NULL)
+				context->_result = CODE_UNAUTHORIZED; ////Unauthorized (RFC 7235)
+			else
+				context->_result = CODE_OK;
+			return;
+		}
+
 		if (stricmp(context->_requestPath, WEB_LOGOUT_PAGE) == 0)
 		{ //logout
 			SessionKill(context, 1);
@@ -219,8 +229,8 @@ void Web_OnRequestReceived(REQUEST_CONTEXT* context)
 
 		if ((context->_requestMethod == METHOD_POST) && (stricmp(context->_requestPath, WEB_DEFAULT_PAGE) == 0))
 		{ //login
-			success = Web_OnAuthCheck(context);
-			memset(ctxSSI, 0, sizeof(SSI_Context)); //clear after Web_OnAuthCheck
+			success = AuthCheck(context);
+			memset(ctxSSI, 0, sizeof(SSI_Context)); //clear after OnAuthCheck
 			if (success > 0)
 			{
 				strcpy(context->_responsePath, WEB_APP_PAGE);
@@ -335,7 +345,7 @@ void Web_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 
 int  Web_LoadContentToSend(REQUEST_CONTEXT* context)
 {
-	int needSend = 0;
+	int hasData2Send = 0;
 	SSI_Context* ctxSSI = (SSI_Context*)context->ctxResponse._appContext;
 
 	if ((context->_requestMethod == METHOD_GET) || (context->_requestMethod == METHOD_POST))
@@ -520,12 +530,12 @@ int  Web_LoadContentToSend(REQUEST_CONTEXT* context)
 		
 		memmove(context->ctxResponse._sendBuffer, context->ctxResponse._sendBuffer+offset-prefixLen, size2Send); //move to the head
 		context->ctxResponse._bytesLeft = size2Send;
-		needSend = 1;
+		hasData2Send = 1;
 		
 		LogPrint(LOG_DEBUG_ONLY, "Web response sending: %d @%d", dataCount, context->_sid);
 	}
 	
-	return needSend;
+	return hasData2Send;
 }
 
 void Web_OnAllSent(REQUEST_CONTEXT* context)

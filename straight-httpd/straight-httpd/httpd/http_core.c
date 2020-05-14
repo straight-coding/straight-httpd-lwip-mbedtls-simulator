@@ -154,13 +154,33 @@ void SessionKill(REQUEST_CONTEXT* context, int matchIP) //called by IsContextTim
 	sys_mutex_unlock(&g_sessionMutex);
 }
 
-int SessionControls(char* extension)
+int SessionTypes(char* extension)
 {
+	if ((Strnicmp(extension, "css", 3) == 0) ||
+		(Strnicmp(extension, "jpg", 3) == 0) ||
+		(Strnicmp(extension, "png", 3) == 0) ||
+		(Strnicmp(extension, "ico", 3) == 0) ||
+		(Strnicmp(extension, "bmp", 3) == 0) ||
+		(Strnicmp(extension, "svg", 3) == 0) ||
+		(Strnicmp(extension, "gif", 3) == 0) ||
+		(Strnicmp(extension, "woff", 4) == 0) ||
+		(Strnicmp(extension, "ttf", 3) == 0) ||
+		(Strnicmp(extension, "otf", 3) == 0) ||
+		(Strnicmp(extension, "tiff", 4) == 0))
+	{
+		return 0;
+	}
+	else
+	{
+		return 1;
+	}
+
 	if ((extension[0] == 0) ||
 		(Strnicmp(extension, "htm", 3) == 0) ||
 		(Strnicmp(extension, "html", 4) == 0) ||
 		(Strnicmp(extension, "shtml", 5) == 0) ||
 		(Strnicmp(extension, "ssi", 3) == 0) ||
+		(Strnicmp(extension, "cgi", 3) == 0) ||
 		(Strnicmp(extension, "json", 4) == 0))
 	{
 		return 1;
@@ -229,17 +249,19 @@ int SessionCheck(REQUEST_CONTEXT* context) //called when header 'X-Auth-Token' o
 	}
 	else if (context->handler != NULL)
 	{
+		context->_session = GetSession(context->ctxResponse._token);
+
 		if ((context->handler->options & CGI_OPT_AUTHENTICATOR) != 0)
 		{
-			context->_session = GetSession(context->ctxResponse._token);
+			//context->_session = GetSession(context->ctxResponse._token);
 		}
 		else if ((context->handler->options & CGI_OPT_AUTH_REQUIRED) != 0)
 		{ //this scope needs authentication
-			if (SessionControls(context->_extension) > 0)
+			if (SessionTypes(context->_extension) > 0)
 			{
 				result = CODE_REDIRECT; //Temporary Redirect (since HTTP/1.1)
 
-				context->_session = GetSession(context->ctxResponse._token);
+				//context->_session = GetSession(context->ctxResponse._token);
 				if (context->_session != NULL)
 					result = CODE_OK;
 				if (result == CODE_REDIRECT)
@@ -265,11 +287,14 @@ void SessionClearAll() //called at the very beginning of AppThread
 void SessionReceived(REQUEST_CONTEXT* context) //called by OnHttpReceive
 {
 	sys_mutex_lock(&g_sessionMutex);
-	if (context->_session != NULL)
+	if ((context->_session != NULL) && (context->handler != NULL))
 	{
-		context->_session->_tLastReceived = LWIP_GetTickCount();
-		if (context->_session->_tLastReceived == 0)
-			context->_session->_tLastReceived++;
+		if ((context->handler->options & CGI_OPT_AUTH_REQUIRED) != 0)
+		{
+			context->_session->_tLastReceived = LWIP_GetTickCount();
+			if (context->_session->_tLastReceived == 0)
+				context->_session->_tLastReceived++;
+		}
 	}
 	sys_mutex_unlock(&g_sessionMutex);
 }
@@ -277,11 +302,14 @@ void SessionReceived(REQUEST_CONTEXT* context) //called by OnHttpReceive
 void SessionSent(REQUEST_CONTEXT* context) //called by OnHttpSent
 {
 	sys_mutex_lock(&g_sessionMutex);
-	if (context->_session != NULL)
+	if ((context->_session != NULL) && (context->handler != NULL))
 	{
-		context->_session->_tLastSent = LWIP_GetTickCount();
-		if (context->_session->_tLastSent == 0)
-			context->_session->_tLastSent++;
+		if ((context->handler->options & CGI_OPT_AUTH_REQUIRED) != 0)
+		{
+			context->_session->_tLastSent = LWIP_GetTickCount();
+			if (context->_session->_tLastSent == 0)
+				context->_session->_tLastSent++;
+		}
 	}
 	sys_mutex_unlock(&g_sessionMutex);
 }
@@ -420,11 +448,16 @@ void ResetHttpContext(REQUEST_CONTEXT* context)
 		context->_tLastReceived = 0;
 		
 		context->_requestMethod = -1;
-		
+
+		context->_killing = 0;
+
+		context->_expect00 = -1;
 		context->_chunked = -1;
+
 		context->_contentLength = -1;
 		context->_contentReceived = 0;
 		context->_keepalive = 0;
+		context->_peer_closing = 0;
 
 		context->_result = 0;
 		
@@ -1185,12 +1218,12 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 							ParseQueryString(context); //parameters in request line
 						}
 						else if (Strnicmp(buffer+nLinePos, "Content-Length:", 15) == 0)
-						{ //ignored if no method received ahead
+						{
 							context->_contentLength = ston((u8_t*)buffer+nLinePos+15);
 							context->_contentReceived = 0;
 						}
 						else if (Strnicmp(buffer+nLinePos, "Connection:", 11) == 0)
-						{ //ignored if no method received ahead
+						{
 							context->_keepalive = 0;
 							if (strstr((char*)buffer+nLinePos+11, "keep-alive") != NULL)
 								context->_keepalive = 1;
@@ -1198,16 +1231,24 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 								context->_keepalive = 1;
 						}
 						else if (Strnicmp(buffer+nLinePos, "Transfer-Encoding:", 18) == 0)
-						{ //ignored if no method received ahead
+						{
 							context->_chunked = 0;
 							if (strstr((char*)buffer+nLinePos+18, "chunked") != NULL)
 								context->_chunked = 1;
 							else if (strstr((char*)buffer+nLinePos+18, "Chunked") != NULL)
 								context->_chunked = 1;
 						}
+						else if (Strnicmp(buffer + nLinePos, "Expect:", 7) == 0)
+						{
+							context->_expect00 = 0;
+							if (strstr((char*)buffer + nLinePos + 7, "100-continue") != NULL)
+								context->_expect00 = 1;
+							else if (strstr((char*)buffer + nLinePos + 7, "100-Continue") != NULL)
+								context->_expect00 = 1;
+						}
 						else if ((Strnicmp(buffer + nLinePos, "X-Auth-Token:", 13) == 0) ||
 								 (Strnicmp(buffer + nLinePos, "Cookie:", 7) == 0))
-						{ //ignored if no method received ahead
+						{
 							int code = 0;
 							for(j = nLinePos; j < i; j ++)
 							{
@@ -1399,7 +1440,7 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 			int keepalive = context->_keepalive;
 			if (context->_peer_closing > 0)
 			{
-				LogPrint(0, "OnClose by peer: @%d", context->_sid);
+				LogPrint(0, "OnClose by peer1: @%d", context->_sid);
 				CloseHttpContext(context);
 			}
 			else if (keepalive > 0)
@@ -1417,7 +1458,7 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 	{ //
 		if (context->_peer_closing > 0)
 		{
-			LogPrint(0, "OnClose by peer: @%d", context->_sid);
+			LogPrint(0, "OnClose by peer2: @%d", context->_sid);
 			context->_result = -500;
 		}
 	}
@@ -1555,8 +1596,8 @@ signed char HttpResponse(REQUEST_CONTEXT* context, int caller) //always return E
 	//sending response body
 	if (context->_state == HTTP_STATE_SENDING_BODY)
 	{
-		int needSend = CGI_LoadContentToSend(context, caller);
-		if (needSend > 0)
+		int hasData2Send = CGI_LoadContentToSend(context, caller);
+		if (hasData2Send > 0)
 		{
 			err = sendBuffered(context);
 			if (err == ERR_OK)

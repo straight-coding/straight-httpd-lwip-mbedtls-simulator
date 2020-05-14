@@ -18,7 +18,16 @@
 #define METHOD_POST			2 //request method POST
 
 #define CODE_OK				200
-#define CODE_REDIRECT		-307
+
+#define CODE_NOTMODIFIED	-304	//Not Modified (RFC 7232)
+#define CODE_REDIRECT		-307	//Temporary Redirect (since HTTP/1.1)
+
+#define CODE_UNAUTHORIZED	-401	//Unauthorized (RFC 7235)
+#define CODE_FORBIDDEN		-403	//Forbidden
+#define CODE_NOTFOUND		-404	//Not Found
+
+#define CODE_ENTITYTOOLARGE	-413	//Payload Too Large (RFC 7231)
+#define CODE_URITOOLONG		-414	//URI Too Long (RFC 7231)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // HTTP receiving FSM state
@@ -122,6 +131,7 @@ typedef struct _REQUEST_CONTEXT
 
 	int _keepalive;			//keep-alive header, for http_core.c
 	int _chunked;			//chunk header, for http_core.c
+	int _expect00;			//Expect 100 header, for http_core.c
 
 	int _contentReceived;	//count while receiving, for http_core.c
 	int _result;			//200 for success, 0 for pending, negative for failure, for http_core.c
@@ -147,7 +157,7 @@ int  SessionCreate(REQUEST_CONTEXT* context, char* outCookie);
 void SessionKill(REQUEST_CONTEXT* context, int matchIP);
 
 void SessionClearAll(); //lock used inside
-int  SessionControls(char* extension);
+int  SessionTypes(char* extension);
 
 int  SessionCheck(REQUEST_CONTEXT* context); //lock used inside
 void SessionReceived(REQUEST_CONTEXT* context);
