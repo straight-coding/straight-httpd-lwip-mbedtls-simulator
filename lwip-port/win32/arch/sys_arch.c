@@ -81,18 +81,18 @@ u32_t sys_arch_sem_wait(sys_sem_t *sem, u32_t timeout)
 
 	if (timeout == 0) 
 	{	/* wait infinite */
-		starttime = (u32_t)GetTickCount();
+		starttime = (u32_t)LWIP_GetTickCount();
 		ret = WaitForSingleObject(sem->sem, INFINITE);
-		endtime = (u32_t)GetTickCount();
+		endtime = (u32_t)LWIP_GetTickCount();
 
 		return msDiff(endtime, starttime);
 	}
 
-	starttime = (u32_t)GetTickCount();
+	starttime = (u32_t)LWIP_GetTickCount();
 	ret = WaitForSingleObject(sem->sem, timeout);
 	if (ret == WAIT_OBJECT_0) 
 	{
-		endtime = (u32_t)GetTickCount();
+		endtime = (u32_t)LWIP_GetTickCount();
 
 		return msDiff(endtime, starttime);
 	}
@@ -216,7 +216,7 @@ u32_t sys_arch_mbox_fetch(sys_mbox_t *q, void **msg, u32_t timeout)
 	if (timeout == 0) 
 		timeout = INFINITE;
 
-	starttime = (u32_t)GetTickCount();
+	starttime = (u32_t)LWIP_GetTickCount();
 	ret = WaitForSingleObject(q->sem, timeout);
 	if (ret == WAIT_OBJECT_0) 
 	{
@@ -230,7 +230,7 @@ u32_t sys_arch_mbox_fetch(sys_mbox_t *q, void **msg, u32_t timeout)
 
 		SYS_ARCH_UNPROTECT(lev);
 
-		endtime = (u32_t)GetTickCount();
+		endtime = (u32_t)LWIP_GetTickCount();
 		return msDiff(endtime, starttime);
 	}
 
