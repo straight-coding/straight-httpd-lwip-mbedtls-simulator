@@ -319,7 +319,9 @@ DWORD WINAPI MainLoopThread(void* data)
 
 	while(g_nKeepRunning)
 	{
-		tcpip_inloop(10); //wait for 10ms at most
+		if (tcpip_inloop() > 0)
+			continue;
+		//more check
 	}
 
 	printf("LWIP stopped\n ");

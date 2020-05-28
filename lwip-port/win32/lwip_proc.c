@@ -16,11 +16,22 @@ extern sys_mbox_t tcpip_mbox;
 struct netif main_netif;
 long g_tcpipReady = 0;
 
+int urgentCount = 0;
+int nonUrgent = 0;
+int ethCount = 0;
+
+int noTimerCount = 0;
+int timer0Count = 0;
+int timer1Count = 0;
+int eventCount = 0;
+
 struct tcpip_msg eth_msg;
 void NotifyFromEthISR(void)
 {
 	eth_msg.type = ETHNET_INPUT;
 	sys_mbox_trypost_fromisr(&tcpip_mbox, &eth_msg);
+
+	ethCount++;
 }
 
 ip_addr_t main_netif_ipaddr, main_netif_netmask, main_netif_gw;
@@ -30,6 +41,8 @@ extern void LwipLinkDown(void);
 
 void LwipInit(int reboot)
 {
+	struct netif* nif;
+
 	lwip_init();
 
 	if (sys_mbox_new(&tcpip_mbox, TCPIP_MBOX_SIZE) != ERR_OK) 
@@ -50,13 +63,13 @@ void LwipInit(int reboot)
 
 	netif_set_flags(&main_netif, NETIF_FLAG_IGMP);
 	
-	netif_add(&main_netif, 
-			&main_netif_ipaddr, 
-			&main_netif_netmask, 
-			&main_netif_gw, 
-			NULL, 
-			ethernetif_init, 
-			tcpip_input);
+	nif = netif_add(&main_netif,
+					&main_netif_ipaddr, 
+					&main_netif_netmask, 
+					&main_netif_gw, 
+					NULL, 
+					ethernetif_init, 
+					tcpip_input);
 	netif_set_default(&main_netif);
 	
 	LwipLinkUp();
@@ -68,50 +81,69 @@ void LwipStop(void)
 
 extern void tcpip_thread_handle_msg(struct tcpip_msg *msg);
 unsigned long g_nTimerLastCheck = 0;
-int tcpip_inloop(u32_t maxWait)
+int tcpip_inloop(void)
 {
 	struct tcpip_msg *msg;
 	u32_t 		sleeptime;
-	int			needRecall = 0;
+	u32_t ret;
 
-	unsigned long now = sys_now();
-	if (now == 0)
-		now ++;
-	
+	int waitMS = 100; //if not urgent
+	int waitMin = 10; //if urgent
+
 	LOCK_TCPIP_CORE();
 
-	now = msDiff(now, g_nTimerLastCheck);
-	if ((g_nTimerLastCheck == 0) || (now >= 100))
-	{ //check timeout every 100ms
-		sleeptime = sys_timeouts_sleeptime(); /* Return the time left before the next timeout is due. If no timeouts are enqueued, returns 0xffffffff */
-		if (sleeptime == 0)
-		{ //timeout right now
-			sys_check_timeouts();
-			needRecall = 1; //next pending
-		}
-		else
-		{ //SYS_TIMEOUTS_SLEEPTIME_INFINITE, or near in the future
-			g_nTimerLastCheck = now;
-		}
+	sleeptime = sys_timeouts_sleeptime(); /* Return the time left before the next timeout is due. If no timeouts are enqueued, returns 0xffffffff */
+	if (sleeptime == SYS_TIMEOUTS_SLEEPTIME_INFINITE)
+	{ //timer queue is empty
+		noTimerCount++;
 	}
+	else if (sleeptime == 0)
+	{ //timeout
+		sys_check_timeouts();
+
+		sleeptime = sys_timeouts_sleeptime(); /* Return the time left before the next timeout is due */
+		timer0Count++;
+	}
+	else
+	{
+		timer1Count++;
+	}
+
+	if (sleeptime != SYS_TIMEOUTS_SLEEPTIME_INFINITE)
+		waitMS = sleeptime; //next timer will come soon, in urgent
+	if (waitMS == 0)
+		waitMS = waitMin;
 
 	UNLOCK_TCPIP_CORE();
 
-	if (needRecall == 0)
-	{
-		if (SYS_MBOX_EMPTY != sys_arch_mbox_fetch(&tcpip_mbox, (void **)&msg, maxWait))
-		{
-			if (msg != NULL)
-			{
-				LOCK_TCPIP_CORE();
-					tcpip_thread_handle_msg(msg);
-				UNLOCK_TCPIP_CORE();
+	if (sleeptime == 0)
+		return 1;
 
-				needRecall = 1;
-			}
-		}
+	ret = sys_arch_mbox_fetch(&tcpip_mbox, (void **)&msg, waitMS);
+	if ((SYS_MBOX_EMPTY != ret) && (msg != NULL))
+	{
+		LOCK_TCPIP_CORE();
+			tcpip_thread_handle_msg(msg);
+		UNLOCK_TCPIP_CORE();
+
+		eventCount++;
+		waitMS = waitMin;
 	}
-	return needRecall;
+	else
+	{ //nothing happened
+		waitMS = 100; //not urgent
+		if (sleeptime == 0)
+			waitMS = waitMin; //in urgent
+	}
+
+	if (waitMS == waitMin)
+	{
+		urgentCount++;
+		return 1;
+	}
+
+	nonUrgent++;
+	return 0;
 }
 
 void LwipLinkUp(void)

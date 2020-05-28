@@ -16,7 +16,7 @@ struct packet_wrapper
 };
 
 void LwipInit(int reboot);
-int	tcpip_inloop(unsigned long maxWait);
+extern int tcpip_inloop(void);
 
 struct packet_wrapper* DMA_pop();
 void DMA_free(struct packet_wrapper* pkt);
