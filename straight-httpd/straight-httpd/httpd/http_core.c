@@ -117,6 +117,9 @@ int SessionCreate(REQUEST_CONTEXT* context, char* outCookie)
 		LWIP_sprintf(outCookie, "SID=%08lX", LWIP_GetTickCount());
 
 		g_httpSessions[i]._tLastReceived = LWIP_GetTickCount();
+		if (g_httpSessions[i]._tLastReceived == 0)
+			g_httpSessions[i]._tLastReceived = 1;
+
 		g_httpSessions[i]._nUserIP = context->_pcb->remote_ip.addr;
 		strcpy(g_httpSessions[i]._token, outCookie);
 
@@ -190,13 +193,16 @@ int SessionTypes(char* extension)
 
 SESSION* GetSession(char* token)
 {
-	for (int i = 0; i < MAX_SESSIONS; i++)
+	if ((token != NULL) && (token[0] != 0))
 	{
-		if (g_httpSessions[i]._token[0] == 0)
-			continue;
+		for (int i = 0; i < MAX_SESSIONS; i++)
+		{
+			if (g_httpSessions[i]._token[0] == 0)
+				continue;
 
-		if (strstr(token, g_httpSessions[i]._token) != NULL)
-			return &g_httpSessions[i];
+			if (strstr(token, g_httpSessions[i]._token) != NULL)
+				return &g_httpSessions[i];
+		}
 	}
 	return NULL;
 }
@@ -218,6 +224,10 @@ int SessionCheck(REQUEST_CONTEXT* context) //called when header 'X-Auth-Token' o
 
 			recvElapsed = LWIP_GetTickCount();
 			sendElapsed = recvElapsed;
+
+			if (recvElapsed == 0) recvElapsed = 1;
+			if (sendElapsed == 0) sendElapsed = 1;
+
 			if (g_httpSessions[i]._tLastReceived != 0)
 			{
 				if (recvElapsed >= g_httpSessions[i]._tLastReceived)
@@ -238,7 +248,7 @@ int SessionCheck(REQUEST_CONTEXT* context) //called when header 'X-Auth-Token' o
 			else
 				sendElapsed = 0;
 
-			if ((sendElapsed > TO_SESSION) || (recvElapsed > TO_SESSION))
+			if (((sendElapsed < recvElapsed) ? sendElapsed : recvElapsed) > TO_SESSION)
 			{
 				LogPrint(0, "Session killed (timeout) @ %s from %08lX", g_httpSessions[i]._token, g_httpSessions[i]._nUserIP);
 
@@ -374,6 +384,7 @@ REQUEST_CONTEXT* GetHttpContext(void)
 				pbuf_free(g_httpContext[i]._reqBufList);
 			g_httpContext[i]._reqBufList = NULL;
 			g_httpContext[i]._bufOffset = 0;
+			g_httpContext[i]._peer_closing = 0;
 
 			ResetHttpContext(&g_httpContext[i]);
 
@@ -391,6 +402,9 @@ int IsContextTimeout(REQUEST_CONTEXT* context) //called by OnHttpPoll
 {
 	unsigned long recvElapsed = LWIP_GetTickCount();
 	unsigned long sendElapsed = recvElapsed;
+
+	if (recvElapsed == 0) recvElapsed = 1;
+	if (sendElapsed == 0) sendElapsed = 1;
 
 	if (context == NULL)
 		return -1;
@@ -415,19 +429,19 @@ int IsContextTimeout(REQUEST_CONTEXT* context) //called by OnHttpPoll
 	else
 		sendElapsed = 0;
 	
-	if (context->_state >= HTTP_STATE_BODY_DONE) //request body done
-	{ //sending
-		if (sendElapsed > context->ctxResponse._nSendTimeout)
-		{
-			LogPrint(0, "Sending timeout (>=%d ms) @%d", sendElapsed, context->_sid);
-			return 1;
-		}
-	}
-	else
+	if (context->_state < HTTP_STATE_BODY_DONE) //request body done
 	{ //receiving
 		if (recvElapsed > context->_nReceiveTimeout)
 		{
 			LogPrint(0, "Receiving timeout (>=%d ms) @%d", recvElapsed, context->_sid);
+			return 1;
+		}
+	}
+	else 
+	{ //sending
+		if (sendElapsed > context->ctxResponse._nSendTimeout)
+		{
+			LogPrint(0, "Sending timeout (>=%d ms) @%d", sendElapsed, context->_sid);
 			return 1;
 		}
 	}
@@ -449,7 +463,7 @@ void ResetHttpContext(REQUEST_CONTEXT* context)
 		
 		context->_requestMethod = -1;
 
-		context->_killing = 0;
+		//context->_killing = 0;
 
 		context->_expect00 = -1;
 		context->_chunked = -1;
@@ -457,7 +471,6 @@ void ResetHttpContext(REQUEST_CONTEXT* context)
 		context->_contentLength = -1;
 		context->_contentReceived = 0;
 		context->_keepalive = 0;
-		context->_peer_closing = 0;
 
 		context->_result = 0;
 		
@@ -769,7 +782,10 @@ signed char OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *p, sign
 	{
 		HttpRequestProc(context, HTTP_PROC_CALLER_RECV); //ResetHttpContext() or CloseHttpContext() may be already called
 		if (context->_result < 0)
+		{
+			LogPrint(0, "Canceling by OnHttpReceive, result=%d, @%d", context->_result, context->_sid);
 			CGI_Cancel(context);
+		}
 		
 		if (context->_result <= -500)
 		{
@@ -803,16 +819,21 @@ signed char OnHttpPoll(void *arg, struct altcp_pcb *pcb)
 		
 		if (IsContextTimeout(context) > 0)
 		{
+			LogPrint(0, "OnHttpPoll connection timeout @%d", context->_sid);
+
 			CGI_Cancel(context);
 			
-			LogPrint(0, "OnHttpPoll connection timeout @%d", context->_sid);
 			CloseHttpContext(context);
 			
 			return ERR_OK;  //not aborted
 		}
 		HttpRequestProc(context, HTTP_PROC_CALLER_POLL); //ResetHttpContext() or CloseHttpContext() may be already called
 		if (context->_result < 0)
+		{
+			LogPrint(0, "Canceling by OnHttpPoll, result=%d, @%d", context->_result, context->_sid);
+
 			CGI_Cancel(context);
+		}
 		
 		if (context->_result <= -500)
 		{
@@ -858,9 +879,15 @@ signed char OnHttpSent(void *arg, struct altcp_pcb *pcb, u16_t len)
 	{
 		LogPrint(LOG_DEBUG_ONLY, "OnHttpSent, size=%d, err=%d  @%d", len, err, context->_sid);
 		
+		context->ctxResponse._totalSent += len;
+
 		HttpRequestProc(context, HTTP_PROC_CALLER_SENT); //ResetHttpContext() or CloseHttpContext() may be already called
 		if (context->_result < 0)
+		{
+			LogPrint(0, "Canceling by OnHttpSent, result=%d, @%d", context->_result, context->_sid);
+
 			CGI_Cancel(context);
+		}
 		
 		if (context->_result <= -500)
 		{
@@ -870,9 +897,9 @@ signed char OnHttpSent(void *arg, struct altcp_pcb *pcb, u16_t len)
 			return ERR_OK;
 		}
 		
-		context->ctxResponse._tLastSent = LWIP_GetTickCount();
-		if (context->ctxResponse._tLastSent == 0)
-			context->ctxResponse._tLastSent ++;
+		//context->ctxResponse._tLastSent = LWIP_GetTickCount();
+		//if (context->ctxResponse._tLastSent == 0)
+			//context->ctxResponse._tLastSent ++;
 
 		if (context->ctxResponse._authorized == CODE_OK)
 		{ //GET large data
@@ -911,9 +938,10 @@ void OnHttpError(void *arg, signed char err)
 
 	if (context != NULL) 
 	{
+		LogPrint(0, "OnHttpError, err=%d @%d\n", err, context->_sid);
+
 		CGI_Cancel(context);
 		
-		LogPrint(0, "OnHttpError, err=%d @%d\n", err, context->_sid);
 		FreeHttpContext(context);
 	}
 	else
@@ -1116,8 +1144,13 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 			context->_state = HTTP_STATE_HEADER_RECEIVING;
 			
 			context->_tRequestStart = LWIP_GetTickCount();
+			if (context->_tRequestStart == 0)
+				context->_tRequestStart = 1;
+
 			context->_tLastReceived = LWIP_GetTickCount();
-			
+			if (context->_tLastReceived == 0)
+				context->_tLastReceived = 1;
+
 			context->ctxResponse._tLastSent = 0;
 			
 			LogPrint(LOG_DEBUG_ONLY, "new request start tick: %d @%d", context->_tRequestStart, context->_sid);
@@ -1146,8 +1179,16 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 						//context->_requestHeader = 1;
 						context->ctxResponse._cmdType = 0;
 						context->ctxResponse._authorized = 0;
+						
 						context->ctxResponse._sending = 0;
+						context->ctxResponse._total2Send = 0;
+						context->ctxResponse._totalSent  = 0;
+						context->ctxResponse._dwOperIndex = 0;
+						context->ctxResponse._dwOperStage = 0;
+						
 						context->ctxResponse._bytesLeft = 0;
+						context->ctxResponse._sendBuffer[0] = 0; //used for strlen
+
 						afterHeader = 1;
 						
 						context->_state = HTTP_STATE_HEADER_DONE;
@@ -1331,7 +1372,12 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 				if (context->_contentLength > 0)
 					context->_state = HTTP_STATE_BODY_RECEIVING;
 				else
+				{
+					context->ctxResponse._tLastSent = LWIP_GetTickCount(); //start sending timeout
+					if (context->ctxResponse._tLastSent == 0)
+						context->ctxResponse._tLastSent++;
 					context->_state = HTTP_STATE_BODY_DONE; //request done, followed with response
+				}
 			}
 			
 			//LogPrint(LOG_DEBUG_ONLY, "Header done, request: %s, response: %s @%d", context->_requestPath, context->_responsePath, context->_sid);
@@ -1395,7 +1441,12 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 					LogPrint(LOG_DEBUG_ONLY, "Chunk received: %d @%d", context->_contentLength, context->_sid);
 					
 					if (context->_contentLength == 2) //0 content + CRLF
+					{
+						context->ctxResponse._tLastSent = LWIP_GetTickCount(); //start sending timeout
+						if (context->ctxResponse._tLastSent == 0)
+							context->ctxResponse._tLastSent++;
 						context->_state = HTTP_STATE_BODY_DONE;
+					}
 					else
 						context->_state = HTTP_STATE_CHUNK_LEN_RECEIVING;
 					
@@ -1406,6 +1457,9 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 				{
 					LogPrint(LOG_DEBUG_ONLY, "Body received: %d @%d", context->_contentLength, context->_sid);
 					
+					context->ctxResponse._tLastSent = LWIP_GetTickCount(); //start sending timeout
+					if (context->ctxResponse._tLastSent == 0)
+						context->ctxResponse._tLastSent++;
 					context->_state = HTTP_STATE_BODY_DONE;
 				}
 			}
@@ -1415,7 +1469,7 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 		if (context->_state == HTTP_STATE_BODY_DONE) //request done, followed with response
 		{
 			CGI_RequestReceived(context);
-			
+
 			if (context->_result == 0)
 				context->_result = CODE_OK;
 			break;
@@ -1494,9 +1548,16 @@ signed char sendBuffered(REQUEST_CONTEXT* context)
 
 	if (err == ERR_OK)
 	{ //size2Send sent
+		context->ctxResponse._total2Send += size2Send;
 		context->ctxResponse._bytesLeft -= size2Send;
+
 		if (context->ctxResponse._bytesLeft > 0)
 			memmove(context->ctxResponse._sendBuffer, context->ctxResponse._sendBuffer + size2Send, context->ctxResponse._bytesLeft);
+		context->ctxResponse._sendBuffer[context->ctxResponse._bytesLeft] = 0; //used for strlen
+
+		context->ctxResponse._tLastSent = LWIP_GetTickCount();
+		if (context->ctxResponse._tLastSent == 0)
+			context->ctxResponse._tLastSent++;
 	}
 
 	return err;
@@ -1535,6 +1596,8 @@ signed char HttpResponse(REQUEST_CONTEXT* context, int caller) //always return E
 		context->ctxResponse._dwOperStage = 0;
 		context->ctxResponse._dwOperIndex = 0;
 		context->ctxResponse._tLastSent = LWIP_GetTickCount();
+		if (context->ctxResponse._tLastSent == 0)
+			context->ctxResponse._tLastSent = 1;
 
 		context->ctxResponse._sendMaxBlock = TCP_MSS;
 		if (context->ctxResponse._sendMaxBlock > sizeof(context->ctxResponse._sendBuffer))

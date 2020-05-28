@@ -411,7 +411,8 @@ int CGI_LoadContentToSend(REQUEST_CONTEXT* context, int caller) //load response 
 	{
 		if (context->ctxResponse._dwOperStage >= STAGE_END)
 		{
-			if (caller == HTTP_PROC_CALLER_SENT)
+			if ((caller == HTTP_PROC_CALLER_SENT) &&
+				(context->ctxResponse._totalSent >= context->ctxResponse._total2Send))
 			{ //last chunk sent
 				LogPrint(LOG_DEBUG_ONLY, "Response done @%d", context->_sid);
 				
@@ -428,6 +429,9 @@ int CGI_LoadContentToSend(REQUEST_CONTEXT* context, int caller) //load response 
 	{
 		if (context->handler->LoadContentToSend != NULL)
 		{
+			if (context->ctxResponse._dwOperStage >= STAGE_END)
+				return 0; //call type: HTTP_PROC_CALLER_POLL
+
 			return context->handler->LoadContentToSend(context);
 		}
 	}

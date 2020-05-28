@@ -98,7 +98,9 @@ typedef struct _RESPONSE_CONTEXT
 	int 	_sendMaxBlock;	//TCP_MSS, for http_core.c
 	
 	int 	_sending;		//=0 if it is the first response block, for http_core.c
-	
+	int 	_total2Send;	//total bytes to send
+	int 	_totalSent;		//total bytes already sent
+
 	unsigned long _tLastSent;		//tick of the last sent, for http_core.c
 	unsigned long _nSendTimeout; 	//60*1000, for http_core.c
 	
