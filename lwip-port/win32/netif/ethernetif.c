@@ -12,7 +12,7 @@
 
 #include "lwip_port.h"
 
-static void low_level_init(struct netif *netif)
+static err_t low_level_init(struct netif *netif)
 {
 	u8_t* pMac;
 	struct ethernetif *ethernetif = netif->state;
@@ -29,6 +29,8 @@ static void low_level_init(struct netif *netif)
 
 	netif->mtu = 1500;
 	netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP | NETIF_FLAG_LINK_UP;
+
+	return ERR_OK; //ERR_IF
 }
 
 err_t low_level_output(struct netif *netif, struct pbuf *p)
@@ -117,7 +119,5 @@ err_t ethernetif_init(struct netif *netif)
 	netif->output = etharp_output; //defined: lwip\src\core\ipv4\etharp.c
 	netif->linkoutput = low_level_output;
 
-	low_level_init(netif);
-
-	return ERR_OK;
+	return low_level_init(netif);
 }
