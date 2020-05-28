@@ -90,7 +90,7 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* TCP Maximum segment size. http://lwip.wikia.com/wiki/Tuning_TCP */
 #undef TCP_MSS
-#define TCP_MSS                 536	//(1500 - 40)	  /* TCP_MSS = (Ethernet MTU - IP header size - TCP header size) */
+#define TCP_MSS                 (1500 - 40)	  /*536 TCP_MSS = (Ethernet MTU - IP header size - TCP header size) */
 
 /* TCP sender buffer space (bytes). */
 #undef TCP_SND_BUF
