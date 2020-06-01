@@ -313,7 +313,7 @@ DWORD WINAPI MainLoopThread(void* data)
 
 	struct packet_wrapper* pkt = NULL;
 
-	printf("LWIP started\n ");
+	LogPrint(0, "LWIP started\r\n");
 
 	LwipInit(0);
 
@@ -324,7 +324,7 @@ DWORD WINAPI MainLoopThread(void* data)
 		//more check
 	}
 
-	printf("LWIP stopped\n ");
+	LogPrint(0, "LWIP stopped\r\n");
 	return 0;
 }
 
