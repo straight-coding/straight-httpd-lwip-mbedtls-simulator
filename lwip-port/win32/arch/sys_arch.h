@@ -1,6 +1,8 @@
 #ifndef LWIP_ARCH_SYS_ARCH_H
 #define LWIP_ARCH_SYS_ARCH_H
 
+#pragma warning(disable:4996) //_CRT_SECURE_NO_WARNINGS
+
 #define SYS_ARCH_DECL_PROTECT(lev)	
 #define SYS_ARCH_PROTECT(lev)		sys_arch_protect()
 #define SYS_ARCH_UNPROTECT(lev)		sys_arch_unprotect()
@@ -51,10 +53,11 @@ typedef void* sys_thread_t;
 typedef unsigned int sys_prot_t;
 
 typedef struct FILE LWIP_FIL;
-LWIP_FIL* LWIP_fopen(const char* szTemp, const char* mode);
-void LWIP_fclose(LWIP_FIL* f);
-long LWIP_fsize(LWIP_FIL* f);
-int  LWIP_fread(LWIP_FIL* f, char* buf, int count, unsigned int* bytes); //0=success
+void* LWIP_fopen(const char* szTemp, const char* mode);
+void LWIP_fclose(void* f);
+long LWIP_fsize(void* f);
+int  LWIP_fread(void* f, char* buf, int count, unsigned int* bytes); //0=success
+int  LWIP_fwrite(void* f, char* buf, int count); //>0:success
 
 u32_t sys_jiffies(void);
 u32_t sys_now(void);

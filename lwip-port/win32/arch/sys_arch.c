@@ -359,15 +359,17 @@ void LWIP_sprintf(char* buf, char* format, ...)
 	va_end(ap);
 }
 
-LWIP_FIL* LWIP_fopen(const char* szTemp, const char* mode)
+void* LWIP_fopen(const char* szTemp, const char* mode)
 {
 	FILE *f;
+	//if (0 == _wfopen_s(&f, szTemp, mode))
+		//return f;
 	if (0 == fopen_s(&f, szTemp, mode))
-		return f;
+		return (void*)f;
 	return 0;
 }
 
-int LWIP_fread(LWIP_FIL* f, char* buf, int toRead, unsigned int* outBytes) //0=success
+int LWIP_fread(void* f, char* buf, int toRead, unsigned int* outBytes) //0=success
 {
 	unsigned int size = 0;
 	*outBytes = 0;
@@ -380,18 +382,23 @@ int LWIP_fread(LWIP_FIL* f, char* buf, int toRead, unsigned int* outBytes) //0=s
 	return -1;
 }
 
-void LWIP_ftime(LWIP_FIL* f, char* buf)
+int LWIP_fwrite(void* f, char* buf, int toWrite) //>0: success
+{
+	return fwrite(buf, 1, toWrite, (FILE*)f);
+}
+
+void LWIP_ftime(void* f, char* buf)
 {
 	struct stat sb;
 	if (f == NULL)
 		return;
 
-	fstat(f, &sb);
+	fstat((FILE*)f, &sb);
 	
 	strcpy_s(buf, 29, gmt4http(&sb.st_mtime));
 }
 
-long LWIP_fsize(LWIP_FIL* f)
+long LWIP_fsize(void* f)
 {
 	long size = 0;
 	int pos = 0;
@@ -412,8 +419,54 @@ long LWIP_fsize(LWIP_FIL* f)
 	return size;
 }
 
-void LWIP_fclose(LWIP_FIL* f)
+void LWIP_fclose(void* f)
 {
 	fclose((FILE*)f);
 }
 
+void* LWIP_firstdir(void* filter, int* isFolder, char* name, int maxLen, int* size, time_t* date)
+{
+	WIN32_FIND_DATA fd;
+	HANDLE hFind = FindFirstFile(filter, &fd);
+
+	*isFolder = 0;
+	name[0] = 0;
+
+	if (hFind != INVALID_HANDLE_VALUE) 
+	{
+		if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+			*isFolder = 1;
+		else
+			*isFolder = 0;
+
+		strncpy(name, fd.cFileName, maxLen - 1);
+		*size = fd.nFileSizeLow;
+		//*date = fd.ftLastWriteTime;
+		return (void*)hFind;
+	}
+	return NULL;
+}
+
+int LWIP_readdir(void* hDir, int* isFolder, char* name, int maxLen, int* size, time_t* date)
+{
+	WIN32_FIND_DATA fd;
+	if (FindNextFile((HANDLE)hDir, &fd))
+	{
+		if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+			*isFolder = 1;
+		else
+			*isFolder = 0;
+
+		strncpy(name, fd.cFileName, maxLen - 1);
+		*size = fd.nFileSizeLow;
+		//*date = fd.ftLastWriteTime;
+		return 1;
+	}
+	return 0;
+}
+
+void LWIP_closedir(void* hDir)
+{
+	if (hDir != NULL)
+		FindClose((HANDLE)hDir);
+}
