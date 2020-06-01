@@ -166,3 +166,77 @@ void TrimFloat(char* floatString)
 		len--;
 	}
 }
+
+char* base64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+int DecodeB64(unsigned char* data)
+{
+	int i = 0;
+	int resultCount = 0;
+	int validCount = 0;
+	int value = 0;
+	unsigned long convered = 0;
+	while (data[i] != 0)
+	{
+		if ((data[i] == '\r') || (data[i] == '\n') || (data[i] == '='))
+		{ //ingnored
+			i++;
+			continue;
+		}
+		if ((data[i] >= 'A') && (data[i] <= 'Z'))
+		{
+			value = (int)(data[i] - 'A');
+		}
+		else if ((data[i] >= 'a') && (data[i] <= 'z'))
+		{
+			value = (int)(data[i] - 'a' + 26);
+		}
+		else if ((data[i] >= '0') && (data[i] <= '9'))
+		{
+			value = (int)(data[i] - '0' + 52);
+		}
+		else if (data[i] == '+')
+		{
+			value = 62;
+		}
+		else if (data[i] >= '/')
+		{
+			value = 63;
+		}
+		else
+		{ //bad character
+			return 0;
+		}
+
+		i++;
+		validCount++;
+
+		convered <<= 6;
+		convered += value;
+
+		if ((validCount & 0x3) == 0)
+		{
+			data[resultCount+0] = (unsigned char)((convered >> 16) & 0xFF);
+			data[resultCount+1] = (unsigned char)((convered >> 8) & 0xFF);
+			data[resultCount+2] = (unsigned char)((convered) & 0xFF);
+
+			resultCount += 3;
+			convered = 0;
+		}
+	}
+	if ((validCount & 0x3) == 3)
+	{
+		data[resultCount + 0] = (unsigned char)((convered >> 10) & 0xFF);
+		data[resultCount + 1] = (unsigned char)((convered >> 2) & 0xFF);
+		resultCount += 2;
+	}
+	else if ((validCount & 0x3) == 2)
+	{
+		data[resultCount] = (unsigned char)((convered >> 4) & 0xFF);
+		resultCount ++;
+	}
+	else if ((validCount & 0x3) == 1)
+	{
+	}
+	data[resultCount] = 0;
+	return resultCount;
+}
