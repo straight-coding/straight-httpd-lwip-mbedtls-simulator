@@ -14,8 +14,7 @@ typedef struct
 	LWIP_FIL*  _fp;
 	char* _buffer;
 	
-	long  _total;
-	long  _offset;
+	long  _options;
 	
 	short _ssi; 		//1=SSI
 	short _ssiState; 	//0=idle, 1=searching start, 2=start found, 3=collecting name, 4=searching end, 5=end found
@@ -23,44 +22,8 @@ typedef struct
 	short _tagLength; 	//
 	
 	char  _tagName[64];
-	char  _cache[2*TCP_MSS]; //pre-read buffer
+	char  _cache[MAX_TAG_LEN]; //pre-read buffer
 }SSI_Context;
-
-typedef struct 
-{
-	char *extension;
-	char *content_type;
-}TypeHeader;
-
-static const TypeHeader contentTypes[] = {
-	{ "html",  "text/html"},
-	{ "htm",   "text/html"},
-
-	{ "shtml", "text/html"},
-	{ "shtm",  "text/html"},
-	{ "ssi",   "text/html"},
-	{ "css",   "text/css"},
-
-	{ "json",  "application/json"},
-	{ "js",    "application/javascript"},
-
-	{ "gif",   "image/gif"},
-	{ "png",   "image/png"},
-	{ "jpg",   "image/jpeg"},
-	{ "bmp",   "image/bmp"},
-	{ "ico",   "image/x-icon"},
-
-	{ "class", "application/octet-stream"},
-	{ "cls",   "application/octet-stream"},
-	{ "swf",   "application/x-shockwave-flash"},
-	{ "ram",   "application/javascript"},
-	{ "pdf",   "application/pdf"},
-
-	{ "xml",   "text/xml"},
-	{ "xsl",   "text/xml"},
-
-	{ "",    "text/plain"}
-};
 
 static const char tagStart[] = "<!--#";
 static const char tagEnd[]   = "-->";
@@ -78,7 +41,7 @@ int  Web_OnAuthData(REQUEST_CONTEXT* context, char* buffer, int size);
 void Web_OnRequestReceived(REQUEST_CONTEXT* context);
 	
 void Web_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo);
-int  Web_LoadContentToSend(REQUEST_CONTEXT* context);
+int  Web_ReadContent(REQUEST_CONTEXT* context, char* buffer, int maxSize);
 void Web_OnAllSent(REQUEST_CONTEXT* context);
 void Web_OnFinished(REQUEST_CONTEXT* context);
 
@@ -93,7 +56,7 @@ struct CGI_Mapping g_cgiWebAuth = {
 	Web_OnRequestReceived, //void (*OnRequestReceived)(REQUEST_CONTEXT* context);
 
 	Web_SetResponseHeaders, //void (*SetResponseHeader)(REQUEST_CONTEXT* context, char* HttpCode);
-	Web_LoadContentToSend, //int  (*LoadContentToSend)(REQUEST_CONTEXT* context);
+	Web_ReadContent, //int  (*ReadContent)(REQUEST_CONTEXT* context, char* buffer, int maxSize);
 
 	Web_OnAllSent, //int  (*OnAllSent)(REQUEST_CONTEXT* context);
 	Web_OnFinished, //void (*OnFinished)(REQUEST_CONTEXT* context);
@@ -112,7 +75,7 @@ struct CGI_Mapping g_cgiWebApp = {
 	Web_OnRequestReceived, //void (*OnRequestReceived)(REQUEST_CONTEXT* context);
 	
 	Web_SetResponseHeaders, //void (*SetResponseHeader)(REQUEST_CONTEXT* context, char* HttpCode);
-	Web_LoadContentToSend, //int  (*LoadContentToSend)(REQUEST_CONTEXT* context);
+	Web_ReadContent, //int  (*ReadContent)(REQUEST_CONTEXT* context, char* buffer, int maxSize);
 	
 	Web_OnAllSent, //int  (*OnAllSent)(REQUEST_CONTEXT* context);
 	Web_OnFinished, //void (*OnFinished)(REQUEST_CONTEXT* context);
@@ -205,7 +168,7 @@ void Web_OnRequestReceived(REQUEST_CONTEXT* context)
 	char szTemp[256];
 
 	SSI_Context* ctxSSI = (SSI_Context*)context->ctxResponse._appContext;
-	if ((context->handler != NULL) && ((context->handler->options & CGI_OPT_AUTHENTICATOR) != 0))
+	if ((context->handler != NULL) && ((context->_options & CGI_OPT_AUTHENTICATOR) != 0))
 	{
 		if (stricmp(context->_requestPath, WEB_SESSION_CHECK) == 0)
 		{ //session exists?
@@ -275,18 +238,6 @@ void Web_OnRequestReceived(REQUEST_CONTEXT* context)
 			strcpy(context->_extension, ext+1);
 	}
 
-	if (context->_responsePath[0] == '/')
-		LWIP_sprintf(szTemp, "%s%s", g_szWebAbsRoot, context->_responsePath+1);
-	else
-		LWIP_sprintf(szTemp, "%s%s", g_szWebAbsRoot, context->_responsePath);
-	ctxSSI->_fp = LWIP_fopen(szTemp, "r");
-	if (ctxSSI->_fp != NULL)
-	{
-		context->_file2Get = ctxSSI->_fp;
-		context->ctxResponse._dwTotal = LWIP_fsize(ctxSSI->_fp);
-		LogPrint(LOG_DEBUG_ONLY, "File opened: %s, len=%d", szTemp, context->ctxResponse._dwTotal);
-	}
-
 	if (Strnicmp(context->_extension, "shtml", 5) == 0)
 		ctxSSI->_ssi = 1;
 	else if (Strnicmp(context->_extension, "shtm", 4) == 0)
@@ -294,252 +245,238 @@ void Web_OnRequestReceived(REQUEST_CONTEXT* context)
 	else if (Strnicmp(context->_extension, "ssi", 3) == 0)
 		ctxSSI->_ssi = 1;
 
-	if (ctxSSI->_ssi > 0)
-		context->handler->options |= CGI_OPT_CHUNKED;
+	if ((ctxSSI->_ssi > 0) && (context->handler != NULL))
+		context->_options |= CGI_OPT_CHUNK_ENABLED;
 
-	if (ctxSSI->_fp == NULL)
-		context->ctxResponse._dwTotal = LWIP_fsize(ctxSSI->_fp);
-}
+	if (context->_responsePath[0] == '/')
+		LWIP_sprintf(szTemp, "%s%s", g_szWebAbsRoot, context->_responsePath+1);
+	else
+		LWIP_sprintf(szTemp, "%s%s", g_szWebAbsRoot, context->_responsePath);
 
-char* GetContentType(REQUEST_CONTEXT* context)
-{
-	int i = 0; 
-	int extLen = strlen(context->_extension);
-	while(1)
+	ctxSSI->_fp = LWIP_fopen(szTemp, "rb");
+	if (ctxSSI->_fp != NULL)
 	{
-		int typeLen = strlen(contentTypes[i].extension);
-		if (typeLen == 0)
-			return contentTypes[i].content_type;
-		
-		if (typeLen == extLen)
-		{
-			if (Strnicmp(context->_extension, contentTypes[i].extension, typeLen) == 0)
-				return contentTypes[i].content_type;
-		}
-		i ++;
+		context->_fileHandle = ctxSSI->_fp;
+		context->ctxResponse._dwTotal = LWIP_fsize(ctxSSI->_fp);
+		LogPrint(LOG_DEBUG_ONLY, "File opened: %s, len=%d, SSI=%d @%d", szTemp, context->ctxResponse._dwTotal, ctxSSI->_ssi, context->_sid);
 	}
 }
 
 void Web_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 {
 	SSI_Context* ctxSSI = (SSI_Context*)context->ctxResponse._appContext;
-	if (ctxSSI->_valid == 0)
-	{
-		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, GetContentType(context), 0, "close"); //length
-	}
-	else
-	{
+
+	int chunkHeader = 0;
+	if (ctxSSI->_ssi > 0)
+		chunkHeader = 1;
+	else if ((context->handler != NULL) && ((context->_options & CGI_OPT_CHUNK_ENABLED) != 0))
+		chunkHeader = 1;
+	if (chunkHeader > 0)
 		LWIP_sprintf(context->ctxResponse._sendBuffer, header_chunked, HttpCodeInfo, GetContentType(context), header_nocache, "close");
-	}
+	else
+		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, GetContentType(context), context->ctxResponse._dwTotal, "close");
 
 	if ((context->_requestMethod == METHOD_GET) && 
 		(context->handler != NULL) &&
-		((context->handler->options & CGI_OPT_AUTHENTICATOR) != 0))
+		((context->_options & CGI_OPT_AUTHENTICATOR) != 0))
 	{ //clear cookie with login page
 		char szCookie[128];
 		LWIP_sprintf(szCookie, "X-Auth-Token: SID=\r\nSet-Cookie: SID=; Path=/; HttpOnly; max-age=3600\r\n");
 		strcat(context->ctxResponse._sendBuffer, szCookie);
 	}
 	strcat(context->ctxResponse._sendBuffer, CRLF);
+	LogPrint(LOG_DEBUG_ONLY, context->ctxResponse._sendBuffer);
 }
 
-int  Web_LoadContentToSend(REQUEST_CONTEXT* context)
+int Web_ReadContent(REQUEST_CONTEXT* context, char* buffer, int maxSize)
 {
-	int hasData2Send = 0;
+	int outputCount = -1; //output count
 	SSI_Context* ctxSSI = (SSI_Context*)context->ctxResponse._appContext;
+	char* pCache = ctxSSI->_cache; //cache for tag extracting
 
 	if ((context->_requestMethod == METHOD_GET) || (context->_requestMethod == METHOD_POST))
 	{
-		int size;
-		char szSize[64];
-		int size2Send;
-		int prefixLen;
-		
-		int offset = 10; //space for chunk size
-		int dataCount = 0;
-		char szCRLF[4];
-		
-		if (context->ctxResponse._dwOperStage == 0)
-		{ //first chunk
-			context->ctxResponse._dwOperIndex = 0;
-			context->ctxResponse._dwOperStage = 1;
-			memset(szCRLF, 0, 4);
+		int maxRead = (context->ctxResponse._dwTotal - context->ctxResponse._dwOperIndex); //available data remained
+		if (maxRead == 0)
+		{
+			if ((ctxSSI->_ssi > 0) && (ctxSSI->_cacheOffset > 0))
+			{
+				outputCount = ctxSSI->_cacheOffset;
+				ctxSSI->_cacheOffset = 0;
+				memcpy(buffer, ctxSSI->_cache, outputCount); //read to cache, then parse data in cache
+
+				context->ctxResponse._dwOperStage = STAGE_END;
+				return outputCount;
+			}
+			context->ctxResponse._dwOperStage = STAGE_END;
+			return -1; //file already finished, no more data
+		}
+
+		outputCount = 0;
+		if (ctxSSI->_ssi == 0)
+		{ //non-SSI
+			if (maxRead > maxSize)
+				maxRead = maxSize;
+				
+			if (ctxSSI->_fp == NULL) //content in memory -> ctxSSI->_buffer
+				memcpy(buffer, ctxSSI->_buffer + context->ctxResponse._dwOperIndex, maxRead);
+			else
+			{
+				unsigned int bytes = 0;
+				if (0 != LWIP_fread(ctxSSI->_fp, buffer, maxRead, &bytes))
+				{
+					context->_result = -500;
+					return 0;
+				}
+				maxRead = bytes;
+			}
+			context->ctxResponse._dwOperIndex += maxRead;
+			outputCount += maxRead;
 		}
 		else
-		{
-			strcpy(szCRLF, CRLF);
-		}
-		
-		if (context->ctxResponse._dwOperStage == 1)
-		{ //block data as a chunk
-			dataCount = (context->ctxResponse._dwTotal - context->ctxResponse._dwOperIndex); //available data remained
-			if (dataCount > 0)
+		{ //SSI
+			int ready2Send = 0;
+			int consumed = 0;
+
+			while(context->ctxResponse._dwOperIndex < context->ctxResponse._dwTotal)
 			{
-				if (ctxSSI->_ssi == 0)
-				{ //non-SSI
-					if (dataCount > context->ctxResponse._sendMaxBlock - 50)
-						dataCount = context->ctxResponse._sendMaxBlock - 50;
-					
-					if (ctxSSI->_fp == NULL)
-						memcpy(context->ctxResponse._sendBuffer+offset, ctxSSI->_buffer + context->ctxResponse._dwOperIndex, dataCount);
-					else
-					{
-						unsigned int bytes = 0;
-						if (0 != LWIP_fread(ctxSSI->_fp, context->ctxResponse._sendBuffer+offset, dataCount, &bytes))
-						{
-							context->_result = -500;
-							return 0;
-						}
-						dataCount = bytes;
-						//dataCount = ff_fread(context->ctxResponse._sendBuffer+offset, dataCount, 1, ctxSSI->_fp);
-					}
-					context->ctxResponse._dwOperIndex += dataCount;
+				maxRead = (context->ctxResponse._dwTotal - context->ctxResponse._dwOperIndex);
+				if (maxRead > sizeof(ctxSSI->_cache) - ctxSSI->_cacheOffset)
+					maxRead = sizeof(ctxSSI->_cache) - ctxSSI->_cacheOffset;
+
+				if (ctxSSI->_fp == NULL)
+				{
+					char* pSrc = ctxSSI->_buffer + context->ctxResponse._dwOperIndex; //const memory
+					memcpy(pCache + ctxSSI->_cacheOffset, pSrc, maxRead); //read to cache, then parse data in cache
 				}
 				else
-				{ //SSI
-					int lastBlock = 0;
-					int consumed, canRead, totalToParse;
-				
-					char* pCache = ctxSSI->_cache; //cache for tag extracting
-					
-					canRead = dataCount; //remain data
-					if (canRead > context->ctxResponse._sendMaxBlock - ctxSSI->_cacheOffset - 50)
-						canRead = context->ctxResponse._sendMaxBlock - ctxSSI->_cacheOffset - 50;
-					else
-						lastBlock = 1;
-					
-					if (ctxSSI->_fp == NULL)
+				{
+					unsigned int bytes = 0;
+					if (0 != LWIP_fread(ctxSSI->_fp, pCache + ctxSSI->_cacheOffset, maxRead, &bytes))
 					{
-						char* pSrc = ctxSSI->_buffer + context->ctxResponse._dwOperIndex; //const memory
-						memcpy(pCache + ctxSSI->_cacheOffset, pSrc, canRead); //read to cache, then parse data in cache
+						context->_result = -500;
+						return 0;
 					}
-					else
-					{
-						unsigned int bytes = 0;
-						if (0 != LWIP_fread(ctxSSI->_fp, pCache + ctxSSI->_cacheOffset, canRead, &bytes))
-						{
-							context->_result = -500;
-							return 0;
-						}
-						//canRead = ff_fread(pCache + ctxSSI->_cacheOffset, canRead, 1, ctxSSI->_fp);
-						canRead = bytes;
-					}
-					totalToParse = ctxSSI->_cacheOffset + canRead;
-					
-					LogPrint(LOG_DEBUG_ONLY, "SSI append data: state=%d, off=%d, new=%d", ctxSSI->_ssiState, ctxSSI->_cacheOffset, canRead);
-					
-					consumed = 0;  	//consumed source
-					dataCount = 0; 	//data that will be sent
-					if (totalToParse >= 8)
-					{
-						while(consumed <= totalToParse - 8)
-						{
-							if (ctxSSI->_ssiState == 0) //0=idle, 1=searching start, 2=searching end
-								ctxSSI->_ssiState = 1;
-							
-							if (ctxSSI->_ssiState == 1)	//1=searching start
-							{
-								if ((pCache[consumed] == '<') && (pCache[consumed+1] == '!') && 
-									(pCache[consumed+2] == '-') && (pCache[consumed+3] == '-') && (pCache[consumed+4] == '#')) //"<!--#"
-								{
-									LogPrint(LOG_DEBUG_ONLY, "Tag start found");
-									
-									ctxSSI->_ssiState = 2; //start found
-									consumed += 5;
-								}
-								else
-								{ //copy to send buffer
-									context->ctxResponse._sendBuffer[offset+dataCount] = pCache[consumed];
-									dataCount ++;
-									
-									consumed ++;
-								}
-							}
-							else if (ctxSSI->_ssiState == 2)	//start found, copy name and searching end
-							{
-								if ((pCache[consumed] == '-') && (pCache[consumed+1] == '-') && (pCache[consumed+2] == '>')) //"-->"
-								{ //end found
-									int nAppend;
-									LogPrint(LOG_DEBUG_ONLY, "Tag end: %s", ctxSSI->_tagName);
-									
-									nAppend = ReplaceTag(context, ctxSSI->_tagName, context->ctxResponse._sendBuffer+offset+dataCount, context->ctxResponse._sendMaxBlock - dataCount - 50);
-									dataCount += nAppend;
-									consumed += 3;
-									
-									ctxSSI->_ssiState = 0; //end found
-									ctxSSI->_tagLength = 0;
-									memset(ctxSSI->_tagName, 0, sizeof(ctxSSI->_tagName));
-								}
-								else
-								{ //copy tag name
-									ctxSSI->_tagName[ctxSSI->_tagLength++] = pCache[consumed];
-									ctxSSI->_tagName[ctxSSI->_tagLength] = 0;
-									
-									consumed ++;
-								}
-							}
-						}
-						LogPrint(LOG_DEBUG_ONLY, "SSI cache remain: consumed=%d, left=%d", consumed, totalToParse - consumed);
-						
-						memmove(pCache, pCache + consumed, totalToParse - consumed); //shift consumed out
-						ctxSSI->_cacheOffset = totalToParse - consumed;
-						
-						if (lastBlock > 0)
-						{
-							context->ctxResponse._dwOperIndex += canRead;
-							canRead = 0;
-						}
-					}
-					
-					if (lastBlock > 0)
-					{
-						LogPrint(LOG_DEBUG_ONLY, "SSI final remain: off=%d, read=%d", ctxSSI->_cacheOffset, canRead);
-						
-						memcpy(context->ctxResponse._sendBuffer+offset+dataCount, pCache, ctxSSI->_cacheOffset + canRead);
-						dataCount += ctxSSI->_cacheOffset + canRead;
-						
-						ctxSSI->_cacheOffset = 0;
-					}
-					context->ctxResponse._dwOperIndex += canRead;
+					maxRead = bytes;
 				}
-				context->ctxResponse._sendBuffer[offset+dataCount] = 0;
-			}
+				//LogPrint(LOG_DEBUG_ONLY, "SSI read to cache: %d", maxRead);
+				context->ctxResponse._dwOperIndex += maxRead;		//update next index to read
+				ctxSSI->_cacheOffset += maxRead;
 
-			if (context->ctxResponse._dwOperIndex >= context->ctxResponse._dwTotal)
+				//to parse data in ctxSSI->_cache
+				consumed = 0;
+				while(consumed < ctxSSI->_cacheOffset)
+				{
+					if (ctxSSI->_ssiState == 0) //0=idle, 1=searching start, 2=searching end
+						ctxSSI->_ssiState = 1;
+
+					if (ctxSSI->_ssiState == 1)
+					{ //1=searching TAG start
+						if (pCache[consumed] != tagStart[0]) //'<'
+						{ //copy to send buffer
+							buffer[outputCount] = pCache[consumed];
+
+							outputCount++;
+							consumed++;
+							if (outputCount >= maxSize)
+							{
+								ready2Send = 1;
+								break; //send buffer if full
+							}
+						}
+						else if (consumed <= ctxSSI->_cacheOffset - strlen(tagStart))
+						{ //detect start TAG
+							if (Strnicmp(pCache+consumed, tagStart, strlen(tagStart)) == 0)
+							{ //start found, "<!--#"
+								LogPrint(LOG_DEBUG_ONLY, "Tag start found");
+
+								ctxSSI->_ssiState = 2; //start found
+
+								consumed += 5;
+								ready2Send = 1;
+								break; //tag found, then send out, and leave buffer space for the coming TAG content
+							}
+							else
+							{ //not a TAG
+								buffer[outputCount] = pCache[consumed];
+
+								outputCount++;
+								consumed++;
+								if (outputCount >= maxSize)
+								{
+									ready2Send = 1;
+									break; //send buffer if full
+								}
+							}
+						}
+						else
+							break; //TAG start flag incomplete
+					}
+					else if (ctxSSI->_ssiState == 2) //start found, copy name and searching end
+					{
+						if (pCache[consumed] != tagEnd[0])
+						{ //copy to send buffer
+							ctxSSI->_tagName[ctxSSI->_tagLength++] = pCache[consumed];
+							ctxSSI->_tagName[ctxSSI->_tagLength] = 0;
+							consumed++;
+						}
+						else if (consumed <= ctxSSI->_cacheOffset - strlen(tagEnd))
+						{ //detect end TAG
+							if (Strnicmp(pCache + consumed, tagEnd, strlen(tagEnd)) == 0)
+							{ //end found, "-->"
+								int nAppend;
+								LogPrint(LOG_DEBUG_ONLY, "Tag end: %s", ctxSSI->_tagName);
+
+								nAppend = ReplaceTag(context, ctxSSI->_tagName, buffer + outputCount, maxSize - outputCount - 50);
+								outputCount += nAppend;
+								consumed += 3;
+
+								ctxSSI->_ssiState = 0; //end found
+								ctxSSI->_tagLength = 0;
+								memset(ctxSSI->_tagName, 0, sizeof(ctxSSI->_tagName));
+							}
+							else
+							{
+								ctxSSI->_tagName[ctxSSI->_tagLength++] = pCache[consumed];
+								ctxSSI->_tagName[ctxSSI->_tagLength] = 0;
+								consumed++;
+							}
+						}
+						else
+							break; //TAG end flag incomplete
+					}
+				}
+
+				ctxSSI->_cacheOffset -= consumed;
+				if (ctxSSI->_cacheOffset > 0)
+					memmove(pCache, pCache + consumed, ctxSSI->_cacheOffset); //shift consumed out
+
+				if (ready2Send > 0)
+					break; //ready to send buffer
+			}
+			//LogPrint(LOG_DEBUG_ONLY, "SSI final remain: off=%d, read=%d", ctxSSI->_cacheOffset, canRead);
+		}
+
+		if (context->ctxResponse._dwOperIndex >= context->ctxResponse._dwTotal)
+		{
+			if ((ctxSSI->_ssi > 0) && (ctxSSI->_cacheOffset > 0))
+				context->ctxResponse._dwOperStage++;
+			else
 			{
 				LogPrint(LOG_DEBUG_ONLY, "Web content end reached, @%d", context->_sid);
-				
 				context->ctxResponse._dwOperStage = STAGE_END;
-				context->ctxResponse._dwOperIndex = 0;
 			}
 		}
-	
-		size2Send = dataCount;
-		
-		LWIP_sprintf(szSize, "%s%X\r\n", szCRLF, dataCount); //chunk size
-		prefixLen = strlen(szSize);
-		memcpy(context->ctxResponse._sendBuffer+offset-prefixLen, szSize, prefixLen); //copy chunk size to the head
-		size2Send += prefixLen;
-		
-		if (context->ctxResponse._dwOperStage == STAGE_END)
-		{ //last block, end chunk
-			strcpy(szSize, "\r\n0\r\n\r\n");
-			memcpy(context->ctxResponse._sendBuffer+offset-prefixLen + size2Send, szSize, 7); //copy to the tail
-			size2Send += 7;
-		}
-		
-		memmove(context->ctxResponse._sendBuffer, context->ctxResponse._sendBuffer+offset-prefixLen, size2Send); //move to the head
-		context->ctxResponse._bytesLeft = size2Send;
-		hasData2Send = 1;
-		
-		LogPrint(LOG_DEBUG_ONLY, "Web response sending: %d @%d", dataCount, context->_sid);
+		else
+			context->ctxResponse._dwOperStage++;
+
+		LogPrint(LOG_DEBUG_ONLY, "Web response sending: %d @%d", outputCount, context->_sid);
 	}
-	
-	return hasData2Send;
+	return outputCount;
 }
 
 void Web_OnAllSent(REQUEST_CONTEXT* context)
-{
+{ //all response sent out
 	SSI_Context* ctxSSI = (SSI_Context*)context->ctxResponse._appContext;
 	if ((ctxSSI != NULL) && (ctxSSI->_fp != NULL))
 	{
@@ -551,7 +488,7 @@ void Web_OnAllSent(REQUEST_CONTEXT* context)
 }
 
 void Web_OnFinished(REQUEST_CONTEXT* context)
-{
+{ //connection closed
 	SSI_Context* ctxSSI = (SSI_Context*)context->ctxResponse._appContext;
 	if ((ctxSSI != NULL) && (ctxSSI->_fp != NULL))
 	{

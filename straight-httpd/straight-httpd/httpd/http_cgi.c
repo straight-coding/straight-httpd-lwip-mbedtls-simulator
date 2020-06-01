@@ -34,7 +34,7 @@ void CGI_SetupMapping() //called from SetupHttpContext(), CGI handlers could be 
 	extern struct CGI_Mapping g_cgiSSDP; //"/upnp_device.xml"
 	//extern struct CGI_Mapping g_cgiCommand;
 	extern struct CGI_Mapping g_cgiLog;
-	extern struct CGI_Mapping g_cgiUpgrade;
+	extern struct CGI_Mapping g_cgiUpload;
 	extern struct CGI_Mapping g_cgiWebAuth; // "/auth/*"
 	extern struct CGI_Mapping g_cgiWebApp;	// "/app/*", MUST be the last one
 
@@ -43,8 +43,8 @@ void CGI_SetupMapping() //called from SetupHttpContext(), CGI handlers could be 
 	//CGI_Append(&g_cgiStatus);		//"/status.json"
 	CGI_Append(&g_cgiSSDP, NULL, 0);	//"/upnp_device.xml"
 	//CGI_Append(&g_cgiCommand);	//"/cmd.cgi"
-	CGI_Append(&g_cgiLog,     "/app/log.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_CHUNKED);
-	CGI_Append(&g_cgiUpgrade, "/app/upgrade.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_POST_ENABLED);
+	CGI_Append(&g_cgiLog,     "/api/log.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_CHUNK_ENABLED);
+	CGI_Append(&g_cgiUpload,  "/api/upload.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_POST_ENABLED);
 	CGI_Append(&g_cgiWebAuth, "/auth/*", CGI_OPT_AUTHENTICATOR | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED);
 	CGI_Append(&g_cgiWebApp,  "/app/*", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED); //"/app/*", MUST be the last one
 }
@@ -64,7 +64,7 @@ int CheckWebRoot(char* drive, char* absRoot, char* defaultPage)
 	strcat(szTemp, absRoot);
 	strcat(szTemp, defaultPage+1);
 
-	fTest = LWIP_fopen(szTemp, "r");
+	fTest = LWIP_fopen(szTemp, "rb");
 	if (fTest == NULL)
 		return 0;
 
@@ -172,14 +172,14 @@ void CGI_Append(struct CGI_Mapping* newMapping, const char* ovwPath, u32_t ovwOp
 	}
 
 	if (ovwOptions != 0)
-		newMapping->options = ovwOptions;
+		newMapping->optionsAllowed = ovwOptions;
 
 	while (newMapping->path[i] != 0)
 	{
 		if (newMapping->path[i] == '*')
 		{
 			newMapping->path[i] = 0;
-			newMapping->options |= CGI_OPT_PREFIX_WILDCARD;
+			newMapping->optionsAllowed |= CGI_OPT_PREFIX_WILDCARD;
 			break;
 		}
 		i++;
@@ -230,13 +230,15 @@ void CGI_SetCgiHandler(REQUEST_CONTEXT* context) //called when the first HTTP re
 	while(next != NULL)
 	{
 		int nCgiPathLen = strlen(next->path);
-		if ((next->options & CGI_OPT_PREFIX_WILDCARD) != 0)
+		if ((next->optionsAllowed & CGI_OPT_PREFIX_WILDCARD) != 0)
 		{ //check prefix match
 			if (nReqPathLen >= nCgiPathLen)
 			{
 				if (Strnicmp(context->_requestPath, next->path, nCgiPathLen) == 0)	//such as "/auth/*", "/app/*"
 				{
 					context->handler = next;
+					if (context->handler != NULL)
+						context->_options = context->handler->optionsAllowed;
 					return;
 				}
 			}
@@ -248,6 +250,8 @@ void CGI_SetCgiHandler(REQUEST_CONTEXT* context) //called when the first HTTP re
 				if (Strnicmp(context->_requestPath, next->path, nCgiPathLen) == 0)	//such as "/status.json"
 				{
 					context->handler = next;
+					if (context->handler != NULL)
+						context->_options = context->handler->optionsAllowed;
 					return;
 				}
 			}
@@ -274,7 +278,7 @@ void CGI_HeadersReceived(REQUEST_CONTEXT* context) //called when all HTTP reques
 {
 	if (context->handler != NULL)
 	{
-		if ((context->handler->options & CGI_OPT_AUTH_REQUIRED) != 0)
+		if ((context->_options & CGI_OPT_AUTH_REQUIRED) != 0)
 		{
 			if (context->ctxResponse._authorized != CODE_OK)
 			{
@@ -285,7 +289,7 @@ void CGI_HeadersReceived(REQUEST_CONTEXT* context) //called when all HTTP reques
 		
 		if (context->_requestMethod == METHOD_GET) 
 		{
-			if ((context->handler->options & CGI_OPT_GET_ENABLED) != 0)
+			if ((context->_options & CGI_OPT_GET_ENABLED) != 0)
 			{
 				if (context->handler->OnHeadersReceived != NULL)
 					context->handler->OnHeadersReceived(context);
@@ -294,7 +298,7 @@ void CGI_HeadersReceived(REQUEST_CONTEXT* context) //called when all HTTP reques
 		}
 		else if (context->_requestMethod == METHOD_POST)
 		{
-			if ((context->handler->options & CGI_OPT_POST_ENABLED) != 0)
+			if ((context->_options & CGI_OPT_POST_ENABLED) != 0)
 			{
 				if (context->handler->OnHeadersReceived != NULL)
 					context->handler->OnHeadersReceived(context);
@@ -376,6 +380,7 @@ void CGI_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo) //set 
 			LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, "text/html", 0, "close");
 			strcat(context->ctxResponse._sendBuffer, CRLF);
 		}
+		context->ctxResponse._bytesLeft = strlen(context->ctxResponse._sendBuffer); //all headers are strings
 		return;
 	}
 	
@@ -384,6 +389,7 @@ void CGI_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo) //set 
 		if (context->handler->SetResponseHeaders != NULL)
 		{
 			context->handler->SetResponseHeaders(context, HttpCodeInfo);
+			context->ctxResponse._bytesLeft = strlen(context->ctxResponse._sendBuffer); //all headers are strings
 			return;
 		}
 	}
@@ -401,11 +407,13 @@ void CGI_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo) //set 
 		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, "text/html", 0, "close");
 	}
 	strcat(context->ctxResponse._sendBuffer, CRLF);
+	context->ctxResponse._bytesLeft = strlen(context->ctxResponse._sendBuffer); //all headers are strings
 }
 
-int CGI_LoadContentToSend(REQUEST_CONTEXT* context, int caller) //load response body chunk by chunk
-{
-	int hasData2Send = 0;
+//return 1=data ready to send; 0=pending without data; -1=finished, no more data
+int CGI_LoadContentToSend(REQUEST_CONTEXT* context, int caller)
+{ //context->ctxResponse._bytesLeft should be 0, and context->ctxResponse._sendBuffer is empty
+	int hasData2Send = -1; //-1=finished, no more data
 
 	if (context->_requestMethod == METHOD_GET)
 	{
@@ -413,29 +421,77 @@ int CGI_LoadContentToSend(REQUEST_CONTEXT* context, int caller) //load response 
 		{
 			if ((caller == HTTP_PROC_CALLER_SENT) &&
 				(context->ctxResponse._totalSent >= context->ctxResponse._total2Send))
-			{ //last chunk sent
+			{ //the last chunk was already sent out
 				LogPrint(LOG_DEBUG_ONLY, "Response done @%d", context->_sid);
-				
-				context->_state = HTTP_STATE_REQUEST_END;
 				
 				if (context->handler->OnAllSent != NULL)
 					context->handler->OnAllSent(context);
-				return hasData2Send;
+
+				return -1;
 			}
 		}
 	}
 	
 	if (context->handler != NULL)
 	{
-		if (context->handler->LoadContentToSend != NULL)
+		if (context->handler->ReadContent != NULL)
 		{
+			int size = 0;
 			if (context->ctxResponse._dwOperStage >= STAGE_END)
 				return 0; //call type: HTTP_PROC_CALLER_POLL
 
-			return context->handler->LoadContentToSend(context);
+			if ((context->_options & CGI_OPT_CHUNK_ENABLED) == 0)
+			{
+				size = context->handler->ReadContent(context, context->ctxResponse._sendBuffer, context->ctxResponse._sendMaxBlock - 2);
+				if (size < 0)
+					context->ctxResponse._dwOperStage = STAGE_END;
+				else
+					context->ctxResponse._bytesLeft = size;
+			}
+			else
+			{
+				char szSize[64];
+				int prefixLen;
+				char szCRLF[4];
+
+				if ((context->ctxResponse._dwOperStage == 0) && 
+					(context->ctxResponse._dwOperIndex == 0))
+				{ //first chunk
+					memset(szCRLF, 0, 4);
+				}
+				else
+				{
+					strcpy(szCRLF, CRLF);
+				}
+
+				size = context->handler->ReadContent(context, context->ctxResponse._sendBuffer + 10, context->ctxResponse._sendMaxBlock-20);// sizeof(context->ctxResponse._sendBuffer) - 20);
+				if (size > 0)
+				{
+					LWIP_sprintf(szSize, "%s%X\r\n", szCRLF, size); //chunk size
+					prefixLen = strlen(szSize);
+					memcpy(context->ctxResponse._sendBuffer + 10 - prefixLen, szSize, prefixLen); //copy to the head
+					size += prefixLen;
+
+					if (context->ctxResponse._dwOperStage == STAGE_END)
+					{
+						strcpy(szSize, "\r\n0\r\n\r\n");
+						memcpy(context->ctxResponse._sendBuffer + 10 - prefixLen + size, szSize, 7); //copy to the tail
+						size += 7;
+					}
+					memmove(context->ctxResponse._sendBuffer, context->ctxResponse._sendBuffer + 10 - prefixLen, size); //move to the head
+
+					context->ctxResponse._bytesLeft = size;
+				}
+			}
+
+			if (size < 0)
+				return -1;
+
+			if (size == 0)
+				hasData2Send = 0;
+			else
+				hasData2Send = 1;
 		}
 	}
-	
-	context->_state = HTTP_STATE_REQUEST_END; //no body to send, just end
 	return hasData2Send;
 }

@@ -43,6 +43,36 @@ signed char OnHttpPoll(void *arg, struct altcp_pcb *pcb);
 signed char OnHttpSent(void *arg, struct altcp_pcb *pcb, u16_t len);
 void  OnHttpError(void *arg, signed char err);
 
+static const TypeHeader contentTypes[] = {
+	{ "html",  "text/html"},
+	{ "htm",   "text/html"},
+
+	{ "shtml", "text/html"},
+	{ "shtm",  "text/html"},
+	{ "ssi",   "text/html"},
+	{ "css",   "text/css"},
+
+	{ "json",  "application/json"},
+	{ "js",    "application/javascript"},
+
+	{ "gif",   "image/gif"},
+	{ "png",   "image/png"},
+	{ "jpg",   "image/jpeg"},
+	{ "bmp",   "image/bmp"},
+	{ "ico",   "image/x-icon"},
+
+	{ "class", "application/octet-stream"},
+	{ "cls",   "application/octet-stream"},
+	{ "swf",   "application/x-shockwave-flash"},
+	{ "ram",   "application/javascript"},
+	{ "pdf",   "application/pdf"},
+
+	{ "xml",   "text/xml"},
+	{ "xsl",   "text/xml"},
+
+	{ "",    "text/plain"}
+};
+
 static const char* Response_Status_Lines[] = {
 	// 1xx: Informational - Request received, continuing process 
 		"000 Unknown Error",
@@ -261,11 +291,11 @@ int SessionCheck(REQUEST_CONTEXT* context) //called when header 'X-Auth-Token' o
 	{
 		context->_session = GetSession(context->ctxResponse._token);
 
-		if ((context->handler->options & CGI_OPT_AUTHENTICATOR) != 0)
+		if ((context->_options & CGI_OPT_AUTHENTICATOR) != 0)
 		{
 			//context->_session = GetSession(context->ctxResponse._token);
 		}
-		else if ((context->handler->options & CGI_OPT_AUTH_REQUIRED) != 0)
+		else if ((context->_options & CGI_OPT_AUTH_REQUIRED) != 0)
 		{ //this scope needs authentication
 			if (SessionTypes(context->_extension) > 0)
 			{
@@ -299,7 +329,7 @@ void SessionReceived(REQUEST_CONTEXT* context) //called by OnHttpReceive
 	sys_mutex_lock(&g_sessionMutex);
 	if ((context->_session != NULL) && (context->handler != NULL))
 	{
-		if ((context->handler->options & CGI_OPT_AUTH_REQUIRED) != 0)
+		if ((context->_options & CGI_OPT_AUTH_REQUIRED) != 0)
 		{
 			context->_session->_tLastReceived = LWIP_GetTickCount();
 			if (context->_session->_tLastReceived == 0)
@@ -314,7 +344,7 @@ void SessionSent(REQUEST_CONTEXT* context) //called by OnHttpSent
 	sys_mutex_lock(&g_sessionMutex);
 	if ((context->_session != NULL) && (context->handler != NULL))
 	{
-		if ((context->handler->options & CGI_OPT_AUTH_REQUIRED) != 0)
+		if ((context->_options & CGI_OPT_AUTH_REQUIRED) != 0)
 		{
 			context->_session->_tLastSent = LWIP_GetTickCount();
 			if (context->_session->_tLastSent == 0)
@@ -484,9 +514,9 @@ void ResetHttpContext(REQUEST_CONTEXT* context)
 		memset(context->_responsePath, 0, sizeof(context->_responsePath));
 
 		context->handler = NULL;
-		if (context->_file2Get != NULL)
-			LWIP_fclose(context->_file2Get);
-		context->_file2Get = NULL;
+		if (context->_fileHandle != NULL)
+			LWIP_fclose(context->_fileHandle);
+		context->_fileHandle = NULL;
 	
 		//can't clear right now because of pipline
 		//context->request_length = 0;
@@ -574,9 +604,9 @@ void FreeHttpContext(REQUEST_CONTEXT* context)
 		memset(context->_responsePath, 0, sizeof(context->_responsePath));
 
 		context->handler = NULL;
-		if (context->_file2Get != NULL)
-			LWIP_fclose(context->_file2Get);
-		context->_file2Get = NULL;
+		if (context->_fileHandle != NULL)
+			LWIP_fclose(context->_fileHandle);
+		context->_fileHandle = NULL;
 	
 		context->request_length = 0;
 		context->max_level = MAX_REQ_BUF_SIZE;
@@ -1187,7 +1217,7 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 						context->ctxResponse._dwOperStage = 0;
 						
 						context->ctxResponse._bytesLeft = 0;
-						context->ctxResponse._sendBuffer[0] = 0; //used for strlen
+						context->ctxResponse._sendBuffer[0] = 0;
 
 						afterHeader = 1;
 						
@@ -1250,7 +1280,8 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 								}
 							}
 							context->_requestPath[pathLen] = 0;
-							
+							memset(context->ctxResponse._appContext, 0, sizeof(context->ctxResponse._appContext));
+
 							//memset(&context->file2Get, 0, sizeof(context->file2Get));
 							strcpy(context->_responsePath, context->_requestPath);
 							
@@ -1553,7 +1584,7 @@ signed char sendBuffered(REQUEST_CONTEXT* context)
 
 		if (context->ctxResponse._bytesLeft > 0)
 			memmove(context->ctxResponse._sendBuffer, context->ctxResponse._sendBuffer + size2Send, context->ctxResponse._bytesLeft);
-		context->ctxResponse._sendBuffer[context->ctxResponse._bytesLeft] = 0; //used for strlen
+		context->ctxResponse._sendBuffer[context->ctxResponse._bytesLeft] = 0;
 
 		context->ctxResponse._tLastSent = LWIP_GetTickCount();
 		if (context->ctxResponse._tLastSent == 0)
@@ -1572,6 +1603,7 @@ signed char HttpResponse(REQUEST_CONTEXT* context, int caller) //always return E
 	if (context->_result == 0)
 		return err;
 
+	//send the remaining
 	if (context->ctxResponse._bytesLeft > 0)
 	{
 		LogPrint(LOG_DEBUG_ONLY, "Sending remaining: %d @%d", context->ctxResponse._bytesLeft, context->_sid);
@@ -1621,9 +1653,6 @@ signed char HttpResponse(REQUEST_CONTEXT* context, int caller) //always return E
 		LogPrint(LOG_DEBUG_ONLY, "Sending response header: %s @%d", codeNinfo, context->_sid);
 
 		CGI_SetResponseHeaders(context, codeNinfo);
-		
-		context->ctxResponse._bytesLeft = strlen(context->ctxResponse._sendBuffer);
-		
 		err = sendBuffered(context);
 		if (err == ERR_OK)
 		{
@@ -1658,8 +1687,8 @@ signed char HttpResponse(REQUEST_CONTEXT* context, int caller) //always return E
 	
 	//sending response body
 	if (context->_state == HTTP_STATE_SENDING_BODY)
-	{
-		int hasData2Send = CGI_LoadContentToSend(context, caller);
+	{ //context->ctxResponse._bytesLeft should be 0, and context->ctxResponse._sendBuffer is empty
+		int hasData2Send = CGI_LoadContentToSend(context, caller); //1=data ready to send; 0=pending without data; -1=finished, no more data
 		if (hasData2Send > 0)
 		{
 			err = sendBuffered(context);
@@ -1675,7 +1704,35 @@ signed char HttpResponse(REQUEST_CONTEXT* context, int caller) //always return E
 				LogPrint(0, "Failed to send response body @%d", context->_sid);
 			}
 		}
+		else if (hasData2Send < 0)
+		{
+			context->_state = HTTP_STATE_REQUEST_END;
+			LogPrint(0, "All response sent @%d", context->_sid);
+		}
+		else
+		{
+			LogPrint(0, "Response content size=0 @%d", context->_sid);
+		}
 	}
-	
+
 	return ERR_OK;
+}
+
+char* GetContentType(REQUEST_CONTEXT* context)
+{
+	int i = 0;
+	int extLen = strlen(context->_extension);
+	while (1)
+	{
+		int typeLen = strlen(contentTypes[i].extension);
+		if (typeLen == 0)
+			return contentTypes[i].content_type;
+
+		if (typeLen == extLen)
+		{
+			if (Strnicmp(context->_extension, contentTypes[i].extension, typeLen) == 0)
+				return contentTypes[i].content_type;
+		}
+		i++;
+	}
 }

@@ -105,7 +105,7 @@ typedef struct _RESPONSE_CONTEXT
 	unsigned long _nSendTimeout; 	//60*1000, for http_core.c
 	
 	int 	_bytesLeft;				//remaining data length, for http_core.c
-	char 	_sendBuffer[2*TCP_MSS];	//remaining data, for http_core.c
+	char 	_sendBuffer[TCP_MSS];	//remaining data, for http_core.c
 	
 	char	_appContext[MAX_APP_CONTEXT_SIZE]; //can be used by app layer to save anything
 }RESPONSE_CONTEXT;
@@ -141,6 +141,7 @@ typedef struct _REQUEST_CONTEXT
 	SESSION* _session;
 
 	struct CGI_Mapping* handler;	//matched CGI handler
+	long _options;
 	RESPONSE_CONTEXT ctxResponse;	
 	
 	char _ver[4];			//HTTP version
@@ -148,12 +149,18 @@ typedef struct _REQUEST_CONTEXT
 	char _requestPath[128];	//full path
 	char _responsePath[128]; //use to redirect
 
-	LWIP_FIL* _file2Get;	//response with an existing file
+	void* _fileHandle;	//file handle for GET, POST, and DIR operations
 	
 	int  request_length;	//[0, max_level]
 	int  max_level; 		//MAX_REQ_BUF_SIZE
 	char http_request_buffer[MAX_REQ_BUF_SIZE + 20]; //receiving buffer, max space to hold the request
 }REQUEST_CONTEXT;
+
+typedef struct
+{
+	char *extension;
+	char *content_type;
+}TypeHeader;
 
 int  SessionCreate(REQUEST_CONTEXT* context, char* outCookie);
 void SessionKill(REQUEST_CONTEXT* context, int matchIP);
@@ -180,6 +187,7 @@ void CloseHttpContext(REQUEST_CONTEXT* context);
 void FreeHttpContext(REQUEST_CONTEXT* context);
 int  IsContextTimeout(REQUEST_CONTEXT* context);
 
+char* GetContentType(REQUEST_CONTEXT* context);
 signed char sendBuffered(REQUEST_CONTEXT* context);
 
 struct altcp_pcb* HttpdInit(unsigned long port);

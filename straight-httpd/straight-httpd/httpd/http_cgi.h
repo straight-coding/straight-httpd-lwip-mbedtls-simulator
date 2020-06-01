@@ -21,7 +21,8 @@
 #define WEB_LOGOUT_PAGE		"/auth/logout.html"
 #define WEB_APP_PAGE		"/app/index.shtml"
 
-#define MAX_CGI_PATH	64
+#define MAX_CGI_PATH		64
+#define MAX_TAG_LEN			64
 
 #define CGI_OPT_AUTHENTICATOR	0x80000000	//this is the authentication responser, response with token header named 'X-Auth-Token'
 #define CGI_OPT_AUTH_REQUIRED	0x40000000	//MUST request with token header named 'X-Auth-Token'
@@ -32,13 +33,13 @@
 #define CGI_OPT_POST_ENABLED	0x00400000	//POST enabled
 #define CGI_OPT_LOG_ENABLED		0x00200000	//LOG enabled, not used
 
-#define CGI_OPT_CHUNKED			0x00008000	//response with chunked data
+#define CGI_OPT_CHUNK_ENABLED	0x00008000	//response with chunked data
 #define CGI_OPT_GZIP			0x00004000	//response with gzip compression
 
 struct CGI_Mapping
 {
 	char path[MAX_CGI_PATH];	//constant string, request full path
-	unsigned long options; //defined by CGI_OPT_xxxxxx
+	unsigned long optionsAllowed;	//defined by CGI_OPT_xxxxxx
 
 	void (*OnCancel)(REQUEST_CONTEXT* context);
 
@@ -48,7 +49,7 @@ struct CGI_Mapping
 	void (*OnRequestReceived)(REQUEST_CONTEXT* context);
 	
 	void (*SetResponseHeaders)(REQUEST_CONTEXT* context, char* HttpCode);
-	int  (*LoadContentToSend)(REQUEST_CONTEXT* context);
+	int  (*ReadContent)(REQUEST_CONTEXT* context, char* buffer, int maxSize);
 	
 	void (*OnAllSent)(REQUEST_CONTEXT* context);
 	void (*OnFinished)(REQUEST_CONTEXT* context);
