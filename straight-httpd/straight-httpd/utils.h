@@ -15,5 +15,6 @@ int token_match(const char *s1, const char *s2);
 int Strnicmp(char *str1, char *str2, int n);
 void TrimFloat(char* floatString);
 int DecodeB64(unsigned char* data);
+int URLDecode(char* url);
 
 #endif

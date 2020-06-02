@@ -240,3 +240,49 @@ int DecodeB64(unsigned char* data)
 	data[resultCount] = 0;
 	return resultCount;
 }
+
+int Hex2Int(char c)
+{
+	char* set = "00112233445566778899AaBbCcDdEeFf";
+	int i = 0;
+	while (set[i] != 0)
+	{
+		if (c == set[i])
+			return (i>>1);
+		i++;
+	}
+	return -1;
+}
+
+int URLDecode(char* url)
+{
+	int i = 0;
+	int len = strlen(url);
+
+	while((i < len) && (url[i] != 0))
+	{
+		if (url[i] != '%')
+		{
+			i++;
+			continue;
+		}
+
+		if (i < len - 2)
+		{
+			int a = Hex2Int(url[i + 1]);
+			int b = Hex2Int(url[i + 2]);
+			if ((a >= 0) && (b >= 0))
+			{
+				a = (a << 4) + b;
+				url[i] = a;
+				memmove(url + i + 1, url + i + 3, len - i - 3);
+				len -= 2;
+				i++;
+				continue;
+			}
+		}
+
+		i++;
+	}
+	return i;
+}
