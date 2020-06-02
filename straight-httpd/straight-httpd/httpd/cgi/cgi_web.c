@@ -470,7 +470,11 @@ int Web_ReadContent(REQUEST_CONTEXT* context, char* buffer, int maxSize)
 		else
 			context->ctxResponse._dwOperStage++;
 
-		LogPrint(LOG_DEBUG_ONLY, "Web response sending: %d @%d", outputCount, context->_sid);
+		LogPrint(LOG_DEBUG_ONLY, "Web response sending: %d bytes, %ld/%ld @%d", 
+			outputCount, 
+			context->ctxResponse._dwOperIndex,
+			context->ctxResponse._dwTotal,
+			context->_sid);
 	}
 	return outputCount;
 }

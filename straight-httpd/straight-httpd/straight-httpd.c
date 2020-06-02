@@ -120,6 +120,7 @@ void DMA_free(struct packet_wrapper* pkt)
 unsigned char* NIC_GetBuffer(int size)
 {
 	unsigned char* buf = malloc(size);
+	//LogPrint(0, "NIC_GetBuffer...\r\n");
 	return buf;
 }
 
@@ -127,11 +128,15 @@ long NIC_Send(unsigned char *buf, int size)
 {
 	long nSent = -1;
 
+	//LogPrint(0, "NIC_Send...\r\n");
+
 	if ((g_hPcap != NULL) && (buf != NULL))
 		nSent = pcap_sendpacket(g_hPcap, buf, size);
 
 	if (buf != NULL)
 		free(buf);
+
+	//LogPrint(0, "NIC_Send done\r\n");
 
 	return nSent;
 }

@@ -1236,6 +1236,9 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 						{ //first line, find method and path
 							int pathLen = 0;
 							int iSkip = 0;
+
+							//LogPrint(LOG_DEBUG_ONLY, "%s\r\n", buffer + nLinePos);
+
 							if ((buffer[nLinePos+0]=='G') && (buffer[nLinePos+1]=='E') && (buffer[nLinePos+2]=='T') && (buffer[nLinePos+3]==' '))
 							{ //GET
 								iSkip = 4;
@@ -1280,6 +1283,9 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 								}
 							}
 							context->_requestPath[pathLen] = 0;
+							pathLen = URLDecode(context->_requestPath);
+							context->_requestPath[pathLen] = 0;
+
 							memset(context->ctxResponse._appContext, 0, sizeof(context->ctxResponse._appContext));
 
 							//memset(&context->file2Get, 0, sizeof(context->file2Get));
@@ -1391,7 +1397,7 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 		//header already received, preparation to receive and parse post body
 		if (afterHeader > 0)
 		{ //just after the complete header, or prepare to receive post data or chunks
-			context->max_level = TCP_MSS;
+			//context->max_level = TCP_MSS;
 			context->ctxResponse._authorized = SessionCheck(context); //lock used inside
 			
 			if (context->_chunked > 0)
@@ -1552,46 +1558,43 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 
 signed char sendBuffered(REQUEST_CONTEXT* context)
 {
-	signed char err;
-	
-	int size2Send = context->ctxResponse._bytesLeft;
-	int max2Send = altcp_sndbuf(context->_pcb);
-	if (size2Send > max2Send)
-		size2Send = max2Send;
-	
-	do
+	int size2Send;
+	int maxbuf; //tcp_sndbuf()
+	signed char err = ERR_OK;
+
+	while(context->ctxResponse._bytesLeft > 0)
 	{
+		size2Send = context->ctxResponse._bytesLeft;
+		maxbuf = altcp_sndbuf(context->_pcb); //tcp_sndbuf()
+
+		if (size2Send > maxbuf)
+			size2Send = maxbuf;
+		//if (size2Send > TCP_MSS)
+			//size2Send = TCP_MSS;
+		if (size2Send <= 0)
+			break;
+
 		err = altcp_write(context->_pcb, context->ctxResponse._sendBuffer, size2Send, TCP_WRITE_FLAG_COPY);
-		if (err == ERR_MEM)
+		if (err == ERR_OK)
 		{
-			if ((altcp_sndbuf(context->_pcb) == 0) || 
-				(altcp_sndqueuelen(context->_pcb) >= TCP_SND_QUEUELEN))
-			{
-				size2Send = 1;
-			}
-			else
-			{
-				size2Send /= 2;
-			}
-			LogPrint(0, "[altcp_write] %d bytes, err=%d, @%d", size2Send, err, context->_sid);
+			context->ctxResponse._total2Send += size2Send;
+			context->ctxResponse._bytesLeft -= size2Send;
+
+			if (context->ctxResponse._bytesLeft > 0)
+				memmove(context->ctxResponse._sendBuffer, context->ctxResponse._sendBuffer + size2Send, context->ctxResponse._bytesLeft);
+			context->ctxResponse._sendBuffer[context->ctxResponse._bytesLeft] = 0;
+
+			context->ctxResponse._tLastSent = LWIP_GetTickCount();
+			if (context->ctxResponse._tLastSent == 0)
+				context->ctxResponse._tLastSent++;
 		}
-	}while((err == ERR_MEM) && (size2Send > 1));
-
-	if (err == ERR_OK)
-	{ //size2Send sent
-		context->ctxResponse._total2Send += size2Send;
-		context->ctxResponse._bytesLeft -= size2Send;
-
-		if (context->ctxResponse._bytesLeft > 0)
-			memmove(context->ctxResponse._sendBuffer, context->ctxResponse._sendBuffer + size2Send, context->ctxResponse._bytesLeft);
-		context->ctxResponse._sendBuffer[context->ctxResponse._bytesLeft] = 0;
-
-		context->ctxResponse._tLastSent = LWIP_GetTickCount();
-		if (context->ctxResponse._tLastSent == 0)
-			context->ctxResponse._tLastSent++;
+		else// if (err == ERR_MEM)
+		{
+			LogPrint(0, "[altcp_write] %d bytes, err=%d, @%d", size2Send, err, context->_sid);
+			return err;
+		}
 	}
-
-	return err;
+	return ERR_OK;
 }
 
 signed char HttpResponse(REQUEST_CONTEXT* context, int caller) //always return ERR_OK
@@ -1631,7 +1634,7 @@ signed char HttpResponse(REQUEST_CONTEXT* context, int caller) //always return E
 		if (context->ctxResponse._tLastSent == 0)
 			context->ctxResponse._tLastSent = 1;
 
-		context->ctxResponse._sendMaxBlock = TCP_MSS;
+		context->ctxResponse._sendMaxBlock = sizeof(context->ctxResponse._sendBuffer);//TCP_MSS;
 		if (context->ctxResponse._sendMaxBlock > sizeof(context->ctxResponse._sendBuffer))
 			context->ctxResponse._sendMaxBlock = sizeof(context->ctxResponse._sendBuffer) - 1;
 		

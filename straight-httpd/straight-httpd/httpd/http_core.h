@@ -53,8 +53,8 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define MAX_CONNECTIONS 				5		//max concurrent socket connections
-#define MAX_REQ_BUF_SIZE				4096	//length of the request header is up to MAX_REQ_BUF_SIZE bytes
-#define MAX_APP_CONTEXT_SIZE			4096	//reserved buffer for app/cgi layer, such as SSI peocessing
+#define MAX_REQ_BUF_SIZE				2048	//length of the request header is up to MAX_REQ_BUF_SIZE bytes
+#define MAX_APP_CONTEXT_SIZE			2048	//reserved buffer for app/cgi layer, such as SSI peocessing
 
 #define MAX_SESSIONS					5
 #define MAX_COOKIE_SIZE					32		//max length of the cookie string
@@ -105,7 +105,7 @@ typedef struct _RESPONSE_CONTEXT
 	unsigned long _nSendTimeout; 	//60*1000, for http_core.c
 	
 	int 	_bytesLeft;				//remaining data length, for http_core.c
-	char 	_sendBuffer[TCP_MSS];	//remaining data, for http_core.c
+	char 	_sendBuffer[2*TCP_MSS];	//remaining data, for http_core.c
 	
 	char	_appContext[MAX_APP_CONTEXT_SIZE]; //can be used by app layer to save anything
 }RESPONSE_CONTEXT;
