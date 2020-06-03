@@ -19,7 +19,7 @@ typedef struct
 {
 	char* _tagName; //in shtml files, tag format: <!--#TAG_NAME-->
 	char* (*_tagGetter)(void); //get a null terminated string from global memory or flash
-	char* (*_tagProducer)(REQUEST_CONTEXT* context, char* buffer, int maxSize); //fill info to the provided buffer
+	int (*_tagProducer)(REQUEST_CONTEXT* context, char* buffer, int maxSize); //fill info to the provided buffer
 }SSI_Tag;
 
 static SSI_Tag g_tagsBuiltin[] = {
