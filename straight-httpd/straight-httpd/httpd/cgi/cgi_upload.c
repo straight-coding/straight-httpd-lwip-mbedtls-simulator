@@ -54,7 +54,10 @@ long Upload_Start(void* context, char* szFileName, long nFileSize)
 
 	ctx->_fileHandle = LWIP_fopen(ctx->ctxResponse._appContext, "wb");
 	if (ctx->_fileHandle == 0)
+	{
+		LogPrint(0, "Failed to create file %s @%d", ctx->ctxResponse._appContext, ctx->_sid);
 		return 0;
+	}
 
 	return 1; //ready to receive f/w
 }
@@ -123,11 +126,11 @@ void Upload_OnHeadersReceived(REQUEST_CONTEXT* context)
 			if (Upload_Start(context, context->_requestPath, (long)context->_contentLength) <= 0) //2=PRINT_MODE_ONLINE
 			{
 				context->_result = -500; //forbidden, need abort
-				LogPrint(0, "FW_Start failed, len=%d @%d", context->_contentLength, context->_sid);
+				LogPrint(0, "Upload_Start failed, len=%d @%d", context->_contentLength, context->_sid);
 			}
 			else
 			{
-				LogPrint(0, "FW_Start success, len=%d @%d", context->_contentLength, context->_sid);
+				LogPrint(0, "Upload_Start success, len=%d @%d", context->_contentLength, context->_sid);
 			}
 		}
 	}
@@ -148,6 +151,7 @@ int Upload_OnContentReceived(REQUEST_CONTEXT* context, char* buffer, int size)
 			if (IsKilling(context, 1)) //get and reset
 			{
 				context->_result = -500;
+				LogPrint(0, "IsKilling error=%d, @%d", context->_result, context->_sid);
 				return 0;
 			}
 
@@ -166,7 +170,7 @@ int Upload_OnContentReceived(REQUEST_CONTEXT* context, char* buffer, int size)
 						if (context->_tLastReceived == 0)
 							context->_tLastReceived ++;
 					}
-					LogPrint(LOG_DEBUG_ONLY, "Enqueued for parser %d, free=%d, @%d", eaten, nFree, context->_sid);
+					LogPrint(LOG_DEBUG_ONLY, "File accepted %d, free=%d, @%d", eaten, nFree, context->_sid);
 				}
 			}
 			else

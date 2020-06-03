@@ -319,18 +319,18 @@ void CGI_HeadersReceived(REQUEST_CONTEXT* context) //called when all HTTP reques
 	}
 	else if (context->_requestMethod == METHOD_GET)
 	{
-		LogPrint(0, "Not found: %s, @%d", context->_requestPath, context->_sid);
 		context->_result = -404; //404 not found
+		LogPrint(0, "Not found: %s, error=%d @%d", context->_requestPath, context->_result, context->_sid);
 	}
 	else if (context->_requestMethod == METHOD_POST)
 	{
-		LogPrint(0, "Unsuported service @%d", context->_sid);
 		context->_result = -500; //forbidden, need abort
+		LogPrint(0, "Unsuported service, error=%d @%d", context->_result, context->_sid);
 	}
 	else
 	{
-		LogPrint(0, "Unsuported method @%d", context->_sid);
 		context->_result = -500; //forbidden, need abort
+		LogPrint(0, "Unsuported method, error=%d @%d", context->_result, context->_sid);
 	}
 }
 

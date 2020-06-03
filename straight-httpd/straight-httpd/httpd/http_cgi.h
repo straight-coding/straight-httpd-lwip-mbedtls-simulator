@@ -57,6 +57,25 @@ struct CGI_Mapping
 	struct CGI_Mapping* next;
 };
 
+typedef struct
+{
+	short _valid;	//>0: valid
+	short _source; 	//0=buffer or 1=file
+
+	void*  _fp;
+	char* _buffer;
+
+	long  _options;
+
+	short _ssi; 		//1=SSI
+	short _ssiState; 	//0=idle, 1=searching start, 2=start found, 3=collecting name, 4=searching end, 5=end found
+	short _cacheOffset; //
+	short _tagLength; 	//
+
+	char  _tagName[64];
+	char  _cache[MAX_TAG_LEN]; //pre-read buffer
+}SSI_Context;
+
 /*
 CGI_SetCgiHandler(context)
 	Cookie ==> SessionCheck(context) ==> context->_result=-403 if not 200
