@@ -381,9 +381,11 @@ void SetupHttpContext(void)
 {
 	int i;
 
-	LogPrint(0, "size of REQUEST_CONTEXT: %d\r\n", sizeof(REQUEST_CONTEXT));
 	LogPrint(0, "size of SESSION: %d\r\n", sizeof(SESSION));
+	LogPrint(0, "size of SSI_Context: %d\r\n", sizeof(SSI_Context));
 	LogPrint(0, "size of CGI_Mapping: %d\r\n", sizeof(struct CGI_Mapping));
+	LogPrint(0, "size of RESPONSE_CONTEXT: %d\r\n", sizeof(RESPONSE_CONTEXT));
+	LogPrint(0, "size of REQUEST_CONTEXT: %d\r\n", sizeof(REQUEST_CONTEXT));
 
 	memset(g_httpSessions, 0, sizeof(g_httpSessions)); //only when the task started
 	memset(g_httpContext, 0, sizeof(g_httpContext)); //only when the task started
@@ -1186,9 +1188,9 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 			LogPrint(LOG_DEBUG_ONLY, "new request start tick: %d @%d", context->_tRequestStart, context->_sid);
 		}
 		
+		afterHeader = 0;
 		if (context->_state == HTTP_STATE_HEADER_RECEIVING)
 		{ //parsing the whole buffer for request header
-			afterHeader = 0;
 			if (size >= 2)
 			{ //at lease the line end
 				int nLinePos = 0;
@@ -1202,8 +1204,8 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 					{ //empty line
 						if (context->_requestMethod < 0)
 						{
-							LogPrint(LOG_DEBUG_ONLY, "Method not found @%d", context->_sid);
 							context->_result = -500; //first line is empty, need ABORT
+							LogPrint(LOG_DEBUG_ONLY, "Method not found, error=%d @%d", context->_result, context->_sid);
 						}
 						
 						//context->_requestHeader = 1;
@@ -1252,6 +1254,7 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 							else
 							{
 								context->_result = -500; //405	Method Not Allowed
+								LogPrint(LOG_DEBUG_ONLY, "Method Not Allowed, error=%d @%d", context->_result, context->_sid);
 								break; //break on error
 							}
 							
@@ -1382,7 +1385,7 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 			if (context->request_length >= MAX_REQ_BUF_SIZE)
 			{ //request header oversized
 				context->_result = -500; //500 abort
-				LogPrint(0, "Request header is too large, %d bytes @%d", context->request_length, context->_sid);
+				LogPrint(0, "Request header is too large, %d bytes, error=%d @%d", context->request_length, context->_result, context->_sid);
 				break; //break on error
 			}
 		}
@@ -1549,8 +1552,8 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 	{ //
 		if (context->_peer_closing > 0)
 		{
-			LogPrint(0, "OnClose by peer2: @%d", context->_sid);
 			context->_result = -500;
+			LogPrint(0, "OnClose by peer2: error=%d, @%d", context->_result, context->_sid);
 		}
 	}
 	return ERR_OK; //continue the session
@@ -1616,6 +1619,7 @@ signed char HttpResponse(REQUEST_CONTEXT* context, int caller) //always return E
 		{ //send remaining data error
 			context->_result = -500;
 			context->_state = HTTP_STATE_REQUEST_END;
+			LogPrint(0, "Send remaining: error=%d, @%d", context->_result, context->_sid);
 		}
 		return err;
 	}
@@ -1666,7 +1670,7 @@ signed char HttpResponse(REQUEST_CONTEXT* context, int caller) //always return E
 		{ //failed to send header
 			context->_state = HTTP_STATE_REQUEST_END;
 			context->_result = -500;
-			LogPrint(0, "Failed to send response header @%d", context->_sid);
+			LogPrint(0, "Failed to send response header, error=%d @%d", context->_result, context->_sid);
 			return ERR_OK;
 		}
 		
@@ -1704,7 +1708,7 @@ signed char HttpResponse(REQUEST_CONTEXT* context, int caller) //always return E
 			{ //failed to send body
 				context->_state = HTTP_STATE_REQUEST_END;
 				context->_result = -500;
-				LogPrint(0, "Failed to send response body @%d", context->_sid);
+				LogPrint(0, "Failed to send response body, error=%d @%d", context->_result, context->_sid);
 			}
 		}
 		else if (hasData2Send < 0)
