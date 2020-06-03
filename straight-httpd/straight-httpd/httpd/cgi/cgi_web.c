@@ -6,25 +6,6 @@
 
 #include "../http_cgi.h"
 
-typedef struct
-{
-	short _valid;	//>0: valid
-	short _source; 	//0=buffer or 1=file
-	
-	LWIP_FIL*  _fp;
-	char* _buffer;
-	
-	long  _options;
-	
-	short _ssi; 		//1=SSI
-	short _ssiState; 	//0=idle, 1=searching start, 2=start found, 3=collecting name, 4=searching end, 5=end found
-	short _cacheOffset; //
-	short _tagLength; 	//
-	
-	char  _tagName[64];
-	char  _cache[MAX_TAG_LEN]; //pre-read buffer
-}SSI_Context;
-
 static const char tagStart[] = "<!--#";
 static const char tagEnd[]   = "-->";
 
@@ -172,6 +153,8 @@ void Web_OnRequestReceived(REQUEST_CONTEXT* context)
 	{
 		if (stricmp(context->_requestPath, WEB_SESSION_CHECK) == 0)
 		{ //session exists?
+			context->_options &= ~(CGI_OPT_AUTHENTICATOR);
+
 			if (context->_session == NULL)
 				context->_result = CODE_UNAUTHORIZED; ////Unauthorized (RFC 7235)
 			else
@@ -215,6 +198,7 @@ void Web_OnRequestReceived(REQUEST_CONTEXT* context)
 	{
 		ctxSSI->_valid = 0;
 		context->_result = -500;
+		LogPrint(0, "sizeof(_appContext) error=%d, @%d", context->_result, context->_sid);
 		return;
 	}
 	
@@ -326,6 +310,7 @@ int Web_ReadContent(REQUEST_CONTEXT* context, char* buffer, int maxSize)
 				if (0 != LWIP_fread(ctxSSI->_fp, buffer, maxRead, &bytes))
 				{
 					context->_result = -500;
+					LogPrint(0, "Non-SSI LWIP_fread error=%d, @%d", context->_result, context->_sid);
 					return 0;
 				}
 				maxRead = bytes;
@@ -355,6 +340,7 @@ int Web_ReadContent(REQUEST_CONTEXT* context, char* buffer, int maxSize)
 					if (0 != LWIP_fread(ctxSSI->_fp, pCache + ctxSSI->_cacheOffset, maxRead, &bytes))
 					{
 						context->_result = -500;
+						LogPrint(0, "SSI LWIP_fread error=%d, @%d", context->_result, context->_sid);
 						return 0;
 					}
 					maxRead = bytes;
