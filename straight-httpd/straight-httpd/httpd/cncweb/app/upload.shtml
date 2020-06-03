@@ -242,11 +242,26 @@
         e.preventDefault();
         e.stopPropagation();
 
-        if (filesUpload.files.length > 0)
+        var session = new XMLHttpRequest();
+        session.onload = function()
         {
-            allowPrompt = true;
-            traverseFiles(filesUpload.files);
+            if (session.status == 200)
+            {
+                if (filesUpload.files.length > 0)
+                {
+                    allowPrompt = true;
+                    traverseFiles(filesUpload.files);
+                }
+
+            }
         }
+        session.onerror = function () 
+        {
+            console.log('session.onerror', session.status); 
+            location.href='/';
+        }
+        session.open("GET", "/auth/session_check.html");
+        session.send();
     }, false);
 
     function createElementFromHTML(htmlString) 
