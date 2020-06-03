@@ -394,4 +394,5 @@ DWORD WINAPI AppThread(void* data)
 
 		restart = 1;
 	}
+	return 0;
 }
