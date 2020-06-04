@@ -54,6 +54,7 @@ typedef unsigned int sys_prot_t;
 
 typedef struct FILE LWIP_FIL;
 void* LWIP_fopen(const char* szTemp, const char* mode);
+int  LWIP_fseek(void* f, long offset);
 void LWIP_fclose(void* f);
 long LWIP_fsize(void* f);
 int  LWIP_fread(void* f, char* buf, int count, unsigned int* bytes); //0=success

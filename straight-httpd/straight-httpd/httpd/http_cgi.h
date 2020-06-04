@@ -132,6 +132,7 @@ int  CGI_LoadContentToSend(REQUEST_CONTEXT* context, int caller);
 extern const char header_nocache[];
 extern const char header_generic[];
 extern const char header_chunked[];
+extern const char header_range[];
 extern const char redirect_body1[];
 extern const char redirect_body2[];
 

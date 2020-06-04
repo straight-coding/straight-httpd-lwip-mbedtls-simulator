@@ -18,20 +18,20 @@
 
     <div class='base columns center-item fill'>
       <div class="base row center-item margin-t24">
-        <a href="/app/Bangkok%20Street%20Food%20-%20Tornado%20Potato.mp4" target="_blank">Download</a>
+        <!--a href="/app/Bangkok%20Street%20Food%20-%20Tornado%20Potato.mp4" target="_blank">Download</a-->
 
         <!--video width="320" height="240" controls>
           <source src="/app/Bangkok%20Street%20Food%20-%20Tornado%20Potato.mp4" type="video/mp4">
           Your browser does not support the video tag.
         </video-->
 
-        <!--video id="my-video" class="video-js" controls preload="auto" width="640" height="264" poster="MY_VIDEO_POSTER.jpg" data-setup="{}">
+        <video id="my-video" class="video-js" controls preload="auto" width="640" height="264" poster="MY_VIDEO_POSTER.jpg" data-setup="{}">
         <source src="/app/Bangkok%20Street%20Food%20-%20Tornado%20Potato.mp4" type="video/mp4" />
         <p class="vjs-no-js">
           To view this video please enable JavaScript, and consider upgrading to a web browser that
           <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
         </p>
-        </video-->
+        </video>
         
       </div>
     </div>

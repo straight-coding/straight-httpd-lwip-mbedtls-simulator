@@ -364,7 +364,8 @@ void* LWIP_fopen(const char* szTemp, const char* mode)
 	FILE *f;
 	//if (0 == _wfopen_s(&f, szTemp, mode))
 		//return f;
-	if (0 == fopen_s(&f, szTemp, mode))
+	errno_t err = fopen_s(&f, szTemp, mode);
+	if (0 == err)
 		return (void*)f;
 	return 0;
 }
@@ -382,8 +383,17 @@ int LWIP_fread(void* f, char* buf, int toRead, unsigned int* outBytes) //0=succe
 	return -1;
 }
 
+int LWIP_fseek(void* f, long offset)
+{
+	if (f == NULL)
+		return -1;
+	return fseek((FILE*)f, offset, SEEK_SET);
+}
+
 int LWIP_fwrite(void* f, char* buf, int toWrite) //>0: success
 {
+	if (f == NULL)
+		return -1;
 	return fwrite(buf, 1, toWrite, (FILE*)f);
 }
 

@@ -61,6 +61,13 @@ static const TypeHeader contentTypes[] = {
 	{ "bmp",   "image/bmp"},
 	{ "ico",   "image/x-icon"},
 
+	{ "mp4",   "video/mp4"},
+	{ "flv",   "video/x-flv"},
+	{ "3gp",   "video/3gpp"},
+	{ "mov",   "video/quicktime"},
+	{ "avi",   "video/x-msvideo"},
+	{ "wmv",   "video/x-ms-wmv"},
+
 	{ "class", "application/octet-stream"},
 	{ "cls",   "application/octet-stream"},
 	{ "swf",   "application/x-shockwave-flash"},
@@ -126,6 +133,8 @@ static const char* Response_Status_Lines[] = {
 const char header_nocache[] = "Cache-Control: no-cache, no-store, must-revalidate\r\nPragma: no-cache\r\nExpires: 0\r\n";
 const char header_generic[] = "HTTP/1.1 %s\r\nContent-type: %s\r\nContent-Length: %d\r\nConnection: %s\r\n";
 const char header_chunked[] = "HTTP/1.1 %s\r\nContent-type: %s\r\nTransfer-Encoding: chunked\r\n%sConnection: %s\r\n";
+const char header_range[] = "HTTP/1.1 206 Partial Content\r\nContent-Range: bytes %ld-%ld/%ld\r\nContent-type: %s\r\nContent-Length: %ld\r\nConnection: %s\r\n";
+
 const char redirect_body1[] = "<html><head/><body><script>location.href='";
 const char redirect_body2[] = "';</script></body></html>";
 
@@ -498,6 +507,9 @@ void ResetHttpContext(REQUEST_CONTEXT* context)
 		//context->_killing = 0;
 
 		context->_expect00 = -1;
+		context->_rangeFrom = 0;
+		context->_rangeTo = 0;
+
 		context->_chunked = -1;
 
 		context->_contentLength = -1;
@@ -1326,6 +1338,38 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 								context->_expect00 = 1;
 							else if (strstr((char*)buffer + nLinePos + 7, "100-Continue") != NULL)
 								context->_expect00 = 1;
+						}
+						else if (Strnicmp(buffer + nLinePos, "Range:", 6) == 0)
+						{
+							char* p = strstr((char*)buffer + nLinePos + 6, "bytes=");
+
+							context->_rangeFrom = 0;
+							context->_rangeTo = 0;
+							if (p != NULL)
+							{
+								context->_rangeFrom = ston(p + 7);
+								p = strstr((char*)p + 7, "-");
+								if (p != NULL)
+								{
+									if ((p[1] >= '0') && (p[1] <= '9'))
+									{
+										context->_rangeTo = ston(p + 1);
+										context->_rangeTo ++; // ==> [_rangeFrom, _rangeTo)
+									}
+									else
+										context->_rangeTo = 0x7FFFFFFF;
+								}
+							}
+							if (context->_rangeTo > context->_rangeFrom)
+							{
+								LogPrint(LOG_DEBUG_ONLY, "Range:[%d,%d] @%d", context->_rangeFrom, context->_rangeTo, context->_sid);
+							}
+							else
+							{
+								LogPrint(LOG_DEBUG_ONLY, "Range error:[%d,%d] @%d", context->_rangeFrom, context->_rangeTo, context->_sid);
+								context->_rangeFrom = 0;
+								context->_rangeTo = 0;
+							}
 						}
 						else if ((Strnicmp(buffer + nLinePos, "X-Auth-Token:", 13) == 0) ||
 								 (Strnicmp(buffer + nLinePos, "Cookie:", 7) == 0))

@@ -244,6 +244,13 @@ void Web_OnRequestReceived(REQUEST_CONTEXT* context)
 		context->ctxResponse._dwTotal = LWIP_fsize(ctxSSI->_fp);
 		LogPrint(LOG_DEBUG_ONLY, "File opened: %s, len=%d, SSI=%d @%d", szTemp, context->ctxResponse._dwTotal, ctxSSI->_ssi, context->_sid);
 	}
+	else
+	{
+		ctxSSI->_valid = 0;
+		context->_result = -404;
+		LogPrint(0, "Failed to open %s, @%d", szTemp, context->_sid);
+		return;
+	}
 }
 
 void Web_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
@@ -255,7 +262,20 @@ void Web_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 		chunkHeader = 1;
 	else if ((context->handler != NULL) && ((context->_options & CGI_OPT_CHUNK_ENABLED) != 0))
 		chunkHeader = 1;
-	if (chunkHeader > 0)
+
+	if (context->_rangeTo > context->_rangeFrom)
+	{
+		long size = 0;
+		if (context->_rangeTo > context->ctxResponse._dwTotal)
+			context->_rangeTo = context->ctxResponse._dwTotal;
+		size = context->_rangeTo - context->_rangeFrom;
+
+		LWIP_sprintf(context->ctxResponse._sendBuffer, header_range, context->_rangeFrom, context->_rangeTo-1, context->ctxResponse._dwTotal, GetContentType(context), size, "close");
+
+		context->ctxResponse._dwTotal = size;
+		LWIP_fseek(context->_fileHandle, context->_rangeFrom);
+	}
+	else if (chunkHeader > 0)
 		LWIP_sprintf(context->ctxResponse._sendBuffer, header_chunked, HttpCodeInfo, GetContentType(context), header_nocache, "close");
 	else
 		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, GetContentType(context), context->ctxResponse._dwTotal, "close");

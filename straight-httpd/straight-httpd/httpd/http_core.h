@@ -135,6 +135,9 @@ typedef struct _REQUEST_CONTEXT
 	int _chunked;			//chunk header, for http_core.c
 	int _expect00;			//Expect 100 header, for http_core.c
 
+	long _rangeFrom;		//included
+	long _rangeTo;			//not included
+
 	int _contentReceived;	//count while receiving, for http_core.c
 	int _result;			//200 for success, 0 for pending, negative for failure, for http_core.c
 
