@@ -252,8 +252,9 @@
                     allowPrompt = true;
                     traverseFiles(filesUpload.files);
                 }
-
+                return;
             }
+            location.href='/';
         }
         session.onerror = function () 
         {
