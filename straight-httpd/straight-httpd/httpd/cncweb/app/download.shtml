@@ -57,7 +57,7 @@
     function goDownload() { location.href = '/app/download.shtml'; }
 	
     document.getElementById('logout').addEventListener('click', goLogout);
-    function goLogout() { location.href = '/auth/logout.html'; }
+    function goLogout() { location.href = '/auth/logout.cgi'; }
 
     window.onload = function(e)
     {

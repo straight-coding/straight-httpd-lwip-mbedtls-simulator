@@ -111,7 +111,7 @@
     function goDownload() { location.href = '/app/download.shtml'; }
 	
     document.getElementById('logout').addEventListener('click', goLogout);
-    function goLogout() { location.href = '/auth/logout.html'; }
+    function goLogout() { location.href = '/auth/logout.cgi'; }
 
     var max_timeout = 30; //seconds
     var fileIndex = 0;
@@ -260,7 +260,7 @@
             console.log('session.onerror', session.status); 
             location.href='/';
         }
-        session.open("GET", "/auth/session_check.html");
+        session.open("GET", "/auth/session_check.cgi");
         session.send();
     }, false);
 
@@ -373,7 +373,7 @@
                 console.log('session.onerror', session.status); 
                 location.href='/';
             }
-            session.open("GET", "/auth/session_check.html");
+            session.open("GET", "/auth/session_check.cgi");
             session.send();
         }
 
