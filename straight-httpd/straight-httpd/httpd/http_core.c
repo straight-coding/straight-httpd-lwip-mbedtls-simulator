@@ -134,6 +134,7 @@ const char header_nocache[] = "Cache-Control: no-cache, no-store, must-revalidat
 const char header_generic[] = "HTTP/1.1 %s\r\nContent-type: %s\r\nContent-Length: %d\r\nConnection: %s\r\n";
 const char header_chunked[] = "HTTP/1.1 %s\r\nContent-type: %s\r\nTransfer-Encoding: chunked\r\n%sConnection: %s\r\n";
 const char header_range[] = "HTTP/1.1 206 Partial Content\r\nContent-Range: bytes %ld-%ld/%ld\r\nContent-type: %s\r\nContent-Length: %ld\r\nConnection: %s\r\n";
+const char header_gzip[] = "Content-Encoding: gzip\r\n";
 
 const char redirect_body1[] = "<html><head/><body><script>location.href='";
 const char redirect_body2[] = "';</script></body></html>";

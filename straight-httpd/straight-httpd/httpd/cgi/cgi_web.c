@@ -239,7 +239,15 @@ void Web_OnRequestReceived(REQUEST_CONTEXT* context)
 
 	ctxSSI->_fp = LWIP_fopen(szTemp, "rb");
 	if (ctxSSI->_fp != NULL)
-	{
+	{ //gzip file starts with 1F 8B 08
+		int outBytes=0;
+		unsigned char flag[4];
+		if (LWIP_fread(ctxSSI->_fp, flag, 3, &outBytes) == 0)
+		{
+			LWIP_fseek(ctxSSI->_fp, 0);
+			if ((flag[0] == 0x1F) && (flag[1] == 0x8B) && (flag[2] == 0x08))
+				context->_options |= CGI_OPT_GZIP;
+		}
 		context->_fileHandle = ctxSSI->_fp;
 		context->ctxResponse._dwTotal = LWIP_fsize(ctxSSI->_fp);
 		LogPrint(LOG_DEBUG_ONLY, "File opened: %s, len=%d, SSI=%d @%d", szTemp, context->ctxResponse._dwTotal, ctxSSI->_ssi, context->_sid);
@@ -279,6 +287,9 @@ void Web_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 		LWIP_sprintf(context->ctxResponse._sendBuffer, header_chunked, HttpCodeInfo, GetContentType(context), header_nocache, "close");
 	else
 		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, GetContentType(context), context->ctxResponse._dwTotal, "close");
+
+	if ((context->_options & CGI_OPT_GZIP) != 0)
+		strcat(context->ctxResponse._sendBuffer, header_gzip);
 
 	if ((context->_requestMethod == METHOD_GET) && 
 		(context->handler != NULL) &&

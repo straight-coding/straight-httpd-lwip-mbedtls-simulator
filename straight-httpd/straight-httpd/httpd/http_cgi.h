@@ -17,8 +17,8 @@
 #define WEB_ABS_ROOT	"/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/"
 
 #define WEB_DEFAULT_PAGE	"/auth/login.html"
-#define WEB_SESSION_CHECK	"/auth/session_check.html"
-#define WEB_LOGOUT_PAGE		"/auth/logout.html"
+#define WEB_SESSION_CHECK	"/auth/session_check.cgi"
+#define WEB_LOGOUT_PAGE		"/auth/logout.cgi"
 #define WEB_APP_PAGE		"/app/index.shtml"
 
 #define MAX_CGI_PATH		64
@@ -133,6 +133,7 @@ extern const char header_nocache[];
 extern const char header_generic[];
 extern const char header_chunked[];
 extern const char header_range[];
+extern const char header_gzip[];
 extern const char redirect_body1[];
 extern const char redirect_body2[];
 
