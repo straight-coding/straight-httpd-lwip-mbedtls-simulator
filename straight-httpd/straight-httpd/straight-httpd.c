@@ -24,7 +24,7 @@ pcap_t* g_hPcap = NULL;
 
 long	g_nKeepRunning = 0;
 HANDLE	g_mainThread = NULL;
-DWORD WINAPI MainLoopThread(void* data);
+DWORD WINAPI LwipLoopThread(void* data);
 HANDLE	g_appThread = NULL;
 DWORD WINAPI AppThread(void* data);
 
@@ -160,9 +160,12 @@ int main()
 
 	char szFilter[512];
 
-	time_t now;
-	time(&now);
-	printf("Last-Modified: %s", gmt4http(&now));
+	//time_t now;
+	//time(&now);
+	//strcpy(szFilter, "Fri, 02 Oct 2015 07:28:00 GMT"); now = parseHttpDate(szFilter);
+	//printf("Now: %s\r\n", gmt4http(&now, szFilter, sizeof(szFilter)));
+	//time_t rev = parseHttpDate(szFilter);
+	//printf("Parsed: %s\r\n", gmt4http(&rev, szFilter, sizeof(szFilter)));
 
 	memset(szHostName, 0, sizeof(szHostName));
 	memset(szFilter, 0, sizeof(szFilter));
@@ -260,7 +263,7 @@ int main()
 	InterlockedExchange(&g_nKeepRunning, 1);
 
 	g_appThread  = CreateThread(NULL, 0, AppThread, NULL, 0, NULL);
-	g_mainThread = CreateThread(NULL, 0, MainLoopThread, NULL, 0, NULL);
+	g_mainThread = CreateThread(NULL, 0, LwipLoopThread, NULL, 0, NULL);
 	if (g_mainThread != NULL)
 		printf("Please press ESC key to quit\n ");
 
@@ -311,7 +314,7 @@ int main()
 	}
 }
 
-DWORD WINAPI MainLoopThread(void* data)
+DWORD WINAPI LwipLoopThread(void* data)
 {
 	long	nNeedRecall = 0;
 	long 	timeToNext = 200;
