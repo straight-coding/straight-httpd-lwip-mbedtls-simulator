@@ -7,13 +7,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <windows.h>
-
-#include <lwip/arch.h>
-
 #include "utils.h"
 
-long ston(u8_t* s)
+long ston(unsigned char* s)
 {
 	long sign = +1;
 
@@ -49,10 +45,10 @@ long ston(u8_t* s)
 	return (sign*result);
 }
 
-void ntos(long n, u8_t* s)
+void ntos(long n, unsigned char* s)
 {
-	const u8_t hex_alpha[16] = "0123456789";
-	u32_t i, first, div, remain;
+	const unsigned char hex_alpha[16] = "0123456789";
+	unsigned char i, first, div, remain;
 
 	i = 0;
 	if (n == 0)
@@ -285,4 +281,34 @@ int URLDecode(char* url)
 		i++;
 	}
 	return i;
+}
+
+void MakeDeepPath(char* szPath)
+{
+	char	*p1, *p2, chTmp;
+	char	szTemp[256];
+
+	memset(szTemp, 0, sizeof(szTemp));
+	strncpy(szTemp, szPath, sizeof(szTemp)-1);
+
+	p1 = szTemp;
+	while (*p1 != 0)
+	{
+		if (*p1 == '\\')
+			*p1 = '/';
+		p1++;
+	}
+
+	p1 = szTemp;
+	while (1)
+	{
+		p2 = strchr(p1, '/');
+		if (p2 == NULL)
+			break;
+		chTmp = p2[0];
+		p2[0] = 0;
+		_mkdir(szTemp);
+		p2[0] = chTmp;
+		p1 = p2 + 1;
+	}
 }
