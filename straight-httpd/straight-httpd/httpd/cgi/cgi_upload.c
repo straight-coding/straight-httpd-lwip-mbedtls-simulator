@@ -6,8 +6,6 @@
 
 #include "../http_cgi.h"
 
-#define UPLOAD_ROOT "D:\\temp\\"
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern void LogPrint(int level, char* format, ... );
@@ -61,11 +59,11 @@ long Upload_Start(void* context, char* szFileName, long nFileSize)
 
 	return 1; //ready to receive f/w
 }
-long Upload_GetFreeSize(u32_t askForSize)
+long Upload_GetFreeSize(unsigned long askForSize)
 {
 	return askForSize; //how many it can accept (etc. accept all)
 }
-long Upload_Received(REQUEST_CONTEXT* context, u8_t* pData, u32_t dwLen)
+long Upload_Received(REQUEST_CONTEXT* context, unsigned char* pData, unsigned long dwLen)
 {
 	if (LWIP_fwrite(context->_fileHandle, pData, dwLen) > 0) //>0:success
 		return dwLen;  //real count consumed (etc. consume all)
@@ -99,7 +97,9 @@ void Upload_OnHeaderReceived(REQUEST_CONTEXT* context, char* header_line)
 			}
 		}
 		len = DecodeB64((unsigned char*)(header_line + j));
-		LWIP_sprintf(context->ctxResponse._appContext, "%s%s", UPLOAD_ROOT, (char*)header_line + j);
+		header_line[len+j] = 0;
+		LWIP_sprintf(context->ctxResponse._appContext, "%s%s", WEB_UPLOAD_ROOT, (char*)header_line + j);
+		MakeDeepPath(context->ctxResponse._appContext);
 	}
 }
 
@@ -161,7 +161,7 @@ int Upload_OnContentReceived(REQUEST_CONTEXT* context, char* buffer, int size)
 				maxToConsume = nFree;
 				if (maxToConsume > 0)
 				{
-					int eaten = Upload_Received(context, (u8_t*)buffer, maxToConsume);
+					int eaten = Upload_Received(context, (unsigned char*)buffer, maxToConsume);
 					if (eaten > 0)
 					{
 						consumed = eaten;

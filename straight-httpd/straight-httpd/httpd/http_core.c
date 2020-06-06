@@ -8,7 +8,6 @@
 
 #include "lwip/altcp.h"
 
-#include "http_core.h"
 #include "http_cgi.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -131,8 +130,8 @@ static const char* Response_Status_Lines[] = {
 };
 
 const char header_nocache[] = "Cache-Control: no-cache, no-store, must-revalidate\r\nPragma: no-cache\r\nExpires: 0\r\n";
-const char header_generic[] = "HTTP/1.1 %s\r\nContent-type: %s\r\nContent-Length: %d\r\nConnection: %s\r\n";
-const char header_chunked[] = "HTTP/1.1 %s\r\nContent-type: %s\r\nTransfer-Encoding: chunked\r\n%sConnection: %s\r\n";
+const char header_generic[] = "HTTP/1.1 %s\r\nContent-Type: %s\r\nContent-Length: %d\r\nConnection: %s\r\n";
+const char header_chunked[] = "HTTP/1.1 %s\r\nContent-Type: %s\r\nTransfer-Encoding: chunked\r\n%sConnection: %s\r\n";
 const char header_range[] = "HTTP/1.1 206 Partial Content\r\nContent-Range: bytes %ld-%ld/%ld\r\nContent-type: %s\r\nContent-Length: %ld\r\nConnection: %s\r\n";
 const char header_gzip[] = "Content-Encoding: gzip\r\n";
 
@@ -510,6 +509,7 @@ void ResetHttpContext(REQUEST_CONTEXT* context)
 		context->_expect00 = -1;
 		context->_rangeFrom = 0;
 		context->_rangeTo = 0;
+		context->_ifModified = 0;
 
 		context->_chunked = -1;
 
@@ -1245,7 +1245,7 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 					else
 					{ //valid line
 						buffer[i] = 0; //for "\r\n", set "\r" to 0
-						//LogPrint(LOG_DEBUG_ONLY, "%s\r\n", buffer + nLinePos);
+						LogPrint(LOG_DEBUG_ONLY, "%s\r\n", buffer + nLinePos);
 						
 						if (context->_requestMethod < 0)
 						{ //first line, find method and path
@@ -1339,6 +1339,10 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 								context->_expect00 = 1;
 							else if (strstr((char*)buffer + nLinePos + 7, "100-Continue") != NULL)
 								context->_expect00 = 1;
+						}
+						else if (Strnicmp(buffer + nLinePos, "If-Modified-Since:", 18) == 0)
+						{
+							context->_ifModified = parseHttpDate((char*)buffer + nLinePos + 19);
 						}
 						else if (Strnicmp(buffer + nLinePos, "Range:", 6) == 0)
 						{

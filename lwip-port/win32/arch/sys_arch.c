@@ -6,11 +6,12 @@
 #include <stdarg.h>
 #include <sys/stat.h>
 
-#include <lwip/arch.h>
-#include <lwip/stats.h>
+//#include <lwip/arch.h>
+//#include <lwip/stats.h>
 #include <lwip/sys.h>
 
-#include "../../../straight-httpd/straight-httpd/utils.h"
+const char wday_name[][4] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+const char mon_name[][4]  = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 unsigned long LWIP_GetTickCount()
 {
@@ -266,21 +267,59 @@ u32_t sys_arch_mbox_tryfetch(sys_mbox_t *q, void **msg)
 	return SYS_MBOX_EMPTY;
 }
 
-char* gmt4http(time_t* t)
-{ //Last-Modified: Wed, 02 Oct 2015 07:28:00 GMT
-	static const char wday_name[][4] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
-	static const char mon_name[][4] = {
-	  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-	  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-	};
-	static char result[32];
+char* gmt4http(time_t* t, char* out, int maxSize)
+{ //Last-Modified: Fri, 02 Oct 2015 07:28:00 GMT
 	struct tm timeptr;
 	gmtime_s(&timeptr, t);
-	sprintf_s(result, 32, "%.3s, %02d %.3s %d %02d:%02d:%02d GMT\n",
+	sprintf_s(out, maxSize-1, "%.3s, %02d %.3s %d %02d:%02d:%02d GMT",
 		wday_name[timeptr.tm_wday], timeptr.tm_mday,
 		mon_name[timeptr.tm_mon], 1900 + timeptr.tm_year,
 		timeptr.tm_hour, timeptr.tm_min, timeptr.tm_sec);
-	return result;
+	return out;
+}
+
+time_t parseHttpDate(char* s)
+{ //Last-Modified: Fri, 02 Oct 2015 07:28:00 GMT
+	int i;
+	const char wday_name[][4] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+	const char mon_name[][4] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+
+	struct tm timeptr;
+	memset(&timeptr, 0, sizeof(struct tm));
+
+	timeptr.tm_sec = ston(s + 23);   // seconds after the minute - [0, 60] including leap second
+	timeptr.tm_min = ston(s + 20);   // minutes after the hour - [0, 59]
+	timeptr.tm_hour = ston(s + 17);  // hours since midnight - [0, 23]
+	timeptr.tm_mday = ston(s + 5);  // day of the month - [1, 31]
+	timeptr.tm_mon = -1;   // months since January - [0, 11]
+	for (i = 0; i < 12; i ++)
+	{
+		if (Strnicmp(s+8, mon_name[i], 3) == 0)
+		{
+			timeptr.tm_mon = i;
+			break;
+		}
+	}
+	timeptr.tm_year = ston(s + 12)-1900;  // years since 1900
+	//timeptr.tm_wday = -1;  // days since Sunday - [0, 6]
+	//for (i = 0; i < 7; i++)
+	//{
+		//if (Strnicmp(s, wday_name[i], 3) == 0)
+		//{
+			//timeptr.tm_wday = i;
+			//break;
+		//}
+	//}
+	//timeptr.tm_yday = 0;  // days since January 1 - [0, 365]
+	//timeptr.tm_isdst; // daylight savings time flag
+	return _mkgmtime(&timeptr);
+}
+
+char* getClock(char* buf, int maxSize)
+{
+	time_t now;
+	time(&now);
+	gmt4http(&now, buf, maxSize);
 }
 
 void LogPrint(int level, char* format, ...)
@@ -397,15 +436,22 @@ int LWIP_fwrite(void* f, char* buf, int toWrite) //>0: success
 	return fwrite(buf, 1, toWrite, (FILE*)f);
 }
 
-void LWIP_ftime(void* f, char* buf)
+time_t LWIP_ftime(char* fname, char* buf, int maxSize)
 {
-	struct stat sb;
-	if (f == NULL)
-		return;
+	int result;
+	struct _stat stat;
 
-	fstat((FILE*)f, &sb);
-	
-	strcpy_s(buf, 29, gmt4http(&sb.st_mtime));
+	buf[0] = 0;
+	if (fname[0] == 0)
+		return 0;
+
+	result = _stat(fname, &stat);
+	if (result == 0)
+	{
+		gmt4http(&stat.st_mtime, buf, maxSize);
+		return stat.st_mtime;
+	}
+	return 0;
 }
 
 long LWIP_fsize(void* f)

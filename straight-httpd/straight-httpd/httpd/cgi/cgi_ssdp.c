@@ -39,7 +39,6 @@ void SSDP_SendHeader(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 	if (context->_requestMethod == METHOD_GET)
 	{
 		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_chunked, "200 OK", "text/xml; charset=\"utf-8\"", header_nocache, "close");
-		strcat(context->ctxResponse._sendBuffer, CRLF);
 	}
 }
 
@@ -49,7 +48,7 @@ int SSDP_Sending(REQUEST_CONTEXT* context, char* buffer, int maxSize)
 	if (context->_requestMethod == METHOD_GET)
 	{
 		char szIP[64];
-		u32_t ip = GetMyIP();
+		unsigned long ip = GetMyIP();
 
 		buffer[0] = 0;
 

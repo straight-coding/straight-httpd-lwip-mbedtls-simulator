@@ -28,7 +28,7 @@ typedef struct _sys_mut sys_mutex_t;
 #define sys_mutex_valid(mutex) (((mutex) != NULL) && sys_mutex_valid_val(*(mutex)))
 #define sys_mutex_set_invalid(mutex) ((mutex)->mut = NULL)
 
-s8_t sys_mutex_new(sys_mutex_t *mutex);
+signed char sys_mutex_new(sys_mutex_t *mutex);
 void sys_mutex_lock(sys_mutex_t *mutex);
 void sys_mutex_unlock(sys_mutex_t *mutex);
 
@@ -40,7 +40,7 @@ struct lwip_mbox
 {
 	void* sem;
 	void* q_mem[MAX_QUEUE_ENTRIES];
-	u32_t head, tail;
+	unsigned long head, tail;
 };
 typedef struct lwip_mbox sys_mbox_t;
 
@@ -54,15 +54,16 @@ typedef unsigned int sys_prot_t;
 
 typedef struct FILE LWIP_FIL;
 void* LWIP_fopen(const char* szTemp, const char* mode);
+time_t LWIP_ftime(char* fname, char* buf, int maxSize);
 int  LWIP_fseek(void* f, long offset);
 void LWIP_fclose(void* f);
 long LWIP_fsize(void* f);
 int  LWIP_fread(void* f, char* buf, int count, unsigned int* bytes); //0=success
 int  LWIP_fwrite(void* f, char* buf, int count); //>0:success
 
-u32_t sys_jiffies(void);
-u32_t sys_now(void);
-u32_t msDiff(u32_t now, u32_t last);
+unsigned long sys_jiffies(void);
+unsigned long sys_now(void);
+unsigned long msDiff(unsigned long now, unsigned long last);
 
 unsigned long LWIP_GetTickCount();
 void LogPrint(int level, char* format, ...);
@@ -73,5 +74,10 @@ void sys_arch_init();
 void sys_arch_protect();
 void sys_arch_unprotect();
 
-char* gmt4http(time_t* t);
+char* getClock(char* buf, int maxSize);
+time_t parseHttpDate(char* s);
+
+const char wday_name[][4];
+const char mon_name[][4];
+
 #endif

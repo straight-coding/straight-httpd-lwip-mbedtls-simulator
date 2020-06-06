@@ -4,12 +4,6 @@
   Date: April 12, 2020
 */
 
-#include "lwip/opt.h"
-
-#include "lwip_port.h"
-#include "arch/sys_arch.h"
-
-#include "http_core.h"
 #include "http_cgi.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -33,7 +27,7 @@ void CGI_SetupMapping() //called from SetupHttpContext(), CGI handlers could be 
 	//extern struct CGI_Mapping g_cgiStatus;
 	extern struct CGI_Mapping g_cgiSSDP; //"/upnp_device.xml"
 	//extern struct CGI_Mapping g_cgiCommand;
-	extern struct CGI_Mapping g_cgiLog;
+	//extern struct CGI_Mapping g_cgiLog;
 	extern struct CGI_Mapping g_cgiUpload;
 	extern struct CGI_Mapping g_cgiWebAuth; // "/auth/*"
 	extern struct CGI_Mapping g_cgiWebApp;	// "/app/*", MUST be the last one
@@ -43,7 +37,7 @@ void CGI_SetupMapping() //called from SetupHttpContext(), CGI handlers could be 
 	//CGI_Append(&g_cgiStatus);		//"/status.json"
 	CGI_Append(&g_cgiSSDP, NULL, 0);	//"/upnp_device.xml"
 	//CGI_Append(&g_cgiCommand);	//"/cmd.cgi"
-	CGI_Append(&g_cgiLog,     "/api/log.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_CHUNK_ENABLED);
+	//CGI_Append(&g_cgiLog,     "/api/log.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_CHUNK_ENABLED);
 	CGI_Append(&g_cgiUpload,  "/api/upload.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_POST_ENABLED);
 	CGI_Append(&g_cgiWebAuth, "/auth/*", CGI_OPT_AUTHENTICATOR | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED);
 	CGI_Append(&g_cgiWebApp,  "/app/*", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED); //"/app/*", MUST be the last one
@@ -265,7 +259,7 @@ void CGI_SetCgiHandler(REQUEST_CONTEXT* context) //called when the first HTTP re
 
 void CGI_HeaderReceived(REQUEST_CONTEXT* context, char* header_line) //called when single HTTP request header is received
 {
-	LogPrint(LOG_DEBUG_ONLY, "Header: %s, @%d", header_line, context->_sid);
+	LogPrint(LOG_DEBUG_ONLY, "Header ignored: %s, @%d", header_line, context->_sid);
 	
 	if (context->handler != NULL)
 	{
@@ -359,6 +353,13 @@ void CGI_RequestReceived(REQUEST_CONTEXT* context) //called when HTTP request bo
 
 void CGI_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo) //set response headers: content-type, length, connection, and http code
 {
+	char date[40];
+
+	memset(date, 0, sizeof(date));
+	strcpy_s(date, 10, "Date: ");
+	getClock(date+6, sizeof(date)-8);
+	strcat(date, CRLF);
+
 	if (context->_result < 0)
 	{
 		if (context->_result == CODE_REDIRECT)
@@ -370,44 +371,48 @@ void CGI_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo) //set 
 				LWIP_sprintf(szCookie, "X-Auth-Token: %s\r\nSet-Cookie: %s; Path=/; HttpOnly; max-age=3600\r\n", context->ctxResponse._token, context->ctxResponse._token);
 				strcat(context->ctxResponse._sendBuffer, szCookie);
 			}
-			strcat(context->ctxResponse._sendBuffer, CRLF);
-			strcat(context->ctxResponse._sendBuffer, redirect_body1);
-			strcat(context->ctxResponse._sendBuffer, context->_responsePath);
-			strcat(context->ctxResponse._sendBuffer, redirect_body2);
 		}
 		else
 		{
 			LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, "text/html", 0, "close");
-			strcat(context->ctxResponse._sendBuffer, CRLF);
-		}
-		context->ctxResponse._bytesLeft = strlen(context->ctxResponse._sendBuffer); //all headers are strings
-		return;
-	}
-	
-	if (context->handler != NULL)
-	{
-		if (context->handler->SetResponseHeaders != NULL)
-		{
-			context->handler->SetResponseHeaders(context, HttpCodeInfo);
-			context->ctxResponse._bytesLeft = strlen(context->ctxResponse._sendBuffer); //all headers are strings
-			return;
 		}
 	}
-	
-	if (context->_requestMethod == METHOD_GET)
+	else if ((context->handler != NULL) && (context->handler->SetResponseHeaders != NULL))
 	{
-		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, "text/html", 0, "close");
-	}
-	else if (context->_requestMethod == METHOD_POST)
-	{
-		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, "text/html", 0, "close");
+		context->handler->SetResponseHeaders(context, HttpCodeInfo);
 	}
 	else
 	{
-		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, "text/html", 0, "close");
+		if (context->_requestMethod == METHOD_GET)
+			LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, "text/html", 0, "close");
+		else if (context->_requestMethod == METHOD_POST)
+			LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, "text/html", 0, "close");
+		else
+			LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, "text/html", 0, "close");
 	}
+	strcat(context->ctxResponse._sendBuffer, date);
+
+	if (strstr(context->ctxResponse._sendBuffer, "no-cache") == NULL)
+		strcat(context->ctxResponse._sendBuffer, "Cache-Control: max-age=3600\r\n");
+
+#ifdef SERVER_HEADER
+	strcat(context->ctxResponse._sendBuffer, "Server: ");
+	strcat(context->ctxResponse._sendBuffer, SERVER_HEADER);
 	strcat(context->ctxResponse._sendBuffer, CRLF);
+#endif
+
+	//headers end
+	strcat(context->ctxResponse._sendBuffer, CRLF);
+	//body starts
+	if (context->_result == CODE_REDIRECT)
+	{
+		strcat(context->ctxResponse._sendBuffer, redirect_body1);
+		strcat(context->ctxResponse._sendBuffer, context->_responsePath);
+		strcat(context->ctxResponse._sendBuffer, redirect_body2);
+	}
 	context->ctxResponse._bytesLeft = strlen(context->ctxResponse._sendBuffer); //all headers are strings
+
+	LogPrint(LOG_DEBUG_ONLY, context->ctxResponse._sendBuffer);
 }
 
 //return 1=data ready to send; 0=pending without data; -1=finished, no more data

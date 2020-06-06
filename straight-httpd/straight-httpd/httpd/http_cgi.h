@@ -15,6 +15,7 @@
 //  where the default homepage <WEB_DRIVE[i] + WEB_ROOT + WEB_ROOT_FILE> is located.
 #define WEB_DRIVE		"D"	//used for multiple dynamic disks ('CDEF' etc.), the first letter has the highest priority
 #define WEB_ABS_ROOT	"/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/"
+#define WEB_UPLOAD_ROOT	"/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/app/cache/"
 
 #define WEB_DEFAULT_PAGE	"/auth/login.html"
 #define WEB_SESSION_CHECK	"/auth/session_check.cgi"
@@ -62,7 +63,8 @@ typedef struct
 	short _valid;	//>0: valid
 	short _source; 	//0=buffer or 1=file
 
-	void*  _fp;
+	void* _fp;
+	char  _lastModified[64];
 	char* _buffer;
 
 	long  _options;
@@ -93,7 +95,7 @@ CGI_Cancel(context) ==> OnCancel
 */
 
 void CGI_SetupMapping(void); //setup mapping when initializing httpd context
-void CGI_Append(struct CGI_Mapping* newMapping, const char* ovwPath, u32_t ovwOptions); //append single CGI mapping
+void CGI_Append(struct CGI_Mapping* newMapping, const char* ovwPath, unsigned long ovwOptions); //append single CGI mapping
 
 //cancel notification to app layer because of any HTTP fatal errors
 //  including timeout, format errors, sending failures, and stack keneral errors

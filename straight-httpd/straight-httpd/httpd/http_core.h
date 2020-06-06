@@ -7,10 +7,10 @@
 #ifndef _HTTP_CORE_H_
 #define _HTTP_CORE_H_
 
-#include "lwip/opt.h"
-
-#include "lwip_port.h"
-#include "arch/sys_arch.h"
+#include "lwip/opt.h"		//only for TCP_MSS definition
+#include "lwip_port.h"		//for device information, network address
+#include "arch/sys_arch.h"	//for semaphore, mutex, mbox, file, time, tick, and log functions
+#include "../utils.h"		//for popular pure c functions, such as ston, Strnicmp, DecodeB64, ...
 
 #define LOG_DEBUG_ONLY		0 //max level of debug output
 
@@ -50,6 +50,7 @@
 
 #define HTTP_STATE_REQUEST_END			11 //response completely sent out
 
+#define SERVER_HEADER	"straight/1.1"
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define MAX_CONNECTIONS 				5		//max concurrent socket connections
@@ -134,6 +135,8 @@ typedef struct _REQUEST_CONTEXT
 	int _keepalive;			//keep-alive header, for http_core.c
 	int _chunked;			//chunk header, for http_core.c
 	int _expect00;			//Expect 100 header, for http_core.c
+
+	time_t _ifModified;
 
 	long _rangeFrom;		//included
 	long _rangeTo;			//not included

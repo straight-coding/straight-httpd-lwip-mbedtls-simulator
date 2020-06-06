@@ -241,13 +241,35 @@ void Web_OnRequestReceived(REQUEST_CONTEXT* context)
 	if (ctxSSI->_fp != NULL)
 	{ //gzip file starts with 1F 8B 08
 		int outBytes=0;
-		unsigned char flag[4];
+		unsigned char flag[64];
 		if (LWIP_fread(ctxSSI->_fp, flag, 3, &outBytes) == 0)
 		{
 			LWIP_fseek(ctxSSI->_fp, 0);
 			if ((flag[0] == 0x1F) && (flag[1] == 0x8B) && (flag[2] == 0x08))
 				context->_options |= CGI_OPT_GZIP;
 		}
+
+		if (ctxSSI->_ssi == 0)
+		{
+			time_t tFile = LWIP_ftime(szTemp, ctxSSI->_lastModified + 15, sizeof(ctxSSI->_lastModified) - 15 - 2);
+			if (tFile == 0) //"Date: <xxx>\r\n"
+				ctxSSI->_lastModified[0] = 0;
+			else
+			{
+				if ((context->_ifModified != 0) && (tFile <= context->_ifModified))
+				{
+					context->_result = -304;
+					LogPrint(0, "Not modified %s, @%d", szTemp, context->_sid);
+					return;
+				}
+				else
+				{
+					strcpy(ctxSSI->_lastModified, "Last-Modified: ");
+					strcat(ctxSSI->_lastModified, CRLF);
+				}
+			}
+		}
+
 		context->_fileHandle = ctxSSI->_fp;
 		context->ctxResponse._dwTotal = LWIP_fsize(ctxSSI->_fp);
 		LogPrint(LOG_DEBUG_ONLY, "File opened: %s, len=%d, SSI=%d @%d", szTemp, context->ctxResponse._dwTotal, ctxSSI->_ssi, context->_sid);
@@ -284,12 +306,16 @@ void Web_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 		LWIP_fseek(context->_fileHandle, context->_rangeFrom);
 	}
 	else if (chunkHeader > 0)
-		LWIP_sprintf(context->ctxResponse._sendBuffer, header_chunked, HttpCodeInfo, GetContentType(context), header_nocache, "close");
+		LWIP_sprintf(context->ctxResponse._sendBuffer, header_chunked, HttpCodeInfo, GetContentType(context), "", "close");
 	else
 		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, GetContentType(context), context->ctxResponse._dwTotal, "close");
 
 	if ((context->_options & CGI_OPT_GZIP) != 0)
 		strcat(context->ctxResponse._sendBuffer, header_gzip);
+	if (ctxSSI->_lastModified[0] != 0)
+		strcat(context->ctxResponse._sendBuffer, ctxSSI->_lastModified);
+	else
+		strcat(context->ctxResponse._sendBuffer, header_nocache);
 
 	if ((context->_requestMethod == METHOD_GET) && 
 		(context->handler != NULL) &&
@@ -299,8 +325,6 @@ void Web_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 		LWIP_sprintf(szCookie, "X-Auth-Token: SID=\r\nSet-Cookie: SID=; Path=/; HttpOnly; max-age=3600\r\n");
 		strcat(context->ctxResponse._sendBuffer, szCookie);
 	}
-	strcat(context->ctxResponse._sendBuffer, CRLF);
-	LogPrint(LOG_DEBUG_ONLY, context->ctxResponse._sendBuffer);
 }
 
 int Web_ReadContent(REQUEST_CONTEXT* context, char* buffer, int maxSize)
