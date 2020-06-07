@@ -159,14 +159,32 @@ int main()
 	char szHostSubnet[128];
 
 	char szFilter[512];
+/*
+	time_t now;
+	time(&now);
+	strcpy(szFilter, "Fri, 02 Oct 2015 07:28:00 GMT"); now = parseHttpDate(szFilter);
+	printf("Now: %s\r\n", gmt4http(&now, szFilter, sizeof(szFilter)));
+	time_t rev = parseHttpDate(szFilter);
+	printf("Parsed: %s\r\n", gmt4http(&rev, szFilter, sizeof(szFilter)));
+*/
 
-	//time_t now;
-	//time(&now);
-	//strcpy(szFilter, "Fri, 02 Oct 2015 07:28:00 GMT"); now = parseHttpDate(szFilter);
-	//printf("Now: %s\r\n", gmt4http(&now, szFilter, sizeof(szFilter)));
-	//time_t rev = parseHttpDate(szFilter);
-	//printf("Parsed: %s\r\n", gmt4http(&rev, szFilter, sizeof(szFilter)));
+/*
+	int isFolder;
+	char name[64];
+	int size;
+	int off = 0;
+	time_t date;
+	void* hDir = NULL;
 
+	hDir = LWIP_firstdir("/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/app/cache/*.*", &isFolder, name, sizeof(name), &size, &date);
+	while(hDir != NULL)
+	{
+		if (LWIP_readdir(hDir, &isFolder, name, sizeof(name), &size, &date) <= 0)
+			break;
+	}
+	if (hDir != NULL)
+		LWIP_closedir(hDir);
+*/
 	memset(szHostName, 0, sizeof(szHostName));
 	memset(szFilter, 0, sizeof(szFilter));
 
