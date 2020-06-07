@@ -1,0 +1,42 @@
+/*
+  fileList.css
+  Author: Straight Coder<simpleisrobust@gmail.com>
+  Date: June 07, 2020
+*/
+
+.file-item
+{
+    padding: 10px; 
+    border: 1px solid #8c8c8c;
+}
+.file-size
+{
+    margin-top: 4px; 
+    font-size: 12px;
+}
+.file-op
+{
+    width: 30px; 
+    color: red;
+    font-size: 14px;
+}
+.file-op div
+{
+    cursor: pointer;
+}
+.file-progress
+{
+    height: 4px; 
+    margin-top: 8px; 
+    background-color: #ddd;
+}
+.file-progress > div
+{
+    width: 0%; 
+    height: 100%; 
+    background-color: #17a2b8;
+}
+.file-name
+{
+    max-width: 240px;
+}

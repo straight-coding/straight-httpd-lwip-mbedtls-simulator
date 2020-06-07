@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html style='width:100%;height:100%;'>
+
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <title>Virtual Device</title>
+
+  <script type="application/javascript" src="js/base64js.min.js"></script>
+
+  <link rel="stylesheet" href="css/share.css">
+  <script type="application/javascript" src="js/share.js"></script>
+  
+  <link rel="stylesheet" href="plugin/fileList/fileList.css">
+  <script type="application/javascript" src="plugin/fileList/fileList.js"></script>
+
+  <style>
+  </style>
+</head>
+
+<body class='fill'>
+  <div class='base columns center-item fill'>
+    <div class='base columns center-item'>
+      <div class='title margin-t24'>Virtual Device</div>
+      <div class='sub-title margin-t2'>Powered by
+        <!--#DEV_VENDOR-->
+      </div>
+    </div>
+
+    <div class='base columns center-item fill'>
+      <div class="base row margin-t24">
+        <input id="folder" style="width: 260px; max-width: 260px; height:20px; padding:4px;" type="text" value="/"/>
+        <button class="tab" id="request" style="width: 60px; height: 25px; margin-left: 4px;" title="Go">Go</button>
+      </div>
+      <ul id="file-list" style="width: 330px; max-height: calc(100% - 250px); list-style: none; margin: 0; padding: 0; overflow: auto;">
+      </ul>
+    </div>
+
+    <div class='base row between-content'>
+      <button class='tab' id='home'>Home</button>
+      <button class='tab margin-l2' id='upload'>Upload</button>
+      <button class='tab margin-l2' id='files'>Files</button>
+      <button class='tab margin-l2' id='logout'>Logout</button>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('home').addEventListener('click', goHome);
+    function goHome() { location.href = '/app/index.shtml'; }
+
+    document.getElementById('upload').addEventListener('click', goUpload);
+    function goUpload() { location.href = '/app/upload.shtml'; }
+
+    document.getElementById('files').addEventListener('click', goDownload);
+    function goDownload() { location.href = '/app/files.shtml'; }
+
+    document.getElementById('logout').addEventListener('click', goLogout);
+    function goLogout() { location.href = '/auth/logout.cgi'; }
+
+    window.onload = function (e) {
+      var task = new fileList({
+                      urlGet: '/api/files.cgi',
+                      folderInput: document.getElementById("folder"),
+                      container: document.getElementById("file-list"),
+                      complete: function()
+                      {
+                      }
+                  });
+    }
+
+  </script>
+</body>
+
+</html>

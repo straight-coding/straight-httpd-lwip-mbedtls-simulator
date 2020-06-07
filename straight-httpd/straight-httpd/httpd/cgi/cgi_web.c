@@ -203,8 +203,6 @@ void Web_OnRequestReceived(REQUEST_CONTEXT* context)
 	}
 	
 	memset(ctxSSI, 0, sizeof(SSI_Context));
-
-	ctxSSI->_valid = 1;
 	ctxSSI->_source = 0;
 	ctxSSI->_fp = NULL;
 	ctxSSI->_buffer = NULL;
@@ -213,7 +211,9 @@ void Web_OnRequestReceived(REQUEST_CONTEXT* context)
 	ctxSSI->_ssiState = 0;
 	ctxSSI->_cacheOffset = 0;
 	ctxSSI->_tagLength = 0;
-	
+
+	ctxSSI->_valid = 1;
+
 	if ((context->_responsePath[0] == '/') && (context->_responsePath[1] == 0))
 	{ //default path
 		strcpy(context->_responsePath, WEB_ABS_ROOT, WEB_DEFAULT_PAGE);

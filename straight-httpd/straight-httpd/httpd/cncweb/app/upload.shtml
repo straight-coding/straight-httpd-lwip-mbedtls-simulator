@@ -4,9 +4,11 @@
   <meta charset='UTF-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1'>
   <title>Virtual Device</title>
+  
+  <script type="application/javascript" src="js/base64js.min.js"></script>
 
   <link rel="stylesheet" href="css/share.css">
-  <script type="application/javascript" src="js/base64js.min.js"></script>
+  <script type="application/javascript" src="js/share.js"></script>
 
   <link rel="stylesheet" href="plugin/fileTransfer/fileTransfer.css">
   <script type="application/javascript" src="plugin/fileTransfer/fileTransfer.js"></script>
@@ -39,14 +41,14 @@
         <input id="file2send" style="max-width: 260px; height:30px; padding:4px;" type="file" multiple/>
         <button class="tab" id="sendfw" title="Send">Send</button>
       </div>
-      <ul id="file-list" style="width: 330px; list-style: none; margin: 0; padding: 0;">
+      <ul id="file-list" style="width: 330px; max-height: calc(100% - 40px); list-style: none; margin: 0; padding: 0;">
       </ul>
     </div>
 
     <div class='base row between-content'>
       <button class='tab' id='home'>Home</button>
       <button class='tab margin-l2' id='upload'>Upload</button>
-      <button class='tab margin-l2' id='download'>Download</button>
+      <button class='tab margin-l2' id='files'>Files</button>
       <button class='tab margin-l2' id='logout'>Logout</button>
     </div>
  </div>
@@ -57,8 +59,8 @@
     document.getElementById('upload').addEventListener('click', goUpload);
     function goUpload() { location.href = '/app/upload.shtml'; }
    
-    document.getElementById('download').addEventListener('click', goDownload);
-    function goDownload() { location.href = '/app/download.shtml'; }
+    document.getElementById('files').addEventListener('click', goDownload);
+    function goDownload() { location.href = '/app/files.shtml'; }
 	
     document.getElementById('logout').addEventListener('click', goLogout);
     function goLogout() { location.href = '/auth/logout.cgi'; }

@@ -24,20 +24,16 @@ char g_szWebAppHomePage[128]; // "/app/index.html", MUST start with '/'
 
 void CGI_SetupMapping() //called from SetupHttpContext(), CGI handlers could be added here
 {
-	//extern struct CGI_Mapping g_cgiStatus;
-	extern struct CGI_Mapping g_cgiSSDP; //"/upnp_device.xml"
-	//extern struct CGI_Mapping g_cgiCommand;
-	//extern struct CGI_Mapping g_cgiLog;
+	extern struct CGI_Mapping g_cgiSSDP;	// "/upnp_device.xml"
+	extern struct CGI_Mapping g_cgiFiles;	// file list in json format
 	extern struct CGI_Mapping g_cgiUpload;
 	extern struct CGI_Mapping g_cgiWebAuth; // "/auth/*"
 	extern struct CGI_Mapping g_cgiWebApp;	// "/app/*", MUST be the last one
 
 	SetWebRoot(WEB_DRIVE, WEB_ABS_ROOT, WEB_DEFAULT_PAGE); //default path
 	
-	//CGI_Append(&g_cgiStatus);		//"/status.json"
-	CGI_Append(&g_cgiSSDP, NULL, 0);	//"/upnp_device.xml"
-	//CGI_Append(&g_cgiCommand);	//"/cmd.cgi"
-	//CGI_Append(&g_cgiLog,     "/api/log.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_CHUNK_ENABLED);
+	CGI_Append(&g_cgiSSDP,    "/upnp_device.xml", CGI_OPT_GET_ENABLED | CGI_OPT_CHUNK_ENABLED);
+	CGI_Append(&g_cgiFiles,   "/api/files.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_CHUNK_ENABLED);
 	CGI_Append(&g_cgiUpload,  "/api/upload.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_POST_ENABLED);
 	CGI_Append(&g_cgiWebAuth, "/auth/*", CGI_OPT_AUTHENTICATOR | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED);
 	CGI_Append(&g_cgiWebApp,  "/app/*", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED); //"/app/*", MUST be the last one

@@ -37,7 +37,7 @@
     <div class='base row between-content margin-t24'>
       <button class='tab' id='home'>Home</button>
       <button class='tab margin-l2' id='upload'>Upload</button>
-      <button class='tab margin-l2' id='download'>Download</button>
+      <button class='tab margin-l2' id='files'>Files</button>
       <button class='tab margin-l2' id='logout'>Logout</button>
     </div>
   </div>
@@ -68,8 +68,8 @@
     document.getElementById('upload').addEventListener('click', goUpload);
     function goUpload() { location.href = '/app/upload.shtml'; }
    
-    document.getElementById('download').addEventListener('click', goDownload);
-    function goDownload() { location.href = '/app/download.shtml'; }
+    document.getElementById('files').addEventListener('click', goDownload);
+    function goDownload() { location.href = '/app/files.shtml'; }
 	
     document.getElementById('logout').addEventListener('click', goLogout);
     function goLogout() { location.href = '/auth/logout.cgi'; }
