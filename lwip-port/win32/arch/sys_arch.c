@@ -6,8 +6,6 @@
 #include <stdarg.h>
 #include <sys/stat.h>
 
-//#include <lwip/arch.h>
-//#include <lwip/stats.h>
 #include <lwip/sys.h>
 
 const char wday_name[][4] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
@@ -281,17 +279,14 @@ char* gmt4http(time_t* t, char* out, int maxSize)
 time_t parseHttpDate(char* s)
 { //Last-Modified: Fri, 02 Oct 2015 07:28:00 GMT
 	int i;
-	const char wday_name[][4] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
-	const char mon_name[][4] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-
 	struct tm timeptr;
 	memset(&timeptr, 0, sizeof(struct tm));
 
-	timeptr.tm_sec = ston(s + 23);   // seconds after the minute - [0, 60] including leap second
-	timeptr.tm_min = ston(s + 20);   // minutes after the hour - [0, 59]
-	timeptr.tm_hour = ston(s + 17);  // hours since midnight - [0, 23]
+	timeptr.tm_sec = ston(s + 23);  // seconds after the minute - [0, 60] including leap second
+	timeptr.tm_min = ston(s + 20);  // minutes after the hour - [0, 59]
+	timeptr.tm_hour = ston(s + 17); // hours since midnight - [0, 23]
 	timeptr.tm_mday = ston(s + 5);  // day of the month - [1, 31]
-	timeptr.tm_mon = -1;   // months since January - [0, 11]
+	timeptr.tm_mon = -1;			// months since January - [0, 11]
 	for (i = 0; i < 12; i ++)
 	{
 		if (Strnicmp(s+8, mon_name[i], 3) == 0)
@@ -301,17 +296,7 @@ time_t parseHttpDate(char* s)
 		}
 	}
 	timeptr.tm_year = ston(s + 12)-1900;  // years since 1900
-	//timeptr.tm_wday = -1;  // days since Sunday - [0, 6]
-	//for (i = 0; i < 7; i++)
-	//{
-		//if (Strnicmp(s, wday_name[i], 3) == 0)
-		//{
-			//timeptr.tm_wday = i;
-			//break;
-		//}
-	//}
-	//timeptr.tm_yday = 0;  // days since January 1 - [0, 365]
-	//timeptr.tm_isdst; // daylight savings time flag
+
 	return _mkgmtime(&timeptr);
 }
 
