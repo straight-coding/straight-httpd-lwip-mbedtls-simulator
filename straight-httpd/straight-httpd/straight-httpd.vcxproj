@@ -52,10 +52,10 @@
     <ClCompile Include="..\..\lwip-port\win32\lwip_port.c" />
     <ClCompile Include="..\..\lwip-port\win32\lwip_proc.c" />
     <ClCompile Include="..\..\lwip-port\win32\netif\ethernetif.c" />
-    <ClCompile Include="httpd\cgi\cgi_log.c" />
+    <ClCompile Include="httpd\cgi\cgi_files.c" />
     <ClCompile Include="httpd\cgi\cgi_ssdp.c" />
     <ClCompile Include="httpd\cgi\cgi_ssi.c" />
-    <ClCompile Include="httpd\cgi\cgi_upgrade.c" />
+    <ClCompile Include="httpd\cgi\cgi_upload.c" />
     <ClCompile Include="httpd\cgi\cgi_web.c" />
     <ClCompile Include="httpd\http_cgi.c" />
     <ClCompile Include="httpd\http_core.c" />
