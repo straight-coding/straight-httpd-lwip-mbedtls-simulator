@@ -251,7 +251,11 @@ void Web_OnRequestReceived(REQUEST_CONTEXT* context)
 
 		if (ctxSSI->_ssi == 0)
 		{
-			time_t tFile = LWIP_ftime(szTemp, ctxSSI->_lastModified + 15, sizeof(ctxSSI->_lastModified) - 15 - 2);
+			time_t tFile = 0;
+
+			strcpy(ctxSSI->_lastModified, "Last-Modified: ");
+			tFile = LWIP_ftime(szTemp, ctxSSI->_lastModified + 15, sizeof(ctxSSI->_lastModified) - 15 - 2);
+
 			if (tFile == 0) //"Date: <xxx>\r\n"
 				ctxSSI->_lastModified[0] = 0;
 			else
@@ -264,7 +268,6 @@ void Web_OnRequestReceived(REQUEST_CONTEXT* context)
 				}
 				else
 				{
-					strcpy(ctxSSI->_lastModified, "Last-Modified: ");
 					strcat(ctxSSI->_lastModified, CRLF);
 				}
 			}
@@ -316,6 +319,12 @@ void Web_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 		strcat(context->ctxResponse._sendBuffer, ctxSSI->_lastModified);
 	else
 		strcat(context->ctxResponse._sendBuffer, header_nocache);
+
+	if (ctxSSI->_ssi == 0)
+	{
+		if (strstr(context->ctxResponse._sendBuffer, "no-cache") == NULL)
+			strcat(context->ctxResponse._sendBuffer, "Cache-Control: max-age=3600\r\n");
+	}
 
 	if ((context->_requestMethod == METHOD_GET) && 
 		(context->handler != NULL) &&

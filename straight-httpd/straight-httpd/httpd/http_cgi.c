@@ -392,9 +392,6 @@ void CGI_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo) //set 
 	}
 	strcat(context->ctxResponse._sendBuffer, date);
 
-	if (strstr(context->ctxResponse._sendBuffer, "no-cache") == NULL)
-		strcat(context->ctxResponse._sendBuffer, "Cache-Control: max-age=3600\r\n");
-
 #ifdef SERVER_HEADER
 	strcat(context->ctxResponse._sendBuffer, "Server: ");
 	strcat(context->ctxResponse._sendBuffer, SERVER_HEADER);

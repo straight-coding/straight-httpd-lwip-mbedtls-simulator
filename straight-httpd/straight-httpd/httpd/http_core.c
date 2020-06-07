@@ -826,7 +826,7 @@ signed char OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *p, sign
 	if ((errRet == ERR_OK) || (errRet == ERR_INPROGRESS))
 	{
 		HttpRequestProc(context, HTTP_PROC_CALLER_RECV); //ResetHttpContext() or CloseHttpContext() may be already called
-		if (context->_result < 0)
+		if (context->_result <= -400)
 		{
 			LogPrint(0, "Canceling by OnHttpReceive, result=%d, @%d", context->_result, context->_sid);
 			CGI_Cancel(context);
@@ -1723,7 +1723,10 @@ signed char HttpResponse(REQUEST_CONTEXT* context, int caller) //always return E
 			return ERR_OK;
 		}
 		
-		context->_state = HTTP_STATE_SENDING_HEADER;
+		if (context->_result == CODE_REDIRECT)
+			context->_state = HTTP_STATE_SENDING_BODY;
+		else
+			context->_state = HTTP_STATE_SENDING_HEADER;
 	}
 	else if (context->_state == HTTP_STATE_SENDING_HEADER)
 	{ //
