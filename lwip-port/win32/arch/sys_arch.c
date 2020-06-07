@@ -465,49 +465,67 @@ void LWIP_fclose(void* f)
 	fclose((FILE*)f);
 }
 
+void TimetToFileTime(time_t t, LPFILETIME pft)
+{
+	LONGLONG ll = Int32x32To64(t, 10000000) + 116444736000000000;
+	pft->dwLowDateTime = (DWORD)ll;
+	pft->dwHighDateTime = ll >> 32;
+}
+
+time_t filetime_to_timet(FILETIME* ft)
+{ 
+	ULARGE_INTEGER ull;    
+	ull.LowPart = ft->dwLowDateTime;    
+	ull.HighPart = ft->dwHighDateTime;    
+	return ull.QuadPart / 10000000ULL - 11644473600ULL; 
+}
+
 void* LWIP_firstdir(void* filter, int* isFolder, char* name, int maxLen, int* size, time_t* date)
 {
 	WIN32_FIND_DATA fd;
 	HANDLE hFind = FindFirstFile(filter, &fd);
 
 	*isFolder = 0;
-	name[0] = 0;
-
+	memset(name, 0, maxLen);
 	if (hFind != INVALID_HANDLE_VALUE) 
 	{
-		if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+		if ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
 			*isFolder = 1;
 		else
 			*isFolder = 0;
 
 		strncpy(name, fd.cFileName, maxLen - 1);
 		*size = fd.nFileSizeLow;
-		//*date = fd.ftLastWriteTime;
+		*date = filetime_to_timet(&fd.ftLastWriteTime);
 		return (void*)hFind;
 	}
 	return NULL;
 }
 
-int LWIP_readdir(void* hDir, int* isFolder, char* name, int maxLen, int* size, time_t* date)
+int LWIP_readdir(void* hFind, int* isFolder, char* name, int maxLen, int* size, time_t* date)
 {
 	WIN32_FIND_DATA fd;
-	if (FindNextFile((HANDLE)hDir, &fd))
+	memset(name, 0, maxLen);
+	if (hFind != INVALID_HANDLE_VALUE)
 	{
-		if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
-			*isFolder = 1;
-		else
-			*isFolder = 0;
+		if (FindNextFile((HANDLE)hFind, &fd))
+		{
+			if ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+				*isFolder = 1;
+			else
+				*isFolder = 0;
 
-		strncpy(name, fd.cFileName, maxLen - 1);
-		*size = fd.nFileSizeLow;
-		//*date = fd.ftLastWriteTime;
-		return 1;
+			strncpy(name, fd.cFileName, maxLen - 1);
+			*size = fd.nFileSizeLow;
+			*date = filetime_to_timet(&fd.ftLastWriteTime);
+			return 1;
+		}
 	}
 	return 0;
 }
 
-void LWIP_closedir(void* hDir)
+void LWIP_closedir(void* hFind)
 {
-	if (hDir != NULL)
-		FindClose((HANDLE)hDir);
+	if (hFind != NULL)
+		FindClose((HANDLE)hFind);
 }
