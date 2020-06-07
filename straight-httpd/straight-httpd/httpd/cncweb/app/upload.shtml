@@ -36,12 +36,12 @@
       <div class='sub-title margin-t2'>Powered by <!--#DEV_VENDOR--></div>
     </div>
 
-    <div class='base columns center-item fill'>
+    <div class='base columns center-item main-stretch' style="overflow-x: hidden; overflow-y: auto; margin: 0; padding: 0;">
       <div class="base row center-item margin-t24">
-        <input id="file2send" style="max-width: 260px; height:30px; padding:4px;" type="file" multiple/>
-        <button class="tab" id="sendfw" title="Send">Send</button>
+        <input id="file2send" style="max-width: 260px; height:25px; padding:4px;" type="file" multiple/>
+        <button class="" id="sendfw" title="Send">Send</button>
       </div>
-      <ul id="file-list" style="width: 330px; max-height: calc(100% - 40px); list-style: none; margin: 0; padding: 0;">
+      <ul id="file-list" style="width: 320px; max-height: calc(100% - 70px); list-style: none; margin: 0; padding: 0;">
       </ul>
     </div>
 

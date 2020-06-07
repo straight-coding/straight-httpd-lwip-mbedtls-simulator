@@ -6,16 +6,34 @@
 
 'use strict';
 
-function Base64Encode(str, encoding = 'utf-8') 
+if (!Element.prototype.matches) {
+    Element.prototype.matches = Element.prototype.msMatchesSelector || 
+    Element.prototype.webkitMatchesSelector;
+}
+
+if (!Element.prototype.closest) {
+    Element.prototype.closest = function(s) {
+        var el = this;
+
+        do {
+            if (Element.prototype.matches.call(el, s)) 
+                return el;
+            el = el.parentElement || el.parentNode;
+        } while (el !== null && el.nodeType === 1);
+        return null;
+    };
+}
+
+function Base64Encode(str, encoding) 
 {
-    var bytes = new(TextEncoder || TextEncoderLite)(encoding).encode(str);
+    var bytes = new(TextEncoder || TextEncoderLite)(encoding || 'utf-8').encode(str);
     return base64js.fromByteArray(bytes);
 }
 
-function Base64Decode(str, encoding = 'utf-8') 
+function Base64Decode(str, encoding) 
 {
     var bytes = base64js.toByteArray(str);
-    return new(TextDecoder || TextDecoderLite)(encoding).decode(bytes);
+    return new(TextDecoder || TextDecoderLite)(encoding || 'utf-8').decode(bytes);
 }
 
 function createElementFromHTML(htmlString) 
@@ -92,8 +110,8 @@ function xhrWrapper(opt) {
             opt.complete(xhr);
     }
 
-    if (opt.timeout)
-        xhr.timeout = opt.timeout;
+    //if (opt.timeout)
+        //xhr.timeout = opt.timeout;
     if (opt.contentType)
         xhr.setRequestHeader('Content-type', opt.contentType);
 

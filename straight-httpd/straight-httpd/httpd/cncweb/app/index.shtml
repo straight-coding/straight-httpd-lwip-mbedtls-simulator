@@ -10,12 +10,12 @@
 </head>
 <body class='fill'>
   <div class='base columns center-item fill'>
-    <div class='base columns center-item'>
+    <div class='base columns center-item' style="height: 100px;">
       <div class='title margin-t36'>Virtual Device</div>
       <div class='sub-title margin-t2'>Powered by <!--#DEV_VENDOR--></div>
     </div>
 
-    <div class='base columns center-item fill'>
+    <div class='base columns center-item main-stretch' style="overflow-x: hidden; overflow-y: auto;">
       <div class='key margin-t24'>Model</div>           <div class='value margin-t2'><!--#DEV_MODEL--></div>
       <div class='key margin-t8'>Name</div>             <div class='value margin-t2'><!--#DEV_NAME--></div>
       <div class='key margin-t8'>Firmware Version</div> <div class='value margin-t2'><!--#DEV_VERSION--></div>
@@ -34,7 +34,7 @@
       </svg>
 	  </div>
 
-    <div class='base row between-content margin-t24'>
+    <div class='base row between-content margin-t24' style="height: 40px;">
       <button class='tab' id='home'>Home</button>
       <button class='tab margin-l2' id='upload'>Upload</button>
       <button class='tab margin-l2' id='files'>Files</button>
