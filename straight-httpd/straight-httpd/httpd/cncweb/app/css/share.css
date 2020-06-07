@@ -9,6 +9,17 @@ body
 	font-family: Helvetica,Arial,'Microsoft Yahei'; 
 	margin: 0; 
 }
+.no-used
+{
+	background-color: #007bff; /*primary*/
+	background-color: #6c757d; /*secondary*/
+	background-color: #28a745; /*success*/
+	background-color: #dc3545; /*danger*/
+	background-color: #ffc107; /*warning*/
+	background-color: #17a2b8; /*info*/
+	background-color: #f8f9fa; /*light*/
+	background-color: #343a40; /*dark*/
+}
 .fill
 { 
 	width:100%; 
