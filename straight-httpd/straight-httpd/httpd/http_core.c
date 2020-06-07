@@ -1072,9 +1072,12 @@ void ParseQueryString(REQUEST_CONTEXT* context)
 		}
 		else if (context->_requestPath[i] == '/')
 		{
-			iDot = -1;
-			len = 0;
-			context->_extension[len] = 0;
+			if (iQuestion < 0)
+			{
+				iDot = -1;
+				len = 0;
+				context->_extension[len] = 0;
+			}
 		}
 		else
 		{
@@ -1086,23 +1089,11 @@ void ParseQueryString(REQUEST_CONTEXT* context)
 			}
 		}
 	}
-	//LogPrint(LOG_DEBUG_ONLY, "Extension: %s", context->_extension);
-	/*
-	if (context->file2Get.data != NULL)
-	{
-		int i = 0;
-		char* p = (char*)context->file2Get.data;
-		context->nContentOffset = 0;
-		for(i = 0; i < context->file2Get.len-4; i ++)
-		{
-			if ((p[i+0] == 0xd) && (p[i+1] == 0xa) && 
-				(p[i+2] == 0xd) && (p[i+3] == 0xa))
-			{
-				context->nContentOffset = i+4;
-				break;
-			}
-		}
-	}*/
+	context->_posQuestion = iQuestion;
+	if (context->_posQuestion >= 0)
+		context->_requestPath[context->_posQuestion] = 0;
+
+	LogPrint(LOG_DEBUG_ONLY, "Extension: %s", context->_extension);
 }
 
 signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always return ERR_OK
@@ -1221,7 +1212,6 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 							LogPrint(LOG_DEBUG_ONLY, "Method not found, error=%d @%d", context->_result, context->_sid);
 						}
 						
-						//context->_requestHeader = 1;
 						context->ctxResponse._cmdType = 0;
 						context->ctxResponse._authorized = 0;
 						
@@ -1298,18 +1288,17 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 									}
 								}
 							}
+							context->_posQuestion = -1;
 							context->_requestPath[pathLen] = 0;
 							pathLen = URLDecode(context->_requestPath);
-							context->_requestPath[pathLen] = 0;
+							context->_requestPath[pathLen] = 0; //include parameters
 
 							memset(context->ctxResponse._appContext, 0, sizeof(context->ctxResponse._appContext));
 
-							//memset(&context->file2Get, 0, sizeof(context->file2Get));
-							strcpy(context->_responsePath, context->_requestPath);
-							
+							ParseQueryString(context); //parameters will be separated
+							strcpy(context->_responsePath, context->_requestPath); //no parameters included
+
 							CGI_SetCgiHandler(context);
-							
-							ParseQueryString(context); //parameters in request line
 						}
 						else if (Strnicmp(buffer+nLinePos, "Content-Length:", 15) == 0)
 						{

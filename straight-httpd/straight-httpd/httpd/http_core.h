@@ -151,6 +151,7 @@ typedef struct _REQUEST_CONTEXT
 	RESPONSE_CONTEXT ctxResponse;	
 	
 	char _ver[4];			//HTTP version
+	long _posQuestion;		//parameters start position in _requestPath
 	char _extension[8];		//extension of the requested path
 	char _requestPath[128];	//full path
 	char _responsePath[128]; //use to redirect
