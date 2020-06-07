@@ -27,43 +27,43 @@ function createElementFromHTML(htmlString)
 
 function formatFileSize(size, compact)
 {
-    var size1 = size;
+    var size1 = parseInt(size, 10);
     var size2 = '';
-    if (size >= 1000000000) //GB
+    if (size1 >= 1000000000) //GB
     {
         if (compact)
         {
-            size2 = '' + (size / 1000000000).toFixed(2) + ' GB';
+            size2 = '' + (size1 / 1000000000).toFixed(2) + ' GB';
             return size2;
         }
-        size2 += parseInt(size / 1000000000,10) + ',';
+        size2 += parseInt(size1 / 1000000000,10) + ',';
     }
-    if (size >= 1000000) //MB
+    if (size1 >= 1000000) //MB
     {
         if (compact)
         {
-            size2 = '' + (size / 1000000).toFixed(2) + ' MB';
+            size2 = '' + (size1 / 1000000).toFixed(2) + ' MB';
             return size2;
         }
-        size2 += parseInt((size%1000000000)/1000000,10) + ',';
+        size2 += parseInt((size1%1000000000)/1000000,10) + ',';
     }
-    if (size >= 1000) //KB
+    if (size1 >= 1000) //KB
     {
         if (compact)
         {
-            size2 = '' + (size / 1000).toFixed(2) + ' KB';
+            size2 = '' + (size1 / 1000).toFixed(2) + ' KB';
             return size2;
         }
-        size2 += parseInt((size%1000000)/1000,10) + ',';
+        size2 += parseInt((size1%1000000)/1000,10) + ',';
     }
 
     if (compact)
     {
-        size2 = '' + size + ' B';
+        size2 = '' + size1 + ' B';
         return size2;
     }
 
-    size2 += (size%1000);
+    size2 += (size1 % 1000);
     return size2 + 'Bytes';
 }
 
@@ -85,10 +85,13 @@ function fileTransfer(opt)
     var htmlFileItem  = '<div class="base row center-item between-content file-item">';
         htmlFileItem += '  <div class="base columns stretch-item">';
         htmlFileItem += '    <div class="base row center-item">';
-        htmlFileItem += '      <div class="base truncate file-name">' + _this.file.name + '</div>';
+        htmlFileItem += '      <div class="base truncate file-name" title="' + _this.file.name + '">' + _this.file.name + '</div>';
         htmlFileItem += '    </div>';
         htmlFileItem += '    <div class="base row center-item between-content file-size">';
-        htmlFileItem += '      <div class="base">'+ formatFileSize(parseInt(_this.file.size, 10), 1) + '</div>';
+        htmlFileItem += '      <div class="base">';
+        htmlFileItem += '        <div class="base">'+ formatFileSize(parseInt(_this.file.size, 10), 1) + '</div>&nbsp;&nbsp;';
+        htmlFileItem += '        <div id="speed_' + _this.fileid + '" class="base"></div>';
+        htmlFileItem += '      </div>';
         htmlFileItem += '      <div id="percent_' + _this.fileid + '" class="base">0&#37;</div>';
         htmlFileItem += '    </div>';
         htmlFileItem += '    <div class="base row center-item file-progress">';
@@ -99,7 +102,7 @@ function fileTransfer(opt)
         htmlFileItem += '  <div class="base columns right-item file-op">';
         htmlFileItem += '    <div id="stop_' + _this.fileid + '" class="base" style="font-size: 20px; display: none;">&#9632;</div>';
         htmlFileItem += '    <div id="delete_' + _this.fileid + '" class="base" style="display: none;">&#10006;</div>';
-        htmlFileItem += '    <a  id="down_' + _this.fileid + '" href="' + _this.toFolder + encodeURI(_this.file.name) +'" class="base" style="font-size: 20px; display: none;" target="_blank">&#8659;</a>';
+        htmlFileItem += '    <a id="down_' + _this.fileid + '" href="' + _this.toFolder + encodeURI(_this.file.name) +'" class="base" style="font-size: 20px; display: none;" target="_blank">&#8659;</a>';
         htmlFileItem += '  </div>';
         htmlFileItem += '</div>';
 
@@ -107,6 +110,7 @@ function fileTransfer(opt)
         li.appendChild(div);
     _this.settings.ulContainer.appendChild(li);
 
+    _this.speed = document.getElementById('speed_' + _this.fileid);
     _this.percent = document.getElementById('percent_' + _this.fileid);
     _this.progress = document.getElementById('progress_' + _this.fileid);
 
@@ -125,9 +129,7 @@ function fileTransfer(opt)
 
         if (e.lengthComputable) 
         {
-            var rate = (e.loaded / e.total) * 100;
-            _this.progress.style.width = rate + '%';
-            _this.percent.innerHTML = '<span>' + parseInt(rate,10) + '&#37;</span>';
+            _this.updateProgress(false, e.loaded, e.total);
         }
     }, false);
 
@@ -153,6 +155,8 @@ function fileTransfer(opt)
     _this.xhr.onload  = function() 
     { 
         console.log('onload', _this.xhr.status); 
+
+        _this.updateProgress(true);
         _this.onSucceeded(); 
     }
     _this.xhr.onabort = function () 
@@ -173,6 +177,45 @@ function fileTransfer(opt)
     _this.xhr.onloadend = function() 
     { 
         console.log('onloadend', _this.xhr.status); 
+    }
+}
+
+fileTransfer.prototype.updateProgress = function(final, loaded, total)
+{
+    var _this= this;
+
+    if (!_this.speedMarks)
+        _this.speedMarks = [];
+
+    if (total)
+    {
+        _this.speedMarks.push({
+            tick: (new Date()).getTime(),
+            loaded: loaded,
+            total: total
+        });
+
+        var rate = (100 * loaded / total);
+        _this.progress.style.width = rate + '%';
+        _this.percent.innerHTML = '<span>' + parseInt(rate,10) + '&#37;</span>';
+    }
+
+    var qLen = _this.speedMarks.length;
+    if (qLen > 0)
+    {
+        var tickStart = _this.speedMarks[0].tick;
+        var sizeStart = _this.speedMarks[0].loaded;
+        if ((qLen > 10) && !final)
+        {
+            tickStart = _this.speedMarks[qLen-10].tick;
+            sizeStart = _this.speedMarks[qLen-10].loaded;
+        }
+        var ticks = (_this.speedMarks[qLen-1].tick - tickStart)/1000;
+        var bytes = _this.speedMarks[qLen-1].loaded - sizeStart;
+        if (ticks > 0)
+        {
+            _this.speed.innerHTML = '&nbsp;&nbsp;@&nbsp;<span>' + formatFileSize(bytes/ticks, 1) + '/s</span>';
+        }
     }
 }
 

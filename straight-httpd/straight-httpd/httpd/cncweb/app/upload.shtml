@@ -4,25 +4,14 @@
   <meta charset='UTF-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1'>
   <title>Virtual Device</title>
-  
-  <link rel="stylesheet" href="share.css">
+
+  <link rel="stylesheet" href="css/share.css">
   <script type="application/javascript" src="js/base64js.min.js"></script>
 
   <link rel="stylesheet" href="plugin/fileTransfer/fileTransfer.css">
   <script type="application/javascript" src="plugin/fileTransfer/fileTransfer.js"></script>
 
   <style>
-    .no-used
-    {
-        background-color: #007bff; /*primary*/
-        background-color: #6c757d; /*secondary*/
-        background-color: #28a745; /*success*/
-        background-color: #dc3545; /*danger*/
-        background-color: #ffc107; /*warning*/
-        background-color: #17a2b8; /*info*/
-        background-color: #f8f9fa; /*light*/
-        background-color: #343a40; /*dark*/
-    }
     #sendfw:not(:disabled):hover
     {
         cursor: pointer;
