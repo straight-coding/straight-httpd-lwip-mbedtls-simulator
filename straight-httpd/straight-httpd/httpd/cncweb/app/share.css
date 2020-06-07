@@ -81,7 +81,12 @@ body
 	-ms-justify-content: space-between; 
 	justify-content: space-between;
 }
-
+.truncate
+{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;        
+}
 .title
 { 
 	font-size: 30px; 

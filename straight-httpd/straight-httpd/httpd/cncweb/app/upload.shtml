@@ -4,9 +4,13 @@
   <meta charset='UTF-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1'>
   <title>Virtual Device</title>
+  
   <link rel="stylesheet" href="share.css">
   <script type="application/javascript" src="js/base64js.min.js"></script>
-  <script type="application/javascript" src="js/fileTransfer.js"></script>
+
+  <link rel="stylesheet" href="plugin/fileTransfer/fileTransfer.css">
+  <script type="application/javascript" src="plugin/fileTransfer/fileTransfer.js"></script>
+
   <style>
     .no-used
     {
@@ -19,53 +23,9 @@
         background-color: #f8f9fa; /*light*/
         background-color: #343a40; /*dark*/
     }
-    
     #sendfw:not(:disabled):hover
     {
         cursor: pointer;
-    }
-
-    .file-item
-    {
-        padding: 10px; 
-        border: 1px solid #8c8c8c;
-    }
-    .file-size
-    {
-        margin-top: 4px; 
-        font-size: 12px;
-    }
-    .file-op
-    {
-        width: 30px; 
-        color: red;
-        font-size: 14px;
-    }
-    .file-op div
-    {
-        cursor: pointer;
-    }
-    .file-progress
-    {
-        height: 4px; 
-        margin-top: 8px; 
-        background-color: #ddd;
-    }
-    .file-progress > div
-    {
-        width: 0%; 
-        height: 100%; 
-        background-color: #17a2b8;
-    }
-    .truncate
-    {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;        
-    }
-    .file-name
-    {
-        max-width: 240px;
     }
     #file-list
     {

@@ -1,3 +1,9 @@
+/*
+  fileTransfer.js
+  Author: Straight Coder<simpleisrobust@gmail.com>
+  Date: June 04, 2020
+*/
+
 'use strict';
 
 function Base64Encode(str, encoding = 'utf-8') 
