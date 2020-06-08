@@ -48,9 +48,17 @@ function fileItem(opt)
         htmlFileItem += '  </div>';
         htmlFileItem += '  <div class="base columns right-item file-op">';
         if (_this.fInfo.folder)
-            htmlFileItem += '    <div id="dir_' + _this.fInfo.fileid + '" href="' + encodeURI(_this.fInfo.folderPath + _this.fInfo.name) +'" class="base" style="font-size: 20px;">&#8660;</div>';
+        {
+            htmlFileItem += '    <div id="dir_' + _this.fInfo.fileid + '" href="' + encodeURI(_this.fInfo.folderPath + _this.fInfo.name) +'" class="base" style="font-size: 20px;">';
+            htmlFileItem += '      <img src="plugin/fileList/folder.png" height="25" width="25"/>';
+            htmlFileItem += '    </div>';
+        }
         else
-            htmlFileItem += '    <a id="down_' + _this.fInfo.fileid + '" href="' + encodeURI(_this.fInfo.folderPath + _this.fInfo.name) +'" class="base" style="font-size: 20px;" target="_blank">&#8659;</a>';
+        {
+            htmlFileItem += '    <a id="down_' + _this.fInfo.fileid + '" href="' + encodeURI(_this.fInfo.folderPath + _this.fInfo.name) +'" class="base" style="font-size: 20px;" target="_blank">';
+            htmlFileItem += '      <img src="plugin/fileList/file.png" height="25" width="25"/>';
+            htmlFileItem += '    </a>';
+        }
         htmlFileItem += '  </div>';
         htmlFileItem += '</div>';
 
