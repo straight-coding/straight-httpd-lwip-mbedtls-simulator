@@ -29,7 +29,7 @@ function fileItem(opt)
     _this.onclick = opt.onclick;
 
     var li = document.createElement('li');
-        li.className = "base";
+        li.style.width = "100%";
         li.setAttribute('id', 'file_' + _this.fInfo.fileid);
 
     var htmlFileItem  = '<div class="base row center-item between-content file-item">';

@@ -25,7 +25,7 @@ function fileTransfer(opt)
     _this.toFolder = _this.settings.toFolder;
     
     var li = document.createElement('li');
-        li.className = "base";
+        li.style.width = "100%";
         li.setAttribute('id', 'file_' + _this.fileid);
 
     var htmlFileItem  = '<div class="base row center-item between-content file-item">';
