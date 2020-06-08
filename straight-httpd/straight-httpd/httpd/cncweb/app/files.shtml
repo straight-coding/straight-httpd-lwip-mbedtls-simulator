@@ -32,7 +32,7 @@
         <input id="folder" style="width: 260px; max-width: 260px; height:20px; padding:4px;" type="text" value="/"/>
         <button class="tab" id="request" style="width: 60px; height: 25px; margin-left: 4px;" title="Go">Go</button>
       </div>
-      <ul id="file-list" style="width: 330px; max-height: calc(100% - 70px); list-style: none; margin: 0; padding: 0; overflow: auto;">
+      <ul id="file-list" style="width: 100%; max-height: calc(100% - 70px); list-style: none; margin: 0; padding: 0; overflow: auto;">
       </ul>
     </div>
 
