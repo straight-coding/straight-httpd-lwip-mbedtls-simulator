@@ -15,7 +15,7 @@
 //  where the default homepage <WEB_DRIVE[i] + WEB_ROOT + WEB_ROOT_FILE> is located.
 #define WEB_DRIVE		"D"	//used for multiple dynamic disks ('CDEF' etc.), the first letter has the highest priority
 #define WEB_ABS_ROOT	"/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/"
-#define WEB_UPLOAD_ROOT	"/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/app/cache/"
+#define WEB_REL_UPLOAD	"app/cache/"
 
 #define WEB_DEFAULT_PAGE	"/auth/login.html"
 #define WEB_SESSION_CHECK	"/auth/session_check.cgi"

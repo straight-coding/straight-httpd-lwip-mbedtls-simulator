@@ -55,7 +55,7 @@ function fileItem(opt)
         }
         else
         {
-            htmlFileItem += '    <a id="down_' + _this.fInfo.fileid + '" href="' + encodeURI(_this.fInfo.folderPath + _this.fInfo.name) +'" class="base" style="font-size: 20px;" target="_blank">';
+            htmlFileItem += '    <a id="down_' + _this.fInfo.fileid + '" href="/app/cache' + encodeURI(_this.fInfo.folderPath + _this.fInfo.name) +'" class="base" style="font-size: 20px;" target="_blank">';
             htmlFileItem += '      <img src="plugin/fileList/file.png" height="25" width="25"/>';
             htmlFileItem += '    </a>';
         }

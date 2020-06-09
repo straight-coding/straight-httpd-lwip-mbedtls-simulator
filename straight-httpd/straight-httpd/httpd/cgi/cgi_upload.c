@@ -98,7 +98,7 @@ void Upload_OnHeaderReceived(REQUEST_CONTEXT* context, char* header_line)
 		}
 		len = DecodeB64((unsigned char*)(header_line + j));
 		header_line[len+j] = 0;
-		LWIP_sprintf(context->ctxResponse._appContext, "%s%s", WEB_UPLOAD_ROOT, (char*)header_line + j);
+		LWIP_sprintf(context->ctxResponse._appContext, "%s%s%s", WEB_ABS_ROOT, WEB_REL_UPLOAD, (char*)header_line + j);
 		MakeDeepPath(context->ctxResponse._appContext);
 	}
 }

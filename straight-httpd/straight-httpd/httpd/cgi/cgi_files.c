@@ -59,7 +59,7 @@ void Files_OnRequestReceived(REQUEST_CONTEXT* context)
 	memset(ctxSSI, 0, sizeof(SSI_Context));
 	ctxSSI->_valid = 1;
 
-	strcpy(context->_responsePath, WEB_UPLOAD_ROOT);
+	LWIP_sprintf(context->_responsePath, "%s%s", WEB_ABS_ROOT, WEB_REL_UPLOAD);
 
 	if (p != NULL)
 	{ //default path
