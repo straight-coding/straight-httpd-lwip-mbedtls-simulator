@@ -429,9 +429,6 @@ REQUEST_CONTEXT* GetHttpContext(void)
 
 			ResetHttpContext(&g_httpContext[i]);
 
-			g_httpContext[i]._tLastReceived = LWIP_GetTickCount();
-			if (g_httpContext[i]._tLastReceived == 0)
-				g_httpContext[i]._tLastReceived++;
 			return &g_httpContext[i];
 		}
 	}
@@ -500,8 +497,11 @@ void ResetHttpContext(REQUEST_CONTEXT* context)
 		context->_state = HTTP_STATE_IDLE;
 		
 		context->_tRequestStart = 0;
-		context->_tLastReceived = 0;
-		
+
+		context->_tLastReceived = LWIP_GetTickCount();
+		if (context->_tLastReceived == 0)
+			context->_tLastReceived++;
+
 		context->_requestMethod = -1;
 
 		//context->_killing = 0;
