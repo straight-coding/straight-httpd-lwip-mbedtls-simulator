@@ -121,3 +121,34 @@ function xhrWrapper(opt) {
     else
         xhr.send();
 }
+
+function checkSession(opt)
+{
+    if (!opt)
+        return;
+
+    var session = new XMLHttpRequest();
+    session.onload = function()
+    {
+        if (session.status == 200)
+        {
+            if (typeof opt.alive == 'function')
+                opt.alive();
+            return;
+        }
+        
+        if (typeof opt.notfound == 'function')
+            opt.notfound();
+        else
+            location.href='/';        
+    }
+    session.onerror = function () 
+    {
+        if (typeof opt.notfound == 'function')
+            opt.notfound();
+        else
+            location.href='/';        
+    }
+    session.open("GET", "/auth/session_check.cgi");
+    session.send();
+}

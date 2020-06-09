@@ -41,6 +41,7 @@
       <button class='tab margin-l2' id='logout'>Logout</button>
     </div>
   </div>
+  
   <script type="application/javascript" src="js/qrcodegen.js"></script>
   <script>
     var ecl = qrcodegen.QrCode.Ecc.MEDIUM;//MEDIUM,QUARTILE,HIGH,LOW
@@ -73,6 +74,7 @@
 	
     document.getElementById('logout').addEventListener('click', goLogout);
     function goLogout() { location.href = '/auth/logout.cgi'; }
+
   </script>
 </body>
 </html>

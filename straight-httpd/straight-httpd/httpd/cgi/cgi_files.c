@@ -123,6 +123,7 @@ int Files_ReadOneFileInfo(REQUEST_CONTEXT* context, char* buffer, int maxSize)
 		outputCount = 0;
 		while (outputCount < maxSize-200)
 		{
+			name[0] = 0;
 			if (context->ctxResponse._dwOperStage == 0)
 			{ //first time to open dir
 				context->ctxResponse._dwOperStage++;
@@ -136,14 +137,6 @@ int Files_ReadOneFileInfo(REQUEST_CONTEXT* context, char* buffer, int maxSize)
 					context->ctxResponse._dwOperStage = STAGE_END;
 					return outputCount;
 				}
-				if (name[0] == 0)
-					continue;
-				if ((name[0] == '.') && (name[1] == 0))
-				{
-					LogPrint(LOG_DEBUG_ONLY, "Ignore first file: folder=%d, name=%s, size=%d, @%d", isFolder, name, size, context->_sid);
-					continue;
-				}
-				LogPrint(LOG_DEBUG_ONLY, "First file: folder=%d, name=%s, size=%d, @%d", isFolder, name, size, context->_sid);
 			}
 			else
 			{ //next file item
@@ -160,13 +153,27 @@ int Files_ReadOneFileInfo(REQUEST_CONTEXT* context, char* buffer, int maxSize)
 					context->ctxResponse._dwOperStage = STAGE_END;
 					return outputCount;
 				}
-				if ((name[0] == '.') && (name[1] == 0))
+			}
+
+			if (name[0] == 0)
+				continue;
+
+			if ((name[0] == '.') && (name[1] == 0))
+			{
+				LogPrint(LOG_DEBUG_ONLY, "Ignore first file: folder=%d, name=%s, size=%d, @%d", isFolder, name, size, context->_sid);
+				continue;
+			}
+
+			if ((name[0] == '.') && (name[1] == '.') && (name[2] == 0))
+			{
+				if (strlen(context->_responsePath) == strlen(WEB_ABS_ROOT) + strlen(WEB_REL_UPLOAD) + 3)
 				{
-					LogPrint(LOG_DEBUG_ONLY, "Ignore file: folder=%d, name=%s, size=%d, @%d", isFolder, name, size, context->_sid);
+					LogPrint(LOG_DEBUG_ONLY, "Reached root: folder=%d, name=%s, size=%d, @%d", isFolder, name, size, context->_sid);
 					continue;
 				}
-				LogPrint(LOG_DEBUG_ONLY, "Next file: folder=%d, name=%s, size=%d, @%d", isFolder, name, size, context->_sid);
 			}
+
+			LogPrint(LOG_DEBUG_ONLY, "File item: folder=%d, name=%s, size=%d, @%d", isFolder, name, size, context->_sid);
 
 			if (context->ctxResponse._dwTotal == 0)
 			{

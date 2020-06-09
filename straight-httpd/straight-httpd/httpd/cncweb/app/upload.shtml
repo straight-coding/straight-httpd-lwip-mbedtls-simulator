@@ -26,7 +26,6 @@
 
         overflow-y: auto;
     }
-
   </style>
 </head>
 <body class='fill'>
@@ -65,8 +64,6 @@
     document.getElementById('logout').addEventListener('click', goLogout);
     function goLogout() { location.href = '/auth/logout.cgi'; }
 
-    var fileIndex = 0;
-    
     var filesBrowse = document.getElementById("file2send");
     var sendJob = document.getElementById("sendfw");
     var fileList = document.getElementById("file-list");
@@ -74,7 +71,9 @@
     filesBrowse.multiple = true;
 
     var allowPrompt = true;
+    
     var running = null;
+    var fileIndex = 0;
     var qUploads = [];
 
     window.onload = function(e)
@@ -86,11 +85,7 @@
     window.beforeunload = function()
     {
         if (allowPrompt){
-            var confMessage  = "#######################################\n\n";
-                confMessage += "==============  请等一等 ===============\n\n";
-                confMessage += "   作业传输尚未结束，退出后，作业将自动终止\n\n";
-                confMessage += "                确定退出吗？";
-            
+            var confMessage  = "Are you sure to exit ?";
             return confMessage;
         }
         return '';
@@ -108,27 +103,15 @@
         e.preventDefault();
         e.stopPropagation();
 
-        var session = new XMLHttpRequest();
-        session.onload = function()
-        {
-            if (session.status == 200)
-            {
+        checkSession({
+            alive: function() {
                 if (filesBrowse.files.length > 0)
                 {
                     allowPrompt = true;
                     queueFiles(filesBrowse.files);
                 }
-                return;
             }
-            location.href='/';
-        }
-        session.onerror = function () 
-        {
-            console.log('session.onerror', session.status); 
-            location.href='/';
-        }
-        session.open("GET", "/auth/session_check.cgi");
-        session.send();
+        });
     }, false);
 
     function queueFiles(files, idFrom) 

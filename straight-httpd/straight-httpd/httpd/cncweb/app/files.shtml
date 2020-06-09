@@ -45,6 +45,9 @@
   </div>
 
   <script>
+
+    var folderHost = null;
+
     document.getElementById('home').addEventListener('click', goHome);
     function goHome() { location.href = '/app/index.shtml'; }
 
@@ -57,8 +60,18 @@
     document.getElementById('logout').addEventListener('click', goLogout);
     function goLogout() { location.href = '/auth/logout.cgi'; }
 
+    document.getElementById('request').addEventListener('click', goFolder);
+    function goFolder() { 
+      checkSession({
+        alive: function() {
+          if (folderHost)
+            folderHost.request();
+        }
+      });
+    }
+
     window.onload = function (e) {
-      var task = new fileList({
+      folderHost = new fileList({
                       urlGet: '/api/files.cgi',
                       folderInput: document.getElementById("folder"),
                       container: document.getElementById("file-list"),
