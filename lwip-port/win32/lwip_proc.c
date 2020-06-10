@@ -170,11 +170,17 @@ void OnDhcpFinished(void)
 	SetMyIP(PP_HTONL(main_netif.ip_addr.addr));
 	SetGateway(PP_HTONL(main_netif.gw.addr));
 	SetSubnet(PP_HTONL(main_netif.netmask.addr));
-	
+
 	netif_set_flags(&main_netif, NETIF_FLAG_IGMP);
-		
-	LWIP_DEBUGF(REST_DEBUG, ("ip: %08lX, gateway: %08lX, subnet: %08lX", GetMyIP(), GetGateway(), GetSubnet()));
-	
+
+	LWIP_DEBUGF(REST_DEBUG, ("ip: %u.%u.%u.%u, gateway: %u.%u.%u.%u, subnet: %u.%u.%u.%u",
+		((GetMyIP() >> 24) & 0xFF), ((GetMyIP() >> 16) & 0xFF),
+		((GetMyIP() >> 8) & 0xFF), ((GetMyIP() & 0xFF)),
+		((GetGateway() >> 24) & 0xFF), ((GetGateway() >> 16) & 0xFF),
+		((GetGateway() >> 8) & 0xFF), ((GetGateway() & 0xFF)),
+		((GetSubnet() >> 24) & 0xFF), ((GetSubnet() >> 16) & 0xFF),
+		((GetSubnet() >> 8) & 0xFF), ((GetSubnet() & 0xFF))));
+
 	g_tcpipReady = 1;
 }
 

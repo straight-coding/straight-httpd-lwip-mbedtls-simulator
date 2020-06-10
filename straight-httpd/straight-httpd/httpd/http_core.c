@@ -684,7 +684,11 @@ signed char OnHttpAccept(void *pcbListener, struct altcp_pcb *pcbAccepted, signe
 	LWIP_UNUSED_ARG(errIn);
 	LWIP_UNUSED_ARG(pcbListener);
 	
-	LogPrint(LOG_DEBUG_ONLY, "OnHttpAccept %p / %p\n", (void *)pcbAccepted, pcbListener);
+	LogPrint(LOG_DEBUG_ONLY, "OnHttpAccept %p from %u.%u.%u.%u:%u / %p\n", 
+		(void *)pcbAccepted, 
+		((pcbAccepted->remote_ip.addr & 0xFF)), ((pcbAccepted->remote_ip.addr>>8) & 0xFF),
+		((pcbAccepted->remote_ip.addr>>16) & 0xFF), ((pcbAccepted->remote_ip.addr>>24) & 0xFF),
+		pcbAccepted->remote_port, pcbListener);
 	PrintLwipStatus();
 
 	if ((errIn != ERR_OK) || (pcbAccepted == NULL)) //pcbAccepted should be not NULL
