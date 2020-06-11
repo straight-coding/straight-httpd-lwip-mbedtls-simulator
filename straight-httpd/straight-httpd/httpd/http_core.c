@@ -299,12 +299,7 @@ int SessionCheck(REQUEST_CONTEXT* context) //called when header 'X-Auth-Token' o
 	else if (context->handler != NULL)
 	{
 		context->_session = GetSession(context->ctxResponse._token);
-
-		if ((context->_options & CGI_OPT_AUTHENTICATOR) != 0)
-		{
-			//context->_session = GetSession(context->ctxResponse._token);
-		}
-		else if ((context->_options & CGI_OPT_AUTH_REQUIRED) != 0)
+		if ((context->_options & CGI_OPT_AUTH_REQUIRED) != 0)
 		{ //this scope needs authentication
 			if (SessionTypes(context->_extension) > 0)
 			{

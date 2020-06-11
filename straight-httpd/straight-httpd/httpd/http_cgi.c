@@ -27,7 +27,7 @@ void CGI_SetupMapping() //called from SetupHttpContext(), CGI handlers could be 
 	extern struct CGI_Mapping g_cgiSSDP;	// "/upnp_device.xml"
 	extern struct CGI_Mapping g_cgiFiles;	// file list in json format
 	extern struct CGI_Mapping g_cgiUpload;
-	extern struct CGI_Mapping g_cgiWebAuth; // "/auth/*"
+	extern struct CGI_Mapping g_cgiAuth;	// "/auth/*"
 	extern struct CGI_Mapping g_cgiWebApp;	// "/app/*", MUST be the last one
 
 	SetWebRoot(WEB_DRIVE, WEB_ABS_ROOT, WEB_DEFAULT_PAGE); //default path
@@ -35,7 +35,7 @@ void CGI_SetupMapping() //called from SetupHttpContext(), CGI handlers could be 
 	CGI_Append(&g_cgiSSDP,    "/upnp_device.xml", CGI_OPT_GET_ENABLED | CGI_OPT_CHUNK_ENABLED);
 	CGI_Append(&g_cgiFiles,   "/api/files.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_CHUNK_ENABLED);
 	CGI_Append(&g_cgiUpload,  "/api/upload.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_POST_ENABLED);
-	CGI_Append(&g_cgiWebAuth, "/auth/*", CGI_OPT_AUTHENTICATOR | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED);
+	CGI_Append(&g_cgiAuth,	  "/auth/*", CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED);
 	CGI_Append(&g_cgiWebApp,  "/app/*", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED); //"/app/*", MUST be the last one
 }
 
@@ -348,46 +348,30 @@ void CGI_RequestReceived(REQUEST_CONTEXT* context) //called when HTTP request bo
 }
 
 void CGI_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo) //set response headers: content-type, length, connection, and http code
-{
-	char date[40];
+{ //first place to set response headers
+	context->ctxResponse._sendBuffer[0] = 0; //clear the whole buffer, then append headers after
 
-	memset(date, 0, sizeof(date));
-	strcpy_s(date, 10, "Date: ");
-	getClock(date+6, sizeof(date)-8);
-	strcat(date, CRLF);
+	//redirect header
+	if (context->_result == CODE_REDIRECT)
+		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, "200 OK", "text/html", strlen(redirect_body1) + strlen(redirect_body2) + strlen(context->_responsePath), "close");
 
-	if (context->_result < 0)
-	{
-		if (context->_result == CODE_REDIRECT)
-		{
-			LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, "200 OK", "text/html", strlen(redirect_body1)+ strlen(redirect_body2) + strlen(context->_responsePath), "close");//, context->_responsePath);
-			if ((context->ctxResponse._authorized == CODE_OK) && (context->ctxResponse._token[0] != 0))
-			{
-				char szCookie[128];
-				LWIP_sprintf(szCookie, "X-Auth-Token: %s\r\nSet-Cookie: %s; Path=/; HttpOnly; max-age=3600\r\n", context->ctxResponse._token, context->ctxResponse._token);
-				strcat(context->ctxResponse._sendBuffer, szCookie);
-			}
-		}
-		else
-		{
-			LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, "text/html", 0, "close");
-		}
-	}
-	else if ((context->handler != NULL) && (context->handler->SetResponseHeaders != NULL))
-	{
+	if ((context->handler != NULL) && (context->handler->SetResponseHeaders != NULL))
 		context->handler->SetResponseHeaders(context, HttpCodeInfo);
-	}
-	else
-	{
-		if (context->_requestMethod == METHOD_GET)
-			LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, "text/html", 0, "close");
-		else if (context->_requestMethod == METHOD_POST)
-			LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, "text/html", 0, "close");
-		else
-			LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, "text/html", 0, "close");
-	}
-	strcat(context->ctxResponse._sendBuffer, date);
 
+	if (context->ctxResponse._sendBuffer[0] == 0)
+		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, "text/html", 0, "close");
+
+#if (DATE_HEADER > 0)
+	{
+		char date[40];
+		memset(date, 0, sizeof(date));
+
+		strcpy_s(date, 10, "Date: ");
+		getClock(date + 6, sizeof(date) - 8);
+		strcat(date, CRLF);
+		strcat(context->ctxResponse._sendBuffer, date);
+	}
+#endif
 #ifdef SERVER_HEADER
 	strcat(context->ctxResponse._sendBuffer, "Server: ");
 	strcat(context->ctxResponse._sendBuffer, SERVER_HEADER);
@@ -396,6 +380,7 @@ void CGI_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo) //set 
 
 	//headers end
 	strcat(context->ctxResponse._sendBuffer, CRLF);
+
 	//body starts
 	if (context->_result == CODE_REDIRECT)
 	{

@@ -51,6 +51,8 @@
 #define HTTP_STATE_REQUEST_END			11 //response completely sent out
 
 #define SERVER_HEADER	"straight/1.1"
+#define DATE_HEADER		1
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define MAX_CONNECTIONS 				5		//max concurrent socket connections
