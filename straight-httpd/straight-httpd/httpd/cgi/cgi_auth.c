@@ -9,30 +9,28 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern void LogPrint(int level, char* format, ... );
-extern int Strnicmp(char *str1, char *str2, int n);
-extern int ReplaceTag(REQUEST_CONTEXT* context, char* tagName, char* appendTo, int maxAllowed);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Web_OnAuthHeaders(REQUEST_CONTEXT* context);
-int  Web_OnAuthData(REQUEST_CONTEXT* context, char* buffer, int size);
-void Web_OnRequestReceived(REQUEST_CONTEXT* context);
+void Auth_OnHeaders(REQUEST_CONTEXT* context);
+int  Auth_OnPostData(REQUEST_CONTEXT* context, char* buffer, int size);
+void Auth_OnRequestReceived(REQUEST_CONTEXT* context);
 	
-void Web_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo);
+void Auth_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo);
 
 struct CGI_Mapping g_cgiAuth = {
 	"/auth/*", //char* path;
 	CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED,// unsigned long options;
 
 	NULL, //void (*OnCancel)(REQUEST_CONTEXT* context);
+
 	NULL, //int (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line);
-	Web_OnAuthHeaders, //void (*OnHeadersReceived)(REQUEST_CONTEXT* context);
-	Web_OnAuthData, //int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size);
-	Web_OnRequestReceived, //void (*OnRequestReceived)(REQUEST_CONTEXT* context);
+	Auth_OnHeaders, //void (*OnHeadersReceived)(REQUEST_CONTEXT* context);
+	Auth_OnPostData, //int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size);
+	Auth_OnRequestReceived, //void (*OnRequestReceived)(REQUEST_CONTEXT* context);
 
-	Web_SetResponseHeaders, //void (*SetResponseHeader)(REQUEST_CONTEXT* context, char* HttpCode);
+	Auth_SetResponseHeaders, //void (*SetResponseHeader)(REQUEST_CONTEXT* context, char* HttpCode);
 	WEB_ReadContent, //int  (*ReadContent)(REQUEST_CONTEXT* context, char* buffer, int maxSize);
-
 	WEB_AllSent, //int  (*OnAllSent)(REQUEST_CONTEXT* context);
 	WEB_Finished, //void (*OnFinished)(REQUEST_CONTEXT* context);
 
@@ -102,12 +100,12 @@ int AuthCheck(REQUEST_CONTEXT* context)
 	return 0;
 }
 
-void Web_OnAuthHeaders(REQUEST_CONTEXT* context)
+void Auth_OnHeaders(REQUEST_CONTEXT* context)
 {
 	memset(context->ctxResponse._appContext, 0, sizeof(context->ctxResponse._appContext));
 }
 
-int Web_OnAuthData(REQUEST_CONTEXT* context, char* buffer, int size)
+int Auth_OnPostData(REQUEST_CONTEXT* context, char* buffer, int size)
 {
 	if (size > 0)
 	{
@@ -118,7 +116,7 @@ int Web_OnAuthData(REQUEST_CONTEXT* context, char* buffer, int size)
 	return size;
 }
 
-void Web_OnRequestReceived(REQUEST_CONTEXT* context)
+void Auth_OnRequestReceived(REQUEST_CONTEXT* context)
 {
 	SSI_Context* ctxSSI = (SSI_Context*)context->ctxResponse._appContext;
 
@@ -165,7 +163,7 @@ void Web_OnRequestReceived(REQUEST_CONTEXT* context)
 	WEB_RequestReceived(context);
 }
 
-void Web_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
+void Auth_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 {
 	int nSize = strlen(context->ctxResponse._sendBuffer);
 
