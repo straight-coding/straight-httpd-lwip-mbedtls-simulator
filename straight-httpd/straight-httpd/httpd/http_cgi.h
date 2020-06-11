@@ -44,7 +44,7 @@ struct CGI_Mapping
 
 	void (*OnCancel)(REQUEST_CONTEXT* context);
 
-	void (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line);
+	int  (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line); //return 1 if eaten
 	void (*OnHeadersReceived)(REQUEST_CONTEXT* context);
 	int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size);
 	void (*OnRequestReceived)(REQUEST_CONTEXT* context);
@@ -108,7 +108,7 @@ void CGI_Finish(REQUEST_CONTEXT* context);
 void CGI_SetCgiHandler(REQUEST_CONTEXT* context);
 
 //called when every single HTTP request header/line is received
-void CGI_HeaderReceived(REQUEST_CONTEXT* context, char* header_line);
+int CGI_HeaderReceived(REQUEST_CONTEXT* context, char* header_line);
 
 //called when all HTTP request headers/lines are received
 void CGI_HeadersReceived(REQUEST_CONTEXT* context);

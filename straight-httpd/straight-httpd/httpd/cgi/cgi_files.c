@@ -21,7 +21,7 @@ struct CGI_Mapping g_cgiFiles = {
 	CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED,// unsigned long options;
 
 	NULL, //void (*OnCancel)(REQUEST_CONTEXT* context);
-	NULL, //void (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line);
+	NULL, //int (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line);
 	NULL, //void (*OnHeadersReceived)(REQUEST_CONTEXT* context);
 	NULL, //int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size);
 	Files_OnRequestReceived, //void (*OnRequestReceived)(REQUEST_CONTEXT* context);

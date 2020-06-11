@@ -253,15 +253,14 @@ void CGI_SetCgiHandler(REQUEST_CONTEXT* context) //called when the first HTTP re
 	LogPrint(0, "No CGI for %s", context->_requestPath);
 }
 
-void CGI_HeaderReceived(REQUEST_CONTEXT* context, char* header_line) //called when single HTTP request header is received
+int CGI_HeaderReceived(REQUEST_CONTEXT* context, char* header_line) //called when single HTTP request header is received
 {
-	LogPrint(LOG_DEBUG_ONLY, "Header ignored: %s, @%d", header_line, context->_sid);
-	
 	if (context->handler != NULL)
 	{
 		if (context->handler->OnHeaderReceived != NULL)
-			context->handler->OnHeaderReceived(context, header_line);
+			return context->handler->OnHeaderReceived(context, header_line);
 	}
+	return 0;
 }
 
 void CGI_HeadersReceived(REQUEST_CONTEXT* context) //called when all HTTP request headers are received
@@ -390,7 +389,7 @@ void CGI_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo) //set 
 	}
 	context->ctxResponse._bytesLeft = strlen(context->ctxResponse._sendBuffer); //all headers are strings
 
-	LogPrint(LOG_DEBUG_ONLY, context->ctxResponse._sendBuffer);
+	LogPrint(LOG_DEBUG_ONLY, "%s@ %d", context->ctxResponse._sendBuffer, context->_sid);
 }
 
 //return 1=data ready to send; 0=pending without data; -1=finished, no more data

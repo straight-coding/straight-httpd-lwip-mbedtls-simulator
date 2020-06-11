@@ -25,8 +25,8 @@ struct CGI_Mapping g_cgiAuth = {
 	CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED,// unsigned long options;
 
 	NULL, //void (*OnCancel)(REQUEST_CONTEXT* context);
-	NULL, //void (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line);
-	Web_OnAuthHeaders, //Web_OnHeadersReceived, //void (*OnHeadersReceived)(REQUEST_CONTEXT* context);
+	NULL, //int (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line);
+	Web_OnAuthHeaders, //void (*OnHeadersReceived)(REQUEST_CONTEXT* context);
 	Web_OnAuthData, //int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size);
 	Web_OnRequestReceived, //void (*OnRequestReceived)(REQUEST_CONTEXT* context);
 

@@ -20,7 +20,7 @@ struct CGI_Mapping g_cgiSSDP = {
 	CGI_OPT_GET_ENABLED | CGI_OPT_CHUNK_ENABLED,// unsigned long options;
 
 	NULL, //void (*OnCancel)(REQUEST_CONTEXT* context);
-	NULL, //void (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line);
+	NULL, //int (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line);
 	NULL, //void (*OnHeadersReceived)(REQUEST_CONTEXT* context);
 	NULL, //int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size);
 	NULL, //void (*OnRequestReceived)(REQUEST_CONTEXT* context);

@@ -1234,24 +1234,23 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 					else
 					{ //valid line
 						buffer[i] = 0; //for "\r\n", set "\r" to 0
-						LogPrint(LOG_DEBUG_ONLY, "%s\r\n", buffer + nLinePos);
 						
 						if (context->_requestMethod < 0)
 						{ //first line, find method and path
 							int pathLen = 0;
 							int iSkip = 0;
 
-							//LogPrint(LOG_DEBUG_ONLY, "%s\r\n", buffer + nLinePos);
-
 							if ((buffer[nLinePos+0]=='G') && (buffer[nLinePos+1]=='E') && (buffer[nLinePos+2]=='T') && (buffer[nLinePos+3]==' '))
 							{ //GET
 								iSkip = 4;
 								context->_requestMethod = METHOD_GET;
+								LogPrint(LOG_DEBUG_ONLY, "%s\r\n", buffer + nLinePos);
 							}
 							else if ((buffer[nLinePos+0]=='P') && (buffer[nLinePos+1]=='O') && (buffer[nLinePos+2]=='S') && (buffer[nLinePos+3]=='T') && (buffer[nLinePos+4]==' '))
 							{ //POST
 								iSkip = 5;
 								context->_requestMethod = METHOD_POST;
+								LogPrint(LOG_DEBUG_ONLY, "%s\r\n", buffer + nLinePos);
 							}
 							else
 							{
@@ -1301,11 +1300,13 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 						}
 						else if (Strnicmp(buffer+nLinePos, "Content-Length:", 15) == 0)
 						{
+							LogPrint(LOG_DEBUG_ONLY, "%s @ %d\r\n", buffer + nLinePos, context->_sid);
 							context->_contentLength = ston((u8_t*)buffer+nLinePos+15);
 							context->_contentReceived = 0;
 						}
 						else if (Strnicmp(buffer+nLinePos, "Connection:", 11) == 0)
 						{
+							LogPrint(LOG_DEBUG_ONLY, "%s @ %d\r\n", buffer + nLinePos, context->_sid);
 							context->_keepalive = 0;
 							if (strstr((char*)buffer+nLinePos+11, "keep-alive") != NULL)
 								context->_keepalive = 1;
@@ -1314,6 +1315,7 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 						}
 						else if (Strnicmp(buffer+nLinePos, "Transfer-Encoding:", 18) == 0)
 						{
+							LogPrint(LOG_DEBUG_ONLY, "%s @ %d\r\n", buffer + nLinePos, context->_sid);
 							context->_chunked = 0;
 							if (strstr((char*)buffer+nLinePos+18, "chunked") != NULL)
 								context->_chunked = 1;
@@ -1322,6 +1324,7 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 						}
 						else if (Strnicmp(buffer + nLinePos, "Expect:", 7) == 0)
 						{
+							LogPrint(LOG_DEBUG_ONLY, "%s @ %d\r\n", buffer + nLinePos, context->_sid);
 							context->_expect00 = 0;
 							if (strstr((char*)buffer + nLinePos + 7, "100-continue") != NULL)
 								context->_expect00 = 1;
@@ -1330,11 +1333,13 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 						}
 						else if (Strnicmp(buffer + nLinePos, "If-Modified-Since:", 18) == 0)
 						{
+							LogPrint(LOG_DEBUG_ONLY, "%s @ %d\r\n", buffer + nLinePos, context->_sid);
 							context->_ifModified = parseHttpDate((char*)buffer + nLinePos + 19);
 						}
 						else if (Strnicmp(buffer + nLinePos, "Range:", 6) == 0)
 						{
 							char* p = strstr((char*)buffer + nLinePos + 6, "bytes=");
+							LogPrint(LOG_DEBUG_ONLY, "%s @ %d\r\n", buffer + nLinePos, context->_sid);
 
 							context->_rangeFrom = 0;
 							context->_rangeTo = 0;
@@ -1368,6 +1373,7 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 								 (Strnicmp(buffer + nLinePos, "Cookie:", 7) == 0))
 						{
 							int code = 0;
+							LogPrint(LOG_DEBUG_ONLY, "%s @ %d\r\n", buffer + nLinePos, context->_sid);
 							for(j = nLinePos; j < i; j ++)
 							{
 								if (code == 0)
@@ -1390,7 +1396,10 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 						}
 						else
 						{
-							CGI_HeaderReceived(context, buffer+nLinePos);
+							if (CGI_HeaderReceived(context, buffer + nLinePos) > 0)
+								LogPrint(LOG_DEBUG_ONLY, "%s @ %d\r\n", buffer + nLinePos, context->_sid);
+							else
+								LogPrint(LOG_DEBUG_ONLY, "Ignored: %s, @%d", buffer + nLinePos, context->_sid);
 						}
 					}
 					nLinePos = (i + 2); //pos for the next line, consumed bytes

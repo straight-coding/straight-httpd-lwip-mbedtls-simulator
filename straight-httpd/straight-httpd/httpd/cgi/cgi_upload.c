@@ -13,7 +13,7 @@ extern void LogPrint(int level, char* format, ... );
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Upload_OnCancel(REQUEST_CONTEXT* context);
-void Upload_OnHeaderReceived(REQUEST_CONTEXT* context, char* header_line);
+int  Upload_OnHeaderReceived(REQUEST_CONTEXT* context, char* header_line);
 void Upload_OnHeadersReceived(REQUEST_CONTEXT* context);
 int  Upload_OnContentReceived(REQUEST_CONTEXT* context, char* buffer, int size);
 void Upload_AllReceived(REQUEST_CONTEXT* context);
@@ -24,7 +24,7 @@ struct CGI_Mapping g_cgiUpload = {
 
 	Upload_OnCancel, //void (*OnCancel)(REQUEST_CONTEXT* context);
 
-	Upload_OnHeaderReceived, //void (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line);
+	Upload_OnHeaderReceived, //int (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line);
 	Upload_OnHeadersReceived, //void (*OnHeadersReceived)(REQUEST_CONTEXT* context);
 	Upload_OnContentReceived, //int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size);
 	Upload_AllReceived, //void (*OnRequestReceived)(REQUEST_CONTEXT* context);
@@ -76,7 +76,7 @@ void Upload_AllReceived(REQUEST_CONTEXT* context)
 	LWIP_fclose(context->_fileHandle);
 }
 
-void Upload_OnHeaderReceived(REQUEST_CONTEXT* context, char* header_line)
+int Upload_OnHeaderReceived(REQUEST_CONTEXT* context, char* header_line)
 {
 	if (Strnicmp(header_line, "X-File-Name:", 12) == 0)
 	{
@@ -100,7 +100,9 @@ void Upload_OnHeaderReceived(REQUEST_CONTEXT* context, char* header_line)
 		header_line[len+j] = 0;
 		LWIP_sprintf(context->ctxResponse._appContext, "%s%s%s", WEB_ABS_ROOT, WEB_REL_UPLOAD, (char*)header_line + j);
 		MakeDeepPath(context->ctxResponse._appContext);
+		return 1;
 	}
+	return 0;
 }
 
 void Upload_OnCancel(REQUEST_CONTEXT* context)
