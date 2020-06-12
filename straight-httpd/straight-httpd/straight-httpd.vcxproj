@@ -60,6 +60,7 @@
     <ClCompile Include="httpd\cgi\cgi_web.c" />
     <ClCompile Include="httpd\http_cgi.c" />
     <ClCompile Include="httpd\http_core.c" />
+    <ClCompile Include="httpd\http_session.c" />
     <ClCompile Include="httpd\http_web.c" />
     <ClCompile Include="ssdp\ssdp.c" />
     <ClCompile Include="straight-httpd.c" />

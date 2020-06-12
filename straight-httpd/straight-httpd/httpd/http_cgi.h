@@ -86,7 +86,7 @@ CGI_HeaderReceived(context, line);				==> OnHeaderReceived(context, line)
 CGI_HeadersReceived(context);					==> OnHeadersReceived(context)
 CGI_ContentReceived(context, buffer, size);		==> OnContentReceived(context, buffer, size)
 CGI_RequestReceived(context);					==> OnRequestReceived(context)
-	HttpResponse(context, caller);
+	HttpResponseProc(context, caller);
 CGI_SetResponseHeaders(context, codeNinfo);		==> SetResponseHeader(context, HttpCode);
 CGI_LoadContentToSend(context, caller);			==> OnAllSent(context)
 	FreeHttpContext ==> CGI_Finish(context);	==> OnFinished(context)

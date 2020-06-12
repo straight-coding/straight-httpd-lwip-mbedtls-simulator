@@ -10,7 +10,7 @@
 
 struct CGI_Mapping g_cgiWebApp = {
 	"/app/*", //char* path;
-	CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED,// unsigned long options;
+	CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED,// unsigned long options;
 
 	NULL, //void (*OnCancel)(REQUEST_CONTEXT* context);
 	NULL, //int (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line);

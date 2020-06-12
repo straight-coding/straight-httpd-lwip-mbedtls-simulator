@@ -171,6 +171,7 @@ typedef struct
 	char *content_type;
 }TypeHeader;
 
+void SetupSession(void);
 int  SessionCreate(REQUEST_CONTEXT* context, char* outCookie);
 void SessionKill(REQUEST_CONTEXT* context, int matchIP);
 

@@ -27,14 +27,8 @@ extern void tcp_kill_timewait(void);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/** Serve one HTTP connection accepted in the http thread */
 signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller);
-signed char HttpResponse(REQUEST_CONTEXT* context, int caller);
-
-sys_mutex_t		g_sessionMutex;
-SESSION			g_httpSessions[MAX_SESSIONS];
-REQUEST_CONTEXT g_httpContext[MAX_CONNECTIONS];
-sys_mutex_t	    g_httpMutex[MAX_CONNECTIONS];
+signed char HttpResponseProc(REQUEST_CONTEXT* context, int caller);
 
 signed char OnHttpAccept(void *arg, struct altcp_pcb *pcb, signed char err);
 signed char OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *p, signed char err);
@@ -139,224 +133,8 @@ const char redirect_body1[] = "<html><head/><body><script>location.href='";
 const char redirect_body2[] = "';</script></body></html>";
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int SessionCreate(REQUEST_CONTEXT* context, char* outCookie)
-{
-	int result = 0;
-	*outCookie = 0;
-
-	sys_mutex_lock(&g_sessionMutex);
-	for (int i = 0; i < MAX_SESSIONS; i++)
-	{
-		if (g_httpSessions[i]._token[0] != 0)
-			continue;
-
-		memset(&g_httpSessions[i], 0, sizeof(SESSION));
-
-		LWIP_sprintf(outCookie, "SID=%08lX", LWIP_GetTickCount());
-
-		g_httpSessions[i]._tLastReceived = LWIP_GetTickCount();
-		if (g_httpSessions[i]._tLastReceived == 0)
-			g_httpSessions[i]._tLastReceived = 1;
-
-		g_httpSessions[i]._nUserIP = context->_pcb->remote_ip.addr;
-		strcpy(g_httpSessions[i]._token, outCookie);
-
-		LogPrint(0, "Session created @ %s from %08lX", g_httpSessions[i]._token, g_httpSessions[i]._nUserIP);
-
-		result = 1;
-		break;
-	}
-	sys_mutex_unlock(&g_sessionMutex);
-
-	if (result == 0)
-		LogPrint(0, "Session full, from %08lX", context->_pcb->remote_ip.addr);
-
-	return result;
-}
-
-void SessionKill(REQUEST_CONTEXT* context, int matchIP) //called by IsContextTimeout
-{
-	sys_mutex_lock(&g_sessionMutex);
-	for (int i = 0; i < MAX_SESSIONS; i++)
-	{
-		if (g_httpSessions[i]._token[0] == 0)
-			continue;
-
-		if (strstr(context->ctxResponse._token, g_httpSessions[i]._token) != NULL)
-		{
-			if ((matchIP == 0) || (context->_pcb->remote_ip.addr == g_httpSessions[i]._nUserIP))
-			{
-				LogPrint(0, "Session killed @ %s from %08lX", g_httpSessions[i]._token, g_httpSessions[i]._nUserIP);
-				memset(&g_httpSessions[i], 0, sizeof(SESSION));
-			}
-			break;
-		}
-	}
-	sys_mutex_unlock(&g_sessionMutex);
-}
-
-int SessionTypes(char* extension)
-{
-	if ((Strnicmp(extension, "css", 3) == 0) ||
-		(Strnicmp(extension, "jpg", 3) == 0) ||
-		(Strnicmp(extension, "png", 3) == 0) ||
-		(Strnicmp(extension, "ico", 3) == 0) ||
-		(Strnicmp(extension, "bmp", 3) == 0) ||
-		(Strnicmp(extension, "svg", 3) == 0) ||
-		(Strnicmp(extension, "gif", 3) == 0) ||
-		(Strnicmp(extension, "woff", 4) == 0) ||
-		(Strnicmp(extension, "ttf", 3) == 0) ||
-		(Strnicmp(extension, "otf", 3) == 0) ||
-		(Strnicmp(extension, "tiff", 4) == 0))
-	{
-		return 0;
-	}
-	else
-	{
-		return 1;
-	}
-
-	if ((extension[0] == 0) ||
-		(Strnicmp(extension, "htm", 3) == 0) ||
-		(Strnicmp(extension, "html", 4) == 0) ||
-		(Strnicmp(extension, "shtml", 5) == 0) ||
-		(Strnicmp(extension, "ssi", 3) == 0) ||
-		(Strnicmp(extension, "cgi", 3) == 0) ||
-		(Strnicmp(extension, "json", 4) == 0))
-	{
-		return 1;
-	}
-	return 0;
-}
-
-SESSION* GetSession(char* token)
-{
-	if ((token != NULL) && (token[0] != 0))
-	{
-		for (int i = 0; i < MAX_SESSIONS; i++)
-		{
-			if (g_httpSessions[i]._token[0] == 0)
-				continue;
-
-			if (strstr(token, g_httpSessions[i]._token) != NULL)
-				return &g_httpSessions[i];
-		}
-	}
-	return NULL;
-}
-
-int SessionCheck(REQUEST_CONTEXT* context) //called when header 'X-Auth-Token' or 'Cookie' received, also called after all headers received
-{
-	int result = CODE_OK;
-
-	sys_mutex_lock(&g_sessionMutex);
-	if (context == NULL)
-	{
-		unsigned long recvElapsed;
-		unsigned long sendElapsed;
-
-		for (int i = 0; i < MAX_SESSIONS; i++)
-		{
-			if (g_httpSessions[i]._token[0] == 0)
-				continue;
-
-			recvElapsed = LWIP_GetTickCount();
-			sendElapsed = recvElapsed;
-
-			if (recvElapsed == 0) recvElapsed = 1;
-			if (sendElapsed == 0) sendElapsed = 1;
-
-			if (g_httpSessions[i]._tLastReceived != 0)
-			{
-				if (recvElapsed >= g_httpSessions[i]._tLastReceived)
-					recvElapsed -= g_httpSessions[i]._tLastReceived;
-				else
-					recvElapsed += (0xFFFFFFFF - g_httpSessions[i]._tLastReceived);
-			}
-			else
-				recvElapsed = 0;
-
-			if (g_httpSessions[i]._tLastSent != 0)
-			{
-				if (sendElapsed >= g_httpSessions[i]._tLastSent)
-					sendElapsed -= g_httpSessions[i]._tLastSent;
-				else
-					sendElapsed += (0xFFFFFFFF - g_httpSessions[i]._tLastSent);
-			}
-			else
-				sendElapsed = 0;
-
-			if (((sendElapsed < recvElapsed) ? sendElapsed : recvElapsed) > TO_SESSION)
-			{
-				LogPrint(0, "Session killed (timeout) @ %s from %08lX", g_httpSessions[i]._token, g_httpSessions[i]._nUserIP);
-
-				memset(&g_httpSessions[i], 0, sizeof(SESSION));
-				result = CODE_OK;
-			}
-		}
-	}
-	else if (context->handler != NULL)
-	{
-		context->_session = GetSession(context->ctxResponse._token);
-		if ((context->_options & CGI_OPT_AUTH_REQUIRED) != 0)
-		{ //this scope needs authentication
-			if (SessionTypes(context->_extension) > 0)
-			{
-				result = CODE_REDIRECT; //Temporary Redirect (since HTTP/1.1)
-
-				//context->_session = GetSession(context->ctxResponse._token);
-				if (context->_session != NULL)
-					result = CODE_OK;
-				if (result == CODE_REDIRECT)
-				{
-					context->ctxResponse._authorized = 0;
-					strcpy(context->_responsePath, WEB_DEFAULT_PAGE);
-				}
-			}
-		}
-	}
-	sys_mutex_unlock(&g_sessionMutex);
-
-	return result;
-}
-
-void SessionClearAll() //called at the very beginning of AppThread
-{
-	sys_mutex_lock(&g_sessionMutex);
-		memset(g_httpSessions, 0, sizeof(g_httpSessions));
-	sys_mutex_unlock(&g_sessionMutex);
-}
-
-void SessionReceived(REQUEST_CONTEXT* context) //called by OnHttpReceive
-{
-	sys_mutex_lock(&g_sessionMutex);
-	if ((context->_session != NULL) && (context->handler != NULL))
-	{
-		if ((context->_options & CGI_OPT_AUTH_REQUIRED) != 0)
-		{
-			context->_session->_tLastReceived = LWIP_GetTickCount();
-			if (context->_session->_tLastReceived == 0)
-				context->_session->_tLastReceived++;
-		}
-	}
-	sys_mutex_unlock(&g_sessionMutex);
-}
-
-void SessionSent(REQUEST_CONTEXT* context) //called by OnHttpSent
-{
-	sys_mutex_lock(&g_sessionMutex);
-	if ((context->_session != NULL) && (context->handler != NULL))
-	{
-		if ((context->_options & CGI_OPT_AUTH_REQUIRED) != 0)
-		{
-			context->_session->_tLastSent = LWIP_GetTickCount();
-			if (context->_session->_tLastSent == 0)
-				context->_session->_tLastSent++;
-		}
-	}
-	sys_mutex_unlock(&g_sessionMutex);
-}
+REQUEST_CONTEXT g_httpContext[MAX_CONNECTIONS];
+sys_mutex_t	    g_httpMutex[MAX_CONNECTIONS];
 
 void PrintLwipStatus(void)
 {
@@ -391,7 +169,6 @@ void SetupHttpContext(void)
 	LogPrint(0, "size of RESPONSE_CONTEXT: %d\r\n", sizeof(RESPONSE_CONTEXT));
 	LogPrint(0, "size of REQUEST_CONTEXT: %d\r\n", sizeof(REQUEST_CONTEXT));
 
-	memset(g_httpSessions, 0, sizeof(g_httpSessions)); //only when the task started
 	memset(g_httpContext, 0, sizeof(g_httpContext)); //only when the task started
 	
 	for(i = 0; i < MAX_CONNECTIONS; i ++)
@@ -402,7 +179,7 @@ void SetupHttpContext(void)
 		g_httpContext[i]._pMutex = &g_httpMutex[i];
 	}
 
-	if (sys_mutex_new(&g_sessionMutex) != ERR_OK) {}
+	SetupSession();
 		
 	CGI_SetupMapping();
 }
@@ -662,15 +439,10 @@ int HttpdStop(struct altcp_pcb *pcbListen)
 	return ERR_OK;
 }
 
-
-/** Function prototype for tcp accept callback functions. Called when a new
- * connection can be accepted on a listening pcb.
- * @param arg Additional argument to pass to the callback function (@see tcp_arg())
- * @param newpcb The new connection pcb
- * @param err An error code if there has been an error accepting.
- *     Only return ERR_ABRT if you have called tcp_abort from within the callback function!
- *     Return ERR_OK to continue receiving
- * 	   Otherwise, tcp_abort() will be called by stack out of this callback function
+/** Function prototype for tcp accept callback functions. 
+ *  Only return ERR_ABRT if you have called tcp_abort from within the callback function!
+ *  Return ERR_OK to continue receiving
+ * 	Otherwise, tcp_abort() will be called by stack out of this callback function
  */
 signed char OnHttpAccept(void *pcbListener, struct altcp_pcb *pcbAccepted, signed char errIn) //errIn=ERR_MEM or ERR_OK
 { //arg ==> g_pcbListen
@@ -720,9 +492,7 @@ signed char OnHttpAccept(void *pcbListener, struct altcp_pcb *pcbAccepted, signe
 	return ERR_OK;
 }
 
-/** Function prototype for tcp receive callback functions. Called when data has been received.
- * @param arg Additional argument to pass to the callback function (@see tcp_arg())
- * @param tpcb The connection pcb which received data
+/** Function prototype for tcp receive callback functions.
  * @param p The received data (or NULL when the connection has been closed!)
  * @param err An error code if there has been an error receiving, result of tcp_process()
  *    Only return ERR_ABRT if you have called tcp_abort from within the callback function!
@@ -845,12 +615,8 @@ signed char OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *p, sign
 
 /** Function prototype for tcp poll callback functions. Called periodically as
  * specified by @see tcp_poll.
- *
- * @param arg Additional argument to pass to the callback function (@see tcp_arg())
- * @param tpcb tcp pcb
  * @return ERR_OK: try to send some data by calling tcp_output
- *            Only return ERR_ABRT if you have called tcp_abort from within the
- *            callback function!
+ *     Only return ERR_ABRT if you have called tcp_abort from within the callback function!
  */
 signed char OnHttpPoll(void *arg, struct altcp_pcb *pcb)
 {
@@ -904,15 +670,11 @@ signed char OnHttpPoll(void *arg, struct altcp_pcb *pcb)
 	return err;
 }
 
-/** Function prototype for tcp sent callback functions. Called when sent data has
- * been acknowledged by the remote side. Use it to free corresponding resources.
- * This also means that the pcb has now space available to send new data.
- * @param arg Additional argument to pass to the callback function (@see tcp_arg())
- * @param tpcb The connection pcb for which data has been acknowledged
+/** Function prototype for tcp sent callback functions. 
+ * @param pcb The connection pcb for which data has been acknowledged
  * @param len The amount of bytes acknowledged
  * @return ERR_OK: try to send some data by calling tcp_output
- *            Only return ERR_ABRT if you have called tcp_abort from within the
- *            callback function!
+ *    Only return ERR_ABRT if you have called tcp_abort from within the callback function!
  */
 signed char OnHttpSent(void *arg, struct altcp_pcb *pcb, u16_t len)
 {
@@ -940,10 +702,6 @@ signed char OnHttpSent(void *arg, struct altcp_pcb *pcb, u16_t len)
 
 			return ERR_OK;
 		}
-		
-		//context->ctxResponse._tLastSent = LWIP_GetTickCount();
-		//if (context->ctxResponse._tLastSent == 0)
-			//context->ctxResponse._tLastSent ++;
 
 		if (context->ctxResponse._authorized == CODE_OK)
 		{ //GET large data
@@ -967,16 +725,14 @@ signed char OnHttpSent(void *arg, struct altcp_pcb *pcb, u16_t len)
 	return err;
 }
 
-/** Function prototype for tcp error callback functions. Called when the pcb
- * receives a RST or is unexpectedly closed for any other reason.
- * @note The corresponding pcb is already freed when this callback is called!
- * @param arg Additional argument to pass to the callback function (@see tcp_arg())
+/** Function prototype for tcp error callback functions. 
+ * Called when the pcb receives a RST or is unexpectedly closed for any other reason.
  * @param err Error code to indicate why the pcb has been closed
- *            ERR_ABRT: aborted through tcp_abort or by a TCP timer
- *            ERR_RST: the connection was reset by the remote host
+ *    ERR_ABRT: aborted through tcp_abort or by a TCP timer
+ *    ERR_RST: the connection was reset by the remote host
  */
 void OnHttpError(void *arg, signed char err)
-{ //pcb already free
+{ //pcb already freed
 	REQUEST_CONTEXT* context = (REQUEST_CONTEXT*)arg;
 	LWIP_UNUSED_ARG(err);
 
@@ -1574,7 +1330,7 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 	//request finished, send response now
 	if (context->_state >= HTTP_STATE_BODY_DONE) //after received, and HTTP_STATE_SENDING_BODY
 	{
-		signed char err = HttpResponse(context, caller);
+		signed char err = HttpResponseProc(context, caller);
 		if (context->_state == HTTP_STATE_REQUEST_END)
 		{
 			int keepalive = context->_keepalive;
@@ -1646,7 +1402,7 @@ signed char sendBuffered(REQUEST_CONTEXT* context)
 	return ERR_OK;
 }
 
-signed char HttpResponse(REQUEST_CONTEXT* context, int caller) //always return ERR_OK
+signed char HttpResponseProc(REQUEST_CONTEXT* context, int caller) //always return ERR_OK
 {
 	signed char err = ERR_OK;
 

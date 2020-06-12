@@ -4,6 +4,9 @@
   Date: June 10, 2020
 */
 
+#ifndef _HTTP_WEB_H_
+#define _HTTP_WEB_H_
+
 #include "http_cgi.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -20,3 +23,5 @@ void WEB_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo);
 int  WEB_ReadContent(REQUEST_CONTEXT* context, char* buffer, int maxSize);
 void WEB_AllSent(REQUEST_CONTEXT* context);
 void WEB_Finished(REQUEST_CONTEXT* context);
+
+#endif

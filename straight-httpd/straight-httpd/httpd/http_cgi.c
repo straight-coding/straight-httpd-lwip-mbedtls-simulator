@@ -36,7 +36,7 @@ void CGI_SetupMapping() //called from SetupHttpContext(), CGI handlers could be 
 	CGI_Append(&g_cgiFiles,   "/api/files.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_CHUNK_ENABLED);
 	CGI_Append(&g_cgiUpload,  "/api/upload.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_POST_ENABLED);
 	CGI_Append(&g_cgiAuth,	  "/auth/*", CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED);
-	CGI_Append(&g_cgiWebApp,  "/app/*", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED); //"/app/*", MUST be the last one
+	CGI_Append(&g_cgiWebApp,  "/app/*", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED); //"/app/*", MUST be the last one
 }
 
 int CheckWebRoot(char* drive, char* absRoot, char* defaultPage)
