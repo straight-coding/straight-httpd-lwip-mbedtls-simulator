@@ -135,11 +135,11 @@ button
 { 
 	min-height: 30px; 
 	font-size: 14px; 
-	padding: 2px 10px 2px 10px; 
+	padding: 2px 4px 2px 4px; 
 }
 .btn
 { 
-	width: 100px; 
+	width: 68px; 
 	margin-bottom: 10px; 
 }
 .btn:hover
@@ -148,7 +148,7 @@ button
 }
 .tab
 { 
-	width: 80px; 
+	width: 68px; 
 	margin-bottom: 10px; 
 }
 .tab:hover

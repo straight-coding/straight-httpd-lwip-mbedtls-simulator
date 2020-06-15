@@ -40,6 +40,7 @@
       <button class='tab' id='home'>Home</button>
       <button class='tab margin-l2' id='upload'>Upload</button>
       <button class='tab margin-l2' id='files'>Files</button>
+      <button class='tab margin-l2' id='form'>Forms</button>
       <button class='tab margin-l2' id='logout'>Logout</button>
     </div>
   </div>
@@ -56,6 +57,9 @@
 
     document.getElementById('files').addEventListener('click', goDownload);
     function goDownload() { location.href = '/app/files.shtml'; }
+   
+    document.getElementById('form').addEventListener('click', goForm);
+    function goForm() { location.href = '/app/form.shtml'; }
 
     document.getElementById('logout').addEventListener('click', goLogout);
     function goLogout() { location.href = '/auth/logout.cgi'; }

@@ -54,6 +54,7 @@
     <ClCompile Include="..\..\lwip-port\win32\netif\ethernetif.c" />
     <ClCompile Include="httpd\cgi\cgi_auth.c" />
     <ClCompile Include="httpd\cgi\cgi_files.c" />
+    <ClCompile Include="httpd\cgi\cgi_form.c" />
     <ClCompile Include="httpd\cgi\cgi_ssdp.c" />
     <ClCompile Include="httpd\cgi\cgi_ssi.c" />
     <ClCompile Include="httpd\cgi\cgi_upload.c" />
@@ -75,6 +76,7 @@
     <ClInclude Include="..\..\lwip-port\win32\netif\ethernetif.h" />
     <ClInclude Include="httpd\http_cgi.h" />
     <ClInclude Include="httpd\http_core.h" />
+    <ClInclude Include="httpd\http_session.h" />
     <ClInclude Include="httpd\http_web.h" />
     <ClInclude Include="ssdp\ssdp.h" />
     <ClInclude Include="utils.h" />
