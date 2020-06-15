@@ -26,9 +26,9 @@ void SetupSession(void)
 	if (sys_mutex_new(&g_sessionMutex) != ERR_OK) {}
 }
 
-int SessionCreate(REQUEST_CONTEXT* context, char* outCookie)
+SESSION* SessionCreate(char* outCookie, unsigned long remoteIP)
 {
-	int result = 0;
+	SESSION* session = NULL;
 	*outCookie = 0;
 
 	sys_mutex_lock(&g_sessionMutex);
@@ -45,40 +45,33 @@ int SessionCreate(REQUEST_CONTEXT* context, char* outCookie)
 		if (g_httpSessions[i]._tLastReceived == 0)
 			g_httpSessions[i]._tLastReceived = 1;
 
-		g_httpSessions[i]._nUserIP = context->_pcb->remote_ip.addr;
+		g_httpSessions[i]._nLoginIP = remoteIP;
 		strcpy(g_httpSessions[i]._token, outCookie);
 
-		LogPrint(0, "Session created @ %s from %08lX", g_httpSessions[i]._token, g_httpSessions[i]._nUserIP);
+		LogPrint(0, "Session created @ %s from %08lX", g_httpSessions[i]._token, g_httpSessions[i]._nLoginIP);
 
-		result = 1;
+		session = &g_httpSessions[i];
 		break;
 	}
 	sys_mutex_unlock(&g_sessionMutex);
 
-	if (result == 0)
-		LogPrint(0, "Session full, from %08lX", context->_pcb->remote_ip.addr);
+	if (session == NULL)
+		LogPrint(0, "Session full, from %08lX", remoteIP);
 
-	return result;
+	return session;
 }
 
-void SessionKill(REQUEST_CONTEXT* context, int matchIP) //called by IsContextTimeout
+void SessionKill(SESSION* session) //called by IsContextTimeout
 {
-	sys_mutex_lock(&g_sessionMutex);
-	for (int i = 0; i < MAX_SESSIONS; i++)
-	{
-		if (g_httpSessions[i]._token[0] == 0)
-			continue;
+	if (session == NULL)
+		return;
 
-		if (strstr(context->ctxResponse._token, g_httpSessions[i]._token) != NULL)
+	sys_mutex_lock(&g_sessionMutex);
+		if (session->_token[0] != 0)
 		{
-			if ((matchIP == 0) || (context->_pcb->remote_ip.addr == g_httpSessions[i]._nUserIP))
-			{
-				LogPrint(0, "Session killed @ %s from %08lX", g_httpSessions[i]._token, g_httpSessions[i]._nUserIP);
-				memset(&g_httpSessions[i], 0, sizeof(SESSION));
-			}
-			break;
+			LogPrint(0, "Session killed @ %s from %08lX", session->_token, session->_nLoginIP);
+			memset(session, 0, sizeof(SESSION));
 		}
-	}
 	sys_mutex_unlock(&g_sessionMutex);
 }
 
@@ -132,12 +125,9 @@ SESSION* GetSession(char* token)
 	return NULL;
 }
 
-int SessionCheck(REQUEST_CONTEXT* context) //called when header 'X-Auth-Token' or 'Cookie' received, also called after all headers received
+void SessionCheck(void) //called when header 'X-Auth-Token' or 'Cookie' received, also called after all headers received
 {
-	int result = CODE_OK;
-
 	sys_mutex_lock(&g_sessionMutex);
-	if (context == NULL)
 	{
 		unsigned long recvElapsed;
 		unsigned long sendElapsed;
@@ -175,71 +165,49 @@ int SessionCheck(REQUEST_CONTEXT* context) //called when header 'X-Auth-Token' o
 
 			if (((sendElapsed < recvElapsed) ? sendElapsed : recvElapsed) > TO_SESSION)
 			{
-				LogPrint(0, "Session killed (timeout) @ %s from %08lX", g_httpSessions[i]._token, g_httpSessions[i]._nUserIP);
+				LogPrint(0, "Session killed (timeout) @ %s from %08lX", g_httpSessions[i]._token, g_httpSessions[i]._nLoginIP);
 
 				memset(&g_httpSessions[i], 0, sizeof(SESSION));
-				result = CODE_OK;
-			}
-		}
-	}
-	else if (context->handler != NULL)
-	{
-		context->_session = GetSession(context->ctxResponse._token);
-		if ((context->_options & CGI_OPT_AUTH_REQUIRED) != 0)
-		{ //this scope needs authentication
-			if (SessionTypes(context->_extension) > 0)
-			{
-				result = CODE_REDIRECT; //Temporary Redirect (since HTTP/1.1)
-
-				//context->_session = GetSession(context->ctxResponse._token);
-				if (context->_session != NULL)
-					result = CODE_OK;
-				if (result == CODE_REDIRECT)
-				{
-					context->ctxResponse._authorized = 0;
-					strcpy(context->_responsePath, WEB_DEFAULT_PAGE);
-				}
 			}
 		}
 	}
 	sys_mutex_unlock(&g_sessionMutex);
-
-	return result;
 }
 
-void SessionClearAll() //called at the very beginning of AppThread
+void SessionClearAll(void) //called at the very beginning of AppThread
 {
 	sys_mutex_lock(&g_sessionMutex);
 		memset(g_httpSessions, 0, sizeof(g_httpSessions));
 	sys_mutex_unlock(&g_sessionMutex);
 }
 
-void SessionReceived(REQUEST_CONTEXT* context) //called by OnHttpReceive
+void SessionReceived(SESSION* session) //called by OnHttpReceive
 {
+	if (session == NULL)
+		return;
+
 	sys_mutex_lock(&g_sessionMutex);
-	if ((context->_session != NULL) && (context->handler != NULL))
-	{
-		if ((context->_options & CGI_OPT_AUTH_REQUIRED) != 0)
+		if (session->_token[0] != 0)
 		{
-			context->_session->_tLastReceived = LWIP_GetTickCount();
-			if (context->_session->_tLastReceived == 0)
-				context->_session->_tLastReceived++;
+			session->_tLastReceived = LWIP_GetTickCount();
+			if (session->_tLastReceived == 0)
+				session->_tLastReceived++;
+
 		}
-	}
 	sys_mutex_unlock(&g_sessionMutex);
 }
 
-void SessionSent(REQUEST_CONTEXT* context) //called by OnHttpSent
+void SessionSent(SESSION* session) //called by OnHttpSent
 {
+	if (session == NULL)
+		return;
+
 	sys_mutex_lock(&g_sessionMutex);
-	if ((context->_session != NULL) && (context->handler != NULL))
-	{
-		if ((context->_options & CGI_OPT_AUTH_REQUIRED) != 0)
+		if (session->_token[0] != 0)
 		{
-			context->_session->_tLastSent = LWIP_GetTickCount();
-			if (context->_session->_tLastSent == 0)
-				context->_session->_tLastSent++;
+			session->_tLastSent = LWIP_GetTickCount();
+			if (session->_tLastSent == 0)
+				session->_tLastSent++;
 		}
-	}
 	sys_mutex_unlock(&g_sessionMutex);
 }

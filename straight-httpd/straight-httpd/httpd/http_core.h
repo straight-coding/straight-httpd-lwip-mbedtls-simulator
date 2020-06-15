@@ -12,6 +12,8 @@
 #include "arch/sys_arch.h"	//for semaphore, mutex, mbox, file, time, tick, and log functions
 #include "../utils.h"		//for popular pure c functions, such as ston, Strnicmp, DecodeB64, ...
 
+#include "http_session.h"
+
 #define LOG_DEBUG_ONLY		0 //max level of debug output
 
 #define METHOD_GET			1 //request method GET
@@ -59,10 +61,6 @@
 #define MAX_REQ_BUF_SIZE				1024	//length of the request header is up to MAX_REQ_BUF_SIZE bytes
 #define MAX_APP_CONTEXT_SIZE			512		//reserved buffer for app/cgi layer, such as SSI_Context peocessing
 
-#define MAX_SESSIONS					5
-#define MAX_COOKIE_SIZE					32		//max length of the cookie string
-
-#define TO_SESSION						3*60*1000
 #define TO_RECV							60*1000
 #define TO_SENT							60*1000
 
@@ -76,22 +74,10 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct _SESSION
-{
-	char _token[MAX_COOKIE_SIZE];	//for http_core.c
-
-	unsigned long _nUserIP;
-	unsigned long _tLastReceived;	//tick of the last received
-	unsigned long _tLastSent;		//tick of the last sent
-}SESSION;
-
 typedef struct _RESPONSE_CONTEXT
 {
 	char 	_token[128];		//for http_core.c
 	int 	_authorized;		//for http_core.c
-	
-	int 	_cmdType;			//for cgi_command.c, ATTACH / DETACH
-	unsigned long _remote_ip;	//for cgi_command.c
 	
 	unsigned long _dwOperStage;	//[0, STAGE_END], for app layer, major progress
 	
@@ -122,6 +108,7 @@ typedef struct _REQUEST_CONTEXT
 	unsigned long _tRequestStart;		//tick of the request began, for http_core.c
 	unsigned long _tLastReceived;		//tick of the last received, for http_core.c
 	unsigned long _nReceiveTimeout; 	//60*1000, for http_core.c
+	unsigned long _ipRemote;
 	
 	sys_mutex_t* _pMutex; 		//not used because of single thread processing
 	int 	_killing;			//notification from other tasks
@@ -165,23 +152,6 @@ typedef struct _REQUEST_CONTEXT
 	char http_request_buffer[MAX_REQ_BUF_SIZE + 20]; //receiving buffer, max space to hold the request
 }REQUEST_CONTEXT;
 
-typedef struct
-{
-	char *extension;
-	char *content_type;
-}TypeHeader;
-
-void SetupSession(void);
-int  SessionCreate(REQUEST_CONTEXT* context, char* outCookie);
-void SessionKill(REQUEST_CONTEXT* context, int matchIP);
-
-void SessionClearAll(); //lock used inside
-int  SessionTypes(char* extension);
-
-int  SessionCheck(REQUEST_CONTEXT* context); //lock used inside
-void SessionReceived(REQUEST_CONTEXT* context);
-void SessionSent(REQUEST_CONTEXT* context);
-
 void PrintLwipStatus(void);
 
 void SetKilling(REQUEST_CONTEXT* context);				//for app to kill session
@@ -197,7 +167,6 @@ void CloseHttpContext(REQUEST_CONTEXT* context);
 void FreeHttpContext(REQUEST_CONTEXT* context);
 int  IsContextTimeout(REQUEST_CONTEXT* context);
 
-char* GetContentType(REQUEST_CONTEXT* context);
 signed char sendBuffered(REQUEST_CONTEXT* context);
 
 struct altcp_pcb* HttpdInit(unsigned long port);

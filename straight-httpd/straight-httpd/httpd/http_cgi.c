@@ -20,11 +20,14 @@ char g_szWebAbsRoot[128]; // WEB_ABS_ROOT, MUST start with '/' and end with '/'
 char g_szWebDefaultPage[128]; // "/auth/login.html", MUST start with '/'
 char g_szWebAppHomePage[128]; // "/app/index.html", MUST start with '/'
 
+void CGI_Append(struct CGI_Mapping* newMapping, const char* ovwPath, unsigned long ovwOptions); //append single CGI mapping
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CGI_SetupMapping() //called from SetupHttpContext(), CGI handlers could be added here
 {
 	extern struct CGI_Mapping g_cgiSSDP;	// "/upnp_device.xml"
+	extern struct CGI_Mapping g_cgiForm;	// "/form/*"
 	extern struct CGI_Mapping g_cgiFiles;	// file list in json format
 	extern struct CGI_Mapping g_cgiUpload;
 	extern struct CGI_Mapping g_cgiAuth;	// "/auth/*"
@@ -33,9 +36,10 @@ void CGI_SetupMapping() //called from SetupHttpContext(), CGI handlers could be 
 	SetWebRoot(WEB_DRIVE, WEB_ABS_ROOT, WEB_DEFAULT_PAGE); //default path
 	
 	CGI_Append(&g_cgiSSDP,    "/upnp_device.xml", CGI_OPT_GET_ENABLED | CGI_OPT_CHUNK_ENABLED);
+	CGI_Append(&g_cgiAuth,    "/auth/*", CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED);
+	CGI_Append(&g_cgiForm,	  "/form/*", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED);
 	CGI_Append(&g_cgiFiles,   "/api/files.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_CHUNK_ENABLED);
 	CGI_Append(&g_cgiUpload,  "/api/upload.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_POST_ENABLED);
-	CGI_Append(&g_cgiAuth,	  "/auth/*", CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED);
 	CGI_Append(&g_cgiWebApp,  "/app/*", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED); //"/app/*", MUST be the last one
 }
 

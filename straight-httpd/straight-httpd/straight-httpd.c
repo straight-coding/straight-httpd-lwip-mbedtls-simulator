@@ -347,7 +347,9 @@ DWORD WINAPI LwipLoopThread(void* data)
 	{
 		if (tcpip_inloop() > 0)
 			continue;
+
 		//more check
+		SessionCheck();
 	}
 
 	LogPrint(0, "LWIP stopped\r\n");
@@ -396,8 +398,6 @@ DWORD WINAPI AppThread(void* data)
 		{
 			if (g_tcpipReady == 0)
 				break;
-
-			SessionCheck(NULL);
 
 			Sleep(50);
 		}

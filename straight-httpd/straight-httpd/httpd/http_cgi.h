@@ -78,24 +78,7 @@ typedef struct
 	char  _cache[MAX_TAG_LEN]; //pre-read buffer
 }SSI_Context;
 
-/*
-CGI_SetCgiHandler(context)
-	Cookie ==> SessionCheck(context) ==> context->_result=-403 if not 200
-CGI_HeaderReceived(context, line);				==> OnHeaderReceived(context, line)
-	SessionCheck(context) ==> context->ctxResponse._authorized=-403 or 200
-CGI_HeadersReceived(context);					==> OnHeadersReceived(context)
-CGI_ContentReceived(context, buffer, size);		==> OnContentReceived(context, buffer, size)
-CGI_RequestReceived(context);					==> OnRequestReceived(context)
-	HttpResponseProc(context, caller);
-CGI_SetResponseHeaders(context, codeNinfo);		==> SetResponseHeader(context, HttpCode);
-CGI_LoadContentToSend(context, caller);			==> OnAllSent(context)
-	FreeHttpContext ==> CGI_Finish(context);	==> OnFinished(context)
-
-CGI_Cancel(context) ==> OnCancel
-*/
-
 void CGI_SetupMapping(void); //setup mapping when initializing httpd context
-void CGI_Append(struct CGI_Mapping* newMapping, const char* ovwPath, unsigned long ovwOptions); //append single CGI mapping
 
 //cancel notification to app layer because of any HTTP fatal errors
 //  including timeout, format errors, sending failures, and stack keneral errors

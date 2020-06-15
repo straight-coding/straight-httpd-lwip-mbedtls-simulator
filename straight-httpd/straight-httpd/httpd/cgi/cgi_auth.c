@@ -54,7 +54,7 @@ int AuthCheck(REQUEST_CONTEXT* context)
 		int success, i;
 		char* u;
 		char* p;
-		char szToken[32];
+		char szNewToken[32];
 
 		LogPrint(0, "POST data: %s\r\n", context->ctxResponse._appContext);
 		u = strstr(context->ctxResponse._appContext, "username=");
@@ -87,11 +87,10 @@ int AuthCheck(REQUEST_CONTEXT* context)
 
 			if (CheckUser(u, p) > 0)
 			{
-				success = SessionCreate(context, szToken);
-				if (success > 0)
+				context->_session = SessionCreate(szNewToken, context->_ipRemote);
+				if (context->_session != NULL)
 				{
-					context->ctxResponse._authorized = CODE_OK;
-					strcpy(context->ctxResponse._token, szToken);
+					strcpy(context->ctxResponse._token, szNewToken);
 					return 1;
 				}
 			}
@@ -131,7 +130,7 @@ void Auth_OnRequestReceived(REQUEST_CONTEXT* context)
 
 	if (stricmp(context->_requestPath, WEB_LOGOUT_PAGE) == 0)
 	{ //logout
-		SessionKill(context, 1);
+		SessionKill(context->_session);
 
 		strcpy(context->_responsePath, WEB_DEFAULT_PAGE);
 		context->ctxResponse._authorized = 0;

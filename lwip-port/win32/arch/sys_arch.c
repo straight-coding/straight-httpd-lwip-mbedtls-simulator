@@ -305,6 +305,7 @@ char* getClock(char* buf, int maxSize)
 	time_t now;
 	time(&now);
 	gmt4http(&now, buf, maxSize);
+	return buf;
 }
 
 void LogPrint(int level, char* format, ...)
@@ -443,14 +444,10 @@ long LWIP_fsize(void* f)
 {
 	long size = 0;
 	int pos = 0;
-	struct stat sb;
 
 	if (f == NULL)
 		return 0;
 
-	//fstat(f, &sb);
-
-	//return sb.st_size;
 	pos = ftell((FILE*)f);
 
 	fseek((FILE*)f, 0, SEEK_END);

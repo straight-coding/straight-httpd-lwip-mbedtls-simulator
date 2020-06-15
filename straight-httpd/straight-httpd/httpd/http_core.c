@@ -36,43 +36,6 @@ signed char OnHttpPoll(void *arg, struct altcp_pcb *pcb);
 signed char OnHttpSent(void *arg, struct altcp_pcb *pcb, u16_t len);
 void  OnHttpError(void *arg, signed char err);
 
-static const TypeHeader contentTypes[] = {
-	{ "html",  "text/html"},
-	{ "htm",   "text/html"},
-
-	{ "shtml", "text/html"},
-	{ "shtm",  "text/html"},
-	{ "ssi",   "text/html"},
-	{ "css",   "text/css"},
-
-	{ "json",  "application/json"},
-	{ "js",    "application/javascript"},
-
-	{ "gif",   "image/gif"},
-	{ "png",   "image/png"},
-	{ "jpg",   "image/jpeg"},
-	{ "bmp",   "image/bmp"},
-	{ "ico",   "image/x-icon"},
-
-	{ "mp4",   "video/mp4"},
-	{ "flv",   "video/x-flv"},
-	{ "3gp",   "video/3gpp"},
-	{ "mov",   "video/quicktime"},
-	{ "avi",   "video/x-msvideo"},
-	{ "wmv",   "video/x-ms-wmv"},
-
-	{ "class", "application/octet-stream"},
-	{ "cls",   "application/octet-stream"},
-	{ "swf",   "application/x-shockwave-flash"},
-	{ "ram",   "application/javascript"},
-	{ "pdf",   "application/pdf"},
-
-	{ "xml",   "text/xml"},
-	{ "xsl",   "text/xml"},
-
-	{ "",    "text/plain"}
-};
-
 static const char* Response_Status_Lines[] = {
 	// 1xx: Informational - Request received, continuing process 
 		"000 Unknown Error",
@@ -479,6 +442,7 @@ signed char OnHttpAccept(void *pcbListener, struct altcp_pcb *pcbAccepted, signe
 	}
 
 	context->_pcb = pcbAccepted;
+	context->_ipRemote = context->_pcb->remote_ip.addr;
 	
 	/* Tell TCP that this is the structure we wish to be passed for our callbacks. */
 	altcp_arg(pcbAccepted, context);
@@ -542,10 +506,7 @@ signed char OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *p, sign
 	if (context->_tLastReceived == 0)
 		context->_tLastReceived ++;
 
-	if (context->ctxResponse._authorized == CODE_OK)
-	{ //POST large data
-		SessionReceived(context); //lock used inside
-	}
+	SessionReceived(context->_session); //mutex used inside
 	
 	UnlockSession(context); //unlock queue
 
@@ -703,10 +664,7 @@ signed char OnHttpSent(void *arg, struct altcp_pcb *pcb, u16_t len)
 			return ERR_OK;
 		}
 
-		if (context->ctxResponse._authorized == CODE_OK)
-		{ //GET large data
-			SessionSent(context); //lock used inside
-		}
+		SessionSent(context->_session); //mutex used inside
 		
 		return err;
 	}
@@ -967,7 +925,6 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 							LogPrint(LOG_DEBUG_ONLY, "Method not found, error=%d @%d", context->_result, context->_sid);
 						}
 						
-						context->ctxResponse._cmdType = 0;
 						context->ctxResponse._authorized = 0;
 						
 						context->ctxResponse._sending = 0;
@@ -1145,10 +1102,6 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 							}
 							memset(context->ctxResponse._token, 0, sizeof(context->ctxResponse._token));
 							strncpy(context->ctxResponse._token, (char*)buffer+j, sizeof(context->ctxResponse._token)-2);
-							
-							code = SessionCheck(context); //lock used inside
-							if (code != CODE_OK)
-								context->_result = code; //-403 Forbidden
 						}
 						else
 						{
@@ -1175,7 +1128,7 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 		} //endif parsing request header in session buffer
 
 		//error in request
-		if ((context->_result < 0) && (context->_result != CODE_REDIRECT))
+		if (context->_result < 0)
 		{ //not redirect
 			//return context->_result; //error while receiving header, illegal method or no method, or forbidden
 			LogPrint(0, "Failed to parse header, %d @%d", context->_result, context->_sid);
@@ -1203,8 +1156,21 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 		if (afterHeader > 0)
 		{ //just after the complete header, or prepare to receive post data or chunks
 			//context->max_level = TCP_MSS;
-			context->ctxResponse._authorized = SessionCheck(context); //lock used inside
-			
+			context->ctxResponse._authorized = CODE_OK;
+			context->_session = GetSession(context->ctxResponse._token);
+			if ((context->_session == NULL) || (context->_ipRemote != context->_session->_nLoginIP))
+			{
+				if ((context->_options & CGI_OPT_AUTH_REQUIRED) != 0)
+				{ //this scope needs authentication
+					if (SessionTypes(context->_extension) > 0)
+					{
+						context->_result = CODE_REDIRECT;
+						context->ctxResponse._authorized = CODE_REDIRECT;
+						strcpy(context->_responsePath, WEB_DEFAULT_PAGE);
+					}
+				}
+			}
+
 			if (context->_chunked > 0)
 			{
 				context->_state = HTTP_STATE_CHUNK_LEN_RECEIVING;
@@ -1528,23 +1494,4 @@ signed char HttpResponseProc(REQUEST_CONTEXT* context, int caller) //always retu
 	}
 
 	return ERR_OK;
-}
-
-char* GetContentType(REQUEST_CONTEXT* context)
-{
-	int i = 0;
-	int extLen = strlen(context->_extension);
-	while (1)
-	{
-		int typeLen = strlen(contentTypes[i].extension);
-		if (typeLen == 0)
-			return contentTypes[i].content_type;
-
-		if (typeLen == extLen)
-		{
-			if (Strnicmp(context->_extension, contentTypes[i].extension, typeLen) == 0)
-				return contentTypes[i].content_type;
-		}
-		i++;
-	}
 }
