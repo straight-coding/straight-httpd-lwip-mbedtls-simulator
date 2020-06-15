@@ -9,6 +9,12 @@
 
 #pragma warning(disable:4996) //_CRT_SECURE_NO_WARNINGS
 
+typedef struct
+{
+	char *extension;
+	char *content_type;
+}TypeHeader;
+
 long ston(unsigned char* s);
 void ntos(long n, unsigned char* s);
 int ToLower(int nChar);
@@ -19,5 +25,7 @@ void TrimFloat(char* floatString);
 int DecodeB64(unsigned char* data);
 int URLDecode(char* url);
 void MakeDeepPath(char* szPath);
+
+char* GetContentType(const char* extension);
 
 #endif

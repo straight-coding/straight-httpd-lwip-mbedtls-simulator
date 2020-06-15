@@ -9,6 +9,43 @@
 
 #include "utils.h"
 
+static const TypeHeader contentTypes[] = {
+	{ "html",  "text/html"},
+	{ "htm",   "text/html"},
+
+	{ "shtml", "text/html"},
+	{ "shtm",  "text/html"},
+	{ "ssi",   "text/html"},
+	{ "css",   "text/css"},
+
+	{ "json",  "application/json"},
+	{ "js",    "application/javascript"},
+
+	{ "gif",   "image/gif"},
+	{ "png",   "image/png"},
+	{ "jpg",   "image/jpeg"},
+	{ "bmp",   "image/bmp"},
+	{ "ico",   "image/x-icon"},
+
+	{ "mp4",   "video/mp4"},
+	{ "flv",   "video/x-flv"},
+	{ "3gp",   "video/3gpp"},
+	{ "mov",   "video/quicktime"},
+	{ "avi",   "video/x-msvideo"},
+	{ "wmv",   "video/x-ms-wmv"},
+
+	{ "class", "application/octet-stream"},
+	{ "cls",   "application/octet-stream"},
+	{ "swf",   "application/x-shockwave-flash"},
+	{ "ram",   "application/javascript"},
+	{ "pdf",   "application/pdf"},
+
+	{ "xml",   "text/xml"},
+	{ "xsl",   "text/xml"},
+
+	{ "",    "text/plain"}
+};
+
 long ston(unsigned char* s)
 {
 	long sign = +1;
@@ -310,5 +347,24 @@ void MakeDeepPath(char* szPath)
 		_mkdir(szTemp);
 		p2[0] = chTmp;
 		p1 = p2 + 1;
+	}
+}
+
+char* GetContentType(const char* extension)
+{
+	int i = 0;
+	int extLen = strlen(extension);
+	while (1)
+	{
+		int typeLen = strlen(contentTypes[i].extension);
+		if (typeLen == 0)
+			return contentTypes[i].content_type;
+
+		if (typeLen == extLen)
+		{
+			if (Strnicmp(extension, contentTypes[i].extension, typeLen) == 0)
+				return contentTypes[i].content_type;
+		}
+		i++;
 	}
 }
