@@ -15,20 +15,12 @@
       <div class='sub-title margin-t2'>Powered by <!--#DEV_VENDOR--></div>
     </div>
 
-    <div class='base columns center-item main-stretch' style="overflow-x: hidden; overflow-y: auto;">
-      <div class='key margin-t24'>Model</div>           <div class='value margin-t2'><!--#DEV_MODEL--></div>
-      <div class='key margin-t8'>Name</div>             <div class='value margin-t2'><!--#DEV_NAME--></div>
-      <div class='key margin-t8'>Firmware Version</div> <div class='value margin-t2'><!--#DEV_VERSION--></div>
-      <div class='key margin-t8'>UUID</div>             <div class='value margin-t2'><!--#DEV_UUID--></div>
-      <div class='key margin-t8'>Serial Number</div>    <div class='value margin-t2'><!--#DEV_SN--></div>
-      <div class='key margin-t8'>MAC Address</div>      <div class='value margin-t2'><!--#DEV_MAC--></div>
-      <div class='key margin-t8'>IP Address</div>       <div class='value margin-t2'><!--#DEV_IP--></div>
-      <div class='key margin-t8'>Gateway</div>          <div class='value margin-t2'><!--#DEV_GATEWAY--></div>
-      <div class='key margin-t8'>Subnet</div>           <div class='value margin-t2'><!--#DEV_SUBNET--></div>
-      <div class='key margin-t8'>Vendor Home</div>      <div class='value margin-t2'><!--#DEV_VENDOR_URL--></div>
-      <div class='key margin-t8'>Model Home</div>       <div class='value margin-t2'><!--#DEV_MODEL_URL--></div>
-
-	  </div>
+    <form class='base columns stretch-item main-stretch' style="width: 345px; overflow-x: hidden; overflow-y: auto;" action="/app/form.shtml" method="post">
+      <div class='base rows between-content margin-t24'><div class='form-key'>Color</div>           <input class='form-value' type="color"  name="VAR_COLOR"  value="<!--#VAR_COLOR-->"/></div>
+      <div class='base rows between-content margin-t8'><div class='form-key'>Date</div>             <input class='form-value' type="date"   name="VAR_DATE"   value="<!--#VAR_DATE-->"/></div>
+      <div class='base rows between-content margin-t8'><div class='form-key'>Time</div>             <input class='form-value' type="time"   name="VAR_TIME"   value="<!--#VAR_TIME-->"/></div>
+      <div class='base rows between-content margin-t24'><div class='form-key'></div>                <button class='tab margin-l2' type="submit" id='save'>Save</button></div>
+    </form>
 
     <div class='base row between-content margin-t24' style="height: 40px;">
       <button class='tab' id='home'>Home</button>

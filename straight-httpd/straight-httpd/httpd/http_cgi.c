@@ -37,7 +37,7 @@ void CGI_SetupMapping() //called from SetupHttpContext(), CGI handlers could be 
 	
 	CGI_Append(&g_cgiSSDP,    "/upnp_device.xml", CGI_OPT_GET_ENABLED | CGI_OPT_CHUNK_ENABLED);
 	CGI_Append(&g_cgiAuth,    "/auth/*", CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED);
-	CGI_Append(&g_cgiForm,	  "/form/*", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED);
+	CGI_Append(&g_cgiForm,	  "/app/form.shtml", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED);
 	CGI_Append(&g_cgiFiles,   "/api/files.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_CHUNK_ENABLED);
 	CGI_Append(&g_cgiUpload,  "/api/upload.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_POST_ENABLED);
 	CGI_Append(&g_cgiWebApp,  "/app/*", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED); //"/app/*", MUST be the last one
@@ -401,7 +401,7 @@ int CGI_LoadContentToSend(REQUEST_CONTEXT* context, int caller)
 { //context->ctxResponse._bytesLeft should be 0, and context->ctxResponse._sendBuffer is empty
 	int hasData2Send = -1; //-1=finished, no more data
 
-	if (context->_requestMethod == METHOD_GET)
+	if ((context->_requestMethod == METHOD_GET) || (context->_requestMethod == METHOD_POST))
 	{
 		if (context->ctxResponse._dwOperStage >= STAGE_END)
 		{

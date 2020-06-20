@@ -9,6 +9,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern void LogPrint(int level, char* format, ... );
+extern void TAG_Setter(char* name, char* value);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -20,7 +21,7 @@ int ExtractFormData(char* buffer, int nSize, int nTotalRemain);
 void Form_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo);
 
 struct CGI_Mapping g_cgiForm = {
-	"/form/*", //char* path;
+	"/app/form.shtml", //char* path;
 	CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED,// unsigned long options;
 
 	NULL, //void (*OnCancel)(REQUEST_CONTEXT* context);
@@ -90,31 +91,13 @@ void Form_OnRequestReceived(REQUEST_CONTEXT* context)
 {
 	SSI_Context* ctxSSI = (SSI_Context*)context->ctxResponse._appContext;
 
-	if ((context->_requestMethod == METHOD_POST) && (stricmp(context->_requestPath, WEB_DEFAULT_PAGE) == 0))
-	{ //login
-		int success = AuthCheck(context);
-		memset(ctxSSI, 0, sizeof(SSI_Context)); //clear after OnAuthCheck
-		if (success > 0)
-		{
-			strcpy(context->_responsePath, WEB_APP_PAGE);
-			context->ctxResponse._authorized = CODE_OK;
-			context->_result = CODE_REDIRECT;
-			return;
-		}
-		else
-		{
-			strcpy(context->_responsePath, WEB_DEFAULT_PAGE);
-			context->ctxResponse._authorized = 0;
-			context->_result = CODE_REDIRECT;
-			return;
-		}
-	}
-
 	WEB_RequestReceived(context);
 }
 
 void Form_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 {
+	context->ctxResponse._bytesLeft = 0;
+
 	WEB_SetResponseHeaders(context, HttpCodeInfo);
 }
 
@@ -138,29 +121,28 @@ int Form_OnContentReceived(REQUEST_CONTEXT* context, char* buffer, int size)
 
 			nFree = sizeof(context->ctxResponse._sendBuffer) - context->ctxResponse._bytesLeft - 32;
 			if (consumed > nFree)
-			{
 				consumed = nFree;
-				if (consumed > 0)
+
+			if (consumed > 0)
+			{
+				int nParsed;
+				int nRemain = context->_contentLength - context->_contentReceived - consumed;
+
+				memcpy(context->ctxResponse._sendBuffer + context->ctxResponse._bytesLeft, buffer, consumed);
+				context->ctxResponse._bytesLeft += consumed;
+
+				context->_tLastReceived = LWIP_GetTickCount();
+				if (context->_tLastReceived == 0)
+					context->_tLastReceived++;
+
+				nParsed = ExtractFormData(context->ctxResponse._sendBuffer, context->ctxResponse._bytesLeft, nRemain);
+				if (nParsed > 0)
 				{
-					int nParsed;
-					int nRemain = context->_contentLength - context->_contentReceived - consumed;
-
-					memcpy(context->ctxResponse._sendBuffer + context->ctxResponse._bytesLeft, buffer, consumed);
-					context->ctxResponse._bytesLeft += consumed;
-
-					context->_tLastReceived = LWIP_GetTickCount();
-					if (context->_tLastReceived == 0)
-						context->_tLastReceived++;
-
-					nParsed = ExtractFormData(context->ctxResponse._sendBuffer, context->ctxResponse._bytesLeft, nRemain);
-					if (nParsed > 0)
-					{
-						context->ctxResponse._bytesLeft -= nParsed;
-						if (context->ctxResponse._bytesLeft > 0)
-							memcpy(context->ctxResponse._sendBuffer, context->ctxResponse._sendBuffer + nParsed, context->ctxResponse._bytesLeft);
-					}
-					//LogPrint(LOG_DEBUG_ONLY, "File accepted %d, free=%d, @%d", eaten, nFree, context->_sid);
+					context->ctxResponse._bytesLeft -= nParsed;
+					if (context->ctxResponse._bytesLeft > 0)
+						memcpy(context->ctxResponse._sendBuffer, context->ctxResponse._sendBuffer + nParsed, context->ctxResponse._bytesLeft);
 				}
+				//LogPrint(LOG_DEBUG_ONLY, "File accepted %d, free=%d, @%d", eaten, nFree, context->_sid);
 			}
 		}
 	}
@@ -169,5 +151,43 @@ int Form_OnContentReceived(REQUEST_CONTEXT* context, char* buffer, int size)
 
 int ExtractFormData(char* buffer, int nSize, int nTotalRemain)
 {
+	char* p = NULL;
+	char* ns = NULL;
+	char* ne = NULL;
+	char* vs = NULL;
+	char* ve = NULL;
+
+	p = buffer;
+	while((*p != 0) && (p < buffer + nSize))
+	{
+		ve = strstr(p, "&");
+		ne = strstr(p, "=");
+		if ((ve == NULL) || (ne == NULL))
+			break;
+
+		*ne = 0;
+		*ve = 0;
+
+		ns = p;
+		vs = ne + 1;
+
+		URLDecode(ns);
+		URLDecode(vs);
+		TAG_Setter(ns, vs);
+
+		p = ve + 1;
+	}
+
+	if (nTotalRemain > 0)
+		return (p - buffer);
+
+	if (ne != NULL)
+	{
+		*ne = 0;
+		URLDecode(p);
+		URLDecode(ne+1);
+		TAG_Setter(p, ne+1);
+	}
+
 	return nSize;
 }

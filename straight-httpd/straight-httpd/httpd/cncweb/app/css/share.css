@@ -131,6 +131,27 @@ body
 	-ms-flex-shrink: 0;
 	flex-shrink: 0;
 }
+.form-key
+{ 
+	font-size: 18px; 
+	font-weight: 500; 
+
+	-webkit-flex-shrink: 0;
+	-ms-flex-shrink: 0;
+	flex-shrink: 0;
+}
+.form-value
+{ 
+	font-size: 16px; 
+	height: 30px;
+	max-width: 220px;
+
+	padding: 0px 8px 0px 8px;
+	
+	-webkit-flex-shrink: 0;
+	-ms-flex-shrink: 0;
+	flex-shrink: 0;
+}
 button
 { 
 	min-height: 30px; 
