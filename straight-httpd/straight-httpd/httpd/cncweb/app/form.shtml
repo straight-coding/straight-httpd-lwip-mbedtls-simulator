@@ -16,10 +16,30 @@
     </div>
 
     <form class='base columns stretch-item main-stretch' style="width: 345px; overflow-x: hidden; overflow-y: auto;" action="/app/form.shtml" method="post">
-      <div class='base rows between-content margin-t24'><div class='form-key'>Color</div>           <input class='form-value' type="color"  name="VAR_COLOR"  value="<!--#VAR_COLOR-->"/></div>
-      <div class='base rows between-content margin-t8'><div class='form-key'>Date</div>             <input class='form-value' type="date"   name="VAR_DATE"   value="<!--#VAR_DATE-->"/></div>
-      <div class='base rows between-content margin-t8'><div class='form-key'>Time</div>             <input class='form-value' type="time"   name="VAR_TIME"   value="<!--#VAR_TIME-->"/></div>
-      <div class='base rows between-content margin-t24'><div class='form-key'></div>                <button class='tab margin-l2' type="submit" id='save'>Save</button></div>
+      <div class='base rows between-content margin-t24'>
+        <div class='form-key'>Location</div>
+        <input class='form-value' type="text" name="VAR_LOCATION" value="<!--#VAR_LOCATION-->"/>
+      </div>
+      <div class='base rows between-content margin-t8'>
+        <div class='form-key'>Date</div>
+        <input class='form-value' type="date" name="VAR_DATE" value="<!--#VAR_DATE-->"/>
+      </div>
+      <div class='base rows between-content margin-t8'>
+        <label for="check_log">Log</label>
+        <input class='form-value' type="checkbox" id="check_log" name="VAR_LOG" value="1"/>
+      </div>
+      <div class='base rows between-content margin-t8'>
+        <div class='form-key'>Font</div>
+        <div class='base rows'>
+          <input type="radio" id="font_small"  name="VAR_FONT" value="small"><label for="font_small">Small</label>&nbsp;&nbsp;
+          <input type="radio" id="font_middle" name="VAR_FONT" value="middle"><label for="font_middle">Middle</label>&nbsp;&nbsp;
+          <input type="radio" id="font_large"  name="VAR_FONT" value="large"><label for="font_large">Large</label>
+        </div>
+      </div>
+      <div class='base rows between-content margin-t24'>
+        <div class='form-key'></div>
+        <button class='tab margin-l2' type="submit" id='save'>Save</button>
+      </div>
     </form>
 
     <div class='base row between-content margin-t24' style="height: 40px;">
@@ -32,6 +52,14 @@
   </div>
   
   <script>
+
+    var log  = '<!--#VAR_LOG-->';
+    document.getElementById("check_log").checked = (log > 0);
+
+    var font = '<!--#VAR_FONT-->';
+    document.getElementById("font_small").checked = (font == 'small');
+    document.getElementById("font_middle").checked = (font == 'middle');
+    document.getElementById("font_large").checked = (font == 'large');
 
     document.getElementById('home').addEventListener('click', goHome);
     function goHome() { location.href = '/app/index.shtml'; }

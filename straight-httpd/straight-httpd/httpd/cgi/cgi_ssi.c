@@ -15,15 +15,18 @@ static int FillSubnet(REQUEST_CONTEXT* context, char* buffer, int maxSize);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 //get a null terminated string from global memory or flash
-#define TAG_TYPE_GETTER			0x1000 //char* (*_tagGetter)(void); 
+#define TAG_GETTER			0x1000 //char* (*_tagGetter)(void); 
 //fill info to the provided buffer
-#define TAG_TYPE_PRODUCER		0x2000 //int (*_tagProducer)(REQUEST_CONTEXT* context, char* buffer, int maxSize); 
-#define TAG_TYPE_BYTE			0x3000
-#define TAG_TYPE_WORD			0x4000
-#define TAG_TYPE_FLOAT			0x5000
-#define TAG_TYPE_DWORD			0x6000
-#define TAG_TYPE_DOUBLE			0x7000
-#define TAG_TYPE_STRING			0x8000
+#define TAG_PROVIDER		0x2000 //int (*_tagProvider)(REQUEST_CONTEXT* context, char* buffer, int maxSize); 
+#define TAG_BYTE			0x3000
+#define TAG_WORD			0x4000
+#define TAG_FLOAT			0x5000
+#define TAG_DWORD			0x6000
+#define TAG_DOUBLE			0x7000
+#define TAG_STRING			0x8000
+
+#define FORMATER_FLOAT		"%.3f"
+#define FORMATER_DOUBLE		"%.6f"
 
 typedef struct
 {
@@ -34,28 +37,32 @@ typedef struct
 
 char g_szColor[16] = { 0 };
 char g_szDate[16]  = { 0 };
-char g_szTime[16]  = { 0 };
+char g_szFont[16] = { 0 };
+char g_szLocation[16] = { 0 };
+long g_nLog = 0;
 
 static SSI_Tag g_tagsBuiltin[] = {
-	{ "DEV_VENDOR",		TAG_TYPE_GETTER, GetVendor },
-	{ "DEV_VENDOR_URL",	TAG_TYPE_GETTER, GetVendorURL },
+	{ "DEV_VENDOR",		TAG_GETTER, GetVendor }, //for home use
+	{ "DEV_VENDOR_URL",	TAG_GETTER, GetVendorURL },
 	  
-	{ "DEV_MODEL",		TAG_TYPE_GETTER, GetModel },
-	{ "DEV_MODEL_URL",	TAG_TYPE_GETTER, GetModelURL },
+	{ "DEV_MODEL",		TAG_GETTER, GetModel },
+	{ "DEV_MODEL_URL",	TAG_GETTER, GetModelURL },
 	  
-	{ "DEV_MAC",		TAG_TYPE_PRODUCER, FillMAC },
-	{ "DEV_IP",			TAG_TYPE_PRODUCER, FillIP },
-	{ "DEV_GATEWAY",	TAG_TYPE_PRODUCER, FillGateway },
-	{ "DEV_SUBNET",		TAG_TYPE_PRODUCER, FillSubnet },
+	{ "DEV_MAC",		TAG_PROVIDER, FillMAC },
+	{ "DEV_IP",			TAG_PROVIDER, FillIP },
+	{ "DEV_GATEWAY",	TAG_PROVIDER, FillGateway },
+	{ "DEV_SUBNET",		TAG_PROVIDER, FillSubnet },
 	  
-	{ "DEV_NAME",		TAG_TYPE_GETTER, GetDeviceName },
-	{ "DEV_SN",			TAG_TYPE_GETTER, GetDeviceSN },
-	{ "DEV_UUID",		TAG_TYPE_GETTER, GetDeviceUUID },
-	{ "DEV_VERSION",	TAG_TYPE_GETTER, GetDeviceVersion },
+	{ "DEV_NAME",		TAG_GETTER, GetDeviceName },
+	{ "DEV_SN",			TAG_GETTER, GetDeviceSN },
+	{ "DEV_UUID",		TAG_GETTER, GetDeviceUUID },
+	{ "DEV_VERSION",	TAG_GETTER, GetDeviceVersion },
 
-	{ "VAR_COLOR",		TAG_TYPE_STRING + sizeof(g_szColor), g_szColor},
-	{ "VAR_DATE",		TAG_TYPE_STRING + sizeof(g_szDate), g_szDate},
-	{ "VAR_TIME",		TAG_TYPE_STRING + sizeof(g_szTime), g_szTime},
+	{ "VAR_LOCATION",	TAG_STRING + sizeof(g_szLocation), g_szLocation}, //for form use
+	{ "VAR_COLOR",		TAG_STRING + sizeof(g_szColor), g_szColor},
+	{ "VAR_DATE",		TAG_STRING + sizeof(g_szDate),  g_szDate},
+	{ "VAR_LOG",		TAG_DWORD + sizeof(g_nLog),  &g_nLog},
+	{ "VAR_FONT",		TAG_STRING + sizeof(g_szFont),  g_szFont},
 
 	{NULL, NULL, NULL}
 };
@@ -63,67 +70,106 @@ static SSI_Tag g_tagsBuiltin[] = {
 void TAG_Setter(char* name, char* value)
 {
 	int i = 0;
+	int type = 0;
+	int size = 0;
+	SSI_Tag* tag = NULL;
 
 	LogPrint(LOG_DEBUG_ONLY, "  Tag: %s=%s", name, value);
 
 	while (g_tagsBuiltin[i]._tagName != NULL)
 	{
-		if (strcmp(g_tagsBuiltin[i]._tagName, name) == 0)
+		tag = &g_tagsBuiltin[i++];
+		if (strcmp(tag->_tagName, name) != 0)
+			continue;
+
+		if (tag->_tagHandler == NULL)
+			break;
+
+		type = (tag->_tagType & 0xF000);
+		size = (tag->_tagType & 0x0FFF);
+
+		if (type == TAG_STRING)
 		{
-			int type = (g_tagsBuiltin[i]._tagType & 0xF000);
-			int size = (g_tagsBuiltin[i]._tagType & 0x0FFF);
-			if (type == TAG_TYPE_STRING)
-			{
-				strncpy(g_tagsBuiltin[i]._tagHandler, value, size - 1);
-				return;
-			}
+			strncpy(tag->_tagHandler, value, size - 1);
 		}
-		i++;
+		else if (type == TAG_BYTE)
+		{
+			long nValue = ston(value);
+			((unsigned char*)tag->_tagHandler)[0] = (unsigned char)nValue;
+		}
+		else if (type == TAG_WORD)
+		{
+			long nValue = ston(value);
+			((unsigned short*)tag->_tagHandler)[0] = (unsigned short)nValue;
+		}
+		else if (type == TAG_DWORD)
+		{
+			long nValue = ston(value);
+			((unsigned long*)tag->_tagHandler)[0] = (unsigned long)nValue;
+		}
+		else if (type == TAG_FLOAT)
+		{
+			float fValue = atof(value);
+			((float*)tag->_tagHandler)[0] = fValue;
+		}
+		else if (type == TAG_DOUBLE)
+		{
+			double fValue = atof(value);
+			((double*)tag->_tagHandler)[0] = fValue;
+		}
+		break;
 	}
 }
 
 int ReplaceTag(REQUEST_CONTEXT* context, char* tagName, char* appendTo, int maxAllowed)
 {
 	int i = 0;
+	int type = 0;
+	int size = 0;
 	int valueLen = 0;
+	SSI_Tag* tag = NULL;
 
 	char szTemp[64];
 	memset(szTemp, 0, sizeof(szTemp));
 
-	//check built-in tags first
 	while (g_tagsBuiltin[i]._tagName != NULL)
 	{
-		if (strcmp(g_tagsBuiltin[i]._tagName, tagName) == 0)
+		tag = &g_tagsBuiltin[i++];
+		if (strcmp(tag->_tagName, tagName) != 0)
+			continue;
+
+		if (tag->_tagHandler == NULL)
+			break;
+
+		type = (tag->_tagType & 0xF000);
+		size = (tag->_tagType & 0x0FFF);
+		if (size > sizeof(szTemp)-1)
+			size = sizeof(szTemp)-1;
+
+		if (type == TAG_GETTER)
 		{
-			int type = (g_tagsBuiltin[i]._tagType & 0xF000);
-			int size = (g_tagsBuiltin[i]._tagType & 0x0FFF);
-			if (size > sizeof(szTemp))
-				size = sizeof(szTemp);
-
-			if (type == TAG_TYPE_GETTER)
-			{
-				char* (*getter)(void) = g_tagsBuiltin[i]._tagHandler;
-
-				strncpy(szTemp, getter(), sizeof(szTemp) - 1);
-				break;
-			}
-			else if (type == TAG_TYPE_PRODUCER)
-			{
-				int (*producer)(REQUEST_CONTEXT* context, char* buffer, int maxSize) = g_tagsBuiltin[i]._tagHandler;
-				producer(context, szTemp, sizeof(szTemp) - 1);
-				break;
-			}
-			else if (type == TAG_TYPE_STRING)
-			{
-				strncpy(szTemp, g_tagsBuiltin[i]._tagHandler, size - 1);
-			}
+			char* (*getter)(void) = tag->_tagHandler;
+			strncpy(szTemp, getter(), sizeof(szTemp) - 1);
 		}
-		i++;
-	}
+		else if (type == TAG_PROVIDER)
+		{
+			int (*producer)(REQUEST_CONTEXT* context, char* buffer, int maxSize) = tag->_tagHandler;
+			producer(context, szTemp, sizeof(szTemp) - 1);
+		}
+		else if (type == TAG_STRING)
+			strncpy(szTemp, tag->_tagHandler, size);
+		else if (type == TAG_BYTE)
+			LWIP_sprintf(szTemp, "%u", ((unsigned char*)tag->_tagHandler)[0]);
+		else if (type == TAG_WORD)
+			LWIP_sprintf(szTemp, "%u", ((unsigned short*)tag->_tagHandler)[0]);
+		else if (type == TAG_DWORD)
+			LWIP_sprintf(szTemp, "%lu", ((unsigned long*)tag->_tagHandler)[0]);
+		else if (type == TAG_FLOAT)
+			LWIP_sprintf(szTemp, FORMATER_FLOAT, ((float*)tag->_tagHandler)[0]);
+		else if (type == TAG_DOUBLE)
+			LWIP_sprintf(szTemp, FORMATER_DOUBLE, ((double*)tag->_tagHandler)[0]);
 
-	if (szTemp[0] == 0)
-	{ //replace your customized tags here
-
+		break;
 	}
 
 	if (szTemp[0] != 0)

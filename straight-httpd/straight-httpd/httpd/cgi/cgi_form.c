@@ -38,67 +38,11 @@ struct CGI_Mapping g_cgiForm = {
 
 	NULL //struct CGI_Mapping* next;
 };
-/*
-int Form_Setter(REQUEST_CONTEXT* context)
-{
-	if (context->ctxResponse._appContext[0] != 0)
-	{
-		int success, i;
-		char* u;
-		char* p;
-		char szToken[32];
 
-		LogPrint(0, "POST data: %s\r\n", context->ctxResponse._appContext);
-		u = strstr(context->ctxResponse._appContext, "username=");
-		p = strstr(context->ctxResponse._appContext, "password=");
-		if ((u != NULL) && (p != NULL))
-		{
-			u += 9; p += 9;
-
-			i = 0;
-			while (u[i] != 0)
-			{
-				if (u[i] == '&')
-				{
-					u[i] = 0;
-					break;
-				}
-				i++;
-			}
-
-			i = 0;
-			while (p[i] != 0)
-			{
-				if (p[i] == '&')
-				{
-					p[i] = 0;
-					break;
-				}
-				i++;
-			}
-		}
-	}
-	return 0;
-}
-*/
 void Form_OnHeaders(REQUEST_CONTEXT* context)
-{
+{ //use send buffer to accept posted data before response
 	memset(context->ctxResponse._sendBuffer, 0, sizeof(context->ctxResponse._sendBuffer));
 	context->ctxResponse._bytesLeft = 0;
-}
-
-void Form_OnRequestReceived(REQUEST_CONTEXT* context)
-{
-	SSI_Context* ctxSSI = (SSI_Context*)context->ctxResponse._appContext;
-
-	WEB_RequestReceived(context);
-}
-
-void Form_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
-{
-	context->ctxResponse._bytesLeft = 0;
-
-	WEB_SetResponseHeaders(context, HttpCodeInfo);
 }
 
 int Form_OnContentReceived(REQUEST_CONTEXT* context, char* buffer, int size)
@@ -190,4 +134,17 @@ int ExtractFormData(char* buffer, int nSize, int nTotalRemain)
 	}
 
 	return nSize;
+}
+
+void Form_OnRequestReceived(REQUEST_CONTEXT* context)
+{
+	WEB_RequestReceived(context);
+}
+
+void Form_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
+{ //clear send buffer for response use
+	memset(context->ctxResponse._sendBuffer, 0, sizeof(context->ctxResponse._sendBuffer));
+	context->ctxResponse._bytesLeft = 0;
+
+	WEB_SetResponseHeaders(context, HttpCodeInfo);
 }
