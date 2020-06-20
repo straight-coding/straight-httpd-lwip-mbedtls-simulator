@@ -14,33 +14,73 @@ static int FillGateway(REQUEST_CONTEXT* context, char* buffer, int maxSize);
 static int FillSubnet(REQUEST_CONTEXT* context, char* buffer, int maxSize);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
+//get a null terminated string from global memory or flash
+#define TAG_TYPE_GETTER			0x1000 //char* (*_tagGetter)(void); 
+//fill info to the provided buffer
+#define TAG_TYPE_PRODUCER		0x2000 //int (*_tagProducer)(REQUEST_CONTEXT* context, char* buffer, int maxSize); 
+#define TAG_TYPE_BYTE			0x3000
+#define TAG_TYPE_WORD			0x4000
+#define TAG_TYPE_FLOAT			0x5000
+#define TAG_TYPE_DWORD			0x6000
+#define TAG_TYPE_DOUBLE			0x7000
+#define TAG_TYPE_STRING			0x8000
 
 typedef struct
 {
 	char* _tagName; //in shtml files, tag format: <!--#TAG_NAME-->
-	char* (*_tagGetter)(void); //get a null terminated string from global memory or flash
-	int (*_tagProducer)(REQUEST_CONTEXT* context, char* buffer, int maxSize); //fill info to the provided buffer
+	int   _tagType;
+	void* _tagHandler;
 }SSI_Tag;
 
+char g_szColor[16] = { 0 };
+char g_szDate[16]  = { 0 };
+char g_szTime[16]  = { 0 };
+
 static SSI_Tag g_tagsBuiltin[] = {
-	{"DEV_VENDOR",		GetVendor, NULL},
-	{"DEV_VENDOR_URL",	GetVendorURL, NULL},
+	{ "DEV_VENDOR",		TAG_TYPE_GETTER, GetVendor },
+	{ "DEV_VENDOR_URL",	TAG_TYPE_GETTER, GetVendorURL },
+	  
+	{ "DEV_MODEL",		TAG_TYPE_GETTER, GetModel },
+	{ "DEV_MODEL_URL",	TAG_TYPE_GETTER, GetModelURL },
+	  
+	{ "DEV_MAC",		TAG_TYPE_PRODUCER, FillMAC },
+	{ "DEV_IP",			TAG_TYPE_PRODUCER, FillIP },
+	{ "DEV_GATEWAY",	TAG_TYPE_PRODUCER, FillGateway },
+	{ "DEV_SUBNET",		TAG_TYPE_PRODUCER, FillSubnet },
+	  
+	{ "DEV_NAME",		TAG_TYPE_GETTER, GetDeviceName },
+	{ "DEV_SN",			TAG_TYPE_GETTER, GetDeviceSN },
+	{ "DEV_UUID",		TAG_TYPE_GETTER, GetDeviceUUID },
+	{ "DEV_VERSION",	TAG_TYPE_GETTER, GetDeviceVersion },
 
-	{"DEV_MODEL",		GetModel, NULL},
-	{"DEV_MODEL_URL",	GetModelURL, NULL},
+	{ "VAR_COLOR",		TAG_TYPE_STRING + sizeof(g_szColor), g_szColor},
+	{ "VAR_DATE",		TAG_TYPE_STRING + sizeof(g_szDate), g_szDate},
+	{ "VAR_TIME",		TAG_TYPE_STRING + sizeof(g_szTime), g_szTime},
 
-	{"DEV_MAC",			NULL, FillMAC},
-	{"DEV_IP",			NULL, FillIP},
-	{"DEV_GATEWAY",		NULL, FillGateway},
-	{"DEV_SUBNET",		NULL, FillSubnet},
-
-	{"DEV_NAME",		GetDeviceName, NULL},
-	{"DEV_SN",			GetDeviceSN, NULL},
-	{"DEV_UUID",		GetDeviceUUID, NULL},
-	{"DEV_VERSION",		GetDeviceVersion, NULL},
-
-	{NULL,	NULL, NULL}
+	{NULL, NULL, NULL}
 };
+
+void TAG_Setter(char* name, char* value)
+{
+	int i = 0;
+
+	LogPrint(LOG_DEBUG_ONLY, "  Tag: %s=%s", name, value);
+
+	while (g_tagsBuiltin[i]._tagName != NULL)
+	{
+		if (strcmp(g_tagsBuiltin[i]._tagName, name) == 0)
+		{
+			int type = (g_tagsBuiltin[i]._tagType & 0xF000);
+			int size = (g_tagsBuiltin[i]._tagType & 0x0FFF);
+			if (type == TAG_TYPE_STRING)
+			{
+				strncpy(g_tagsBuiltin[i]._tagHandler, value, size - 1);
+				return;
+			}
+		}
+		i++;
+	}
+}
 
 int ReplaceTag(REQUEST_CONTEXT* context, char* tagName, char* appendTo, int maxAllowed)
 {
@@ -55,15 +95,27 @@ int ReplaceTag(REQUEST_CONTEXT* context, char* tagName, char* appendTo, int maxA
 	{
 		if (strcmp(g_tagsBuiltin[i]._tagName, tagName) == 0)
 		{
-			if (g_tagsBuiltin[i]._tagGetter != NULL)
+			int type = (g_tagsBuiltin[i]._tagType & 0xF000);
+			int size = (g_tagsBuiltin[i]._tagType & 0x0FFF);
+			if (size > sizeof(szTemp))
+				size = sizeof(szTemp);
+
+			if (type == TAG_TYPE_GETTER)
 			{
-				strncpy(szTemp, g_tagsBuiltin[i]._tagGetter(), sizeof(szTemp) - 1);
+				char* (*getter)(void) = g_tagsBuiltin[i]._tagHandler;
+
+				strncpy(szTemp, getter(), sizeof(szTemp) - 1);
 				break;
 			}
-			else if (g_tagsBuiltin[i]._tagProducer != NULL)
+			else if (type == TAG_TYPE_PRODUCER)
 			{
-				g_tagsBuiltin[i]._tagProducer(context, szTemp, sizeof(szTemp) - 1);
+				int (*producer)(REQUEST_CONTEXT* context, char* buffer, int maxSize) = g_tagsBuiltin[i]._tagHandler;
+				producer(context, szTemp, sizeof(szTemp) - 1);
 				break;
+			}
+			else if (type == TAG_TYPE_STRING)
+			{
+				strncpy(szTemp, g_tagsBuiltin[i]._tagHandler, size - 1);
 			}
 		}
 		i++;
