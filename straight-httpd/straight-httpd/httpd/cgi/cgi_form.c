@@ -13,11 +13,8 @@ extern void TAG_Setter(char* name, char* value);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Form_OnHeaders(REQUEST_CONTEXT* context);
-int  Form_OnContentReceived(REQUEST_CONTEXT* context, char* buffer, int size);
 void Form_OnRequestReceived(REQUEST_CONTEXT* context);
 	
-int ExtractFormData(char* buffer, int nSize, int nTotalRemain);
 void Form_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo);
 
 struct CGI_Mapping g_cgiForm = {
@@ -27,8 +24,8 @@ struct CGI_Mapping g_cgiForm = {
 	NULL, //void (*OnCancel)(REQUEST_CONTEXT* context);
 
 	NULL, //int (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line);
-	Form_OnHeaders, //void (*OnHeadersReceived)(REQUEST_CONTEXT* context);
-	Form_OnContentReceived, //int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size);
+	WEB_OnFormHeaders, //void (*OnHeadersReceived)(REQUEST_CONTEXT* context);
+	WEB_OnFormReceived, //int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size);
 	Form_OnRequestReceived, //void (*OnRequestReceived)(REQUEST_CONTEXT* context);
 
 	Form_SetResponseHeaders, //void (*SetResponseHeader)(REQUEST_CONTEXT* context, char* HttpCode);
@@ -38,103 +35,6 @@ struct CGI_Mapping g_cgiForm = {
 
 	NULL //struct CGI_Mapping* next;
 };
-
-void Form_OnHeaders(REQUEST_CONTEXT* context)
-{ //use send buffer to accept posted data before response
-	memset(context->ctxResponse._sendBuffer, 0, sizeof(context->ctxResponse._sendBuffer));
-	context->ctxResponse._bytesLeft = 0;
-}
-
-int Form_OnContentReceived(REQUEST_CONTEXT* context, char* buffer, int size)
-{ //use send buffer to parse form data
-	int consumed = context->_contentLength - context->_contentReceived;
-	if (consumed > size)
-		consumed = size;
-
-	if (consumed > 0)
-	{
-		if (context->_requestMethod == METHOD_POST)
-		{ //processing while receiving
-			int nFree = 0;
-			if (IsKilling(context, 1)) //get and reset
-			{
-				context->_result = -500;
-				LogPrint(0, "IsKilling error=%d, @%d", context->_result, context->_sid);
-				return 0;
-			}
-
-			nFree = sizeof(context->ctxResponse._sendBuffer) - context->ctxResponse._bytesLeft - 32;
-			if (consumed > nFree)
-				consumed = nFree;
-
-			if (consumed > 0)
-			{
-				int nParsed;
-				int nRemain = context->_contentLength - context->_contentReceived - consumed;
-
-				memcpy(context->ctxResponse._sendBuffer + context->ctxResponse._bytesLeft, buffer, consumed);
-				context->ctxResponse._bytesLeft += consumed;
-
-				context->_tLastReceived = LWIP_GetTickCount();
-				if (context->_tLastReceived == 0)
-					context->_tLastReceived++;
-
-				nParsed = ExtractFormData(context->ctxResponse._sendBuffer, context->ctxResponse._bytesLeft, nRemain);
-				if (nParsed > 0)
-				{
-					context->ctxResponse._bytesLeft -= nParsed;
-					if (context->ctxResponse._bytesLeft > 0)
-						memcpy(context->ctxResponse._sendBuffer, context->ctxResponse._sendBuffer + nParsed, context->ctxResponse._bytesLeft);
-				}
-				//LogPrint(LOG_DEBUG_ONLY, "File accepted %d, free=%d, @%d", eaten, nFree, context->_sid);
-			}
-		}
-	}
-	return consumed;
-}
-
-int ExtractFormData(char* buffer, int nSize, int nTotalRemain)
-{
-	char* p = NULL;
-	char* ns = NULL;
-	char* ne = NULL;
-	char* vs = NULL;
-	char* ve = NULL;
-
-	p = buffer;
-	while((*p != 0) && (p < buffer + nSize))
-	{
-		ve = strstr(p, "&");
-		ne = strstr(p, "=");
-		if ((ve == NULL) || (ne == NULL))
-			break;
-
-		*ne = 0;
-		*ve = 0;
-
-		ns = p;
-		vs = ne + 1;
-
-		URLDecode(ns);
-		URLDecode(vs);
-		TAG_Setter(ns, vs);
-
-		p = ve + 1;
-	}
-
-	if (nTotalRemain > 0)
-		return (p - buffer);
-
-	if (ne != NULL)
-	{
-		*ne = 0;
-		URLDecode(p);
-		URLDecode(ne+1);
-		TAG_Setter(p, ne+1);
-	}
-
-	return nSize;
-}
 
 void Form_OnRequestReceived(REQUEST_CONTEXT* context)
 {

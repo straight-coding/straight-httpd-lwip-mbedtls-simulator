@@ -8,10 +8,11 @@
 #define _HTTP_CORE_H_
 
 #include "lwip/opt.h"		//only for TCP_MSS definition
+
 #include "arch/port.h"		//for device information, network address
 #include "arch/sys_arch.h"	//for semaphore, mutex, mbox, file, time, tick, and log functions
-#include "../utils.h"		//for popular pure c functions, such as ston, Strnicmp, DecodeB64, ...
 
+#include "../utils.h"		//for popular pure c functions, such as ston, Strnicmp, DecodeB64, ...
 #include "http_session.h"
 
 #define LOG_DEBUG_ONLY		0 //max level of debug output
