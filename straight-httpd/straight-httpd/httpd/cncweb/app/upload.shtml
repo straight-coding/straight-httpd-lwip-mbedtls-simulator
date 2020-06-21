@@ -48,7 +48,7 @@
       <button class='tab' id='home'>Home</button>
       <button class='tab margin-l2' id='upload'>Upload</button>
       <button class='tab margin-l2' id='files'>Files</button>
-      <button class='tab margin-l2' id='form'>Forms</button>
+      <button class='tab margin-l2' id='form'>Form</button>
       <button class='tab margin-l2' id='logout'>Logout</button>
     </div>
  </div>

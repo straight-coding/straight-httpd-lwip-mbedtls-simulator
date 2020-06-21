@@ -155,7 +155,7 @@ void SetWebRoot(char* drive, char* absRoot, char* defaultFile)
 	}
 }
 
-void CGI_Append(struct CGI_Mapping* newMapping, const char* ovwPath, u32_t ovwOptions)
+void CGI_Append(struct CGI_Mapping* newMapping, const char* ovwPath, unsigned long ovwOptions)
 {
 	int i = 0;
 	struct CGI_Mapping* next;

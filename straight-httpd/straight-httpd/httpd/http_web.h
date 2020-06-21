@@ -18,7 +18,7 @@ extern int ReplaceTag(REQUEST_CONTEXT* context, char* tagName, char* appendTo, i
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WEB_RequestReceived(REQUEST_CONTEXT* context);
-void WEB_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo);
+void WEB_AppendHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo);
 
 int  WEB_ReadContent(REQUEST_CONTEXT* context, char* buffer, int maxSize);
 void WEB_AllSent(REQUEST_CONTEXT* context);

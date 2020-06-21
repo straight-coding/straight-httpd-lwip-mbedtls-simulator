@@ -163,7 +163,7 @@ void Auth_OnRequestReceived(REQUEST_CONTEXT* context)
 }
 
 void Auth_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
-{
+{ //append headers
 	int nSize = strlen(context->ctxResponse._sendBuffer);
 
 	if (stricmp(context->_requestPath, WEB_LOGOUT_PAGE) == 0)
@@ -176,5 +176,5 @@ void Auth_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 				context->ctxResponse._token, context->ctxResponse._token);
 		}
 	}
-	WEB_SetResponseHeaders(context, HttpCodeInfo);
+	WEB_AppendHeaders(context, HttpCodeInfo);
 }

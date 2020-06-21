@@ -139,12 +139,12 @@ int ExtractFormData(char* buffer, int nSize, int nTotalRemain)
 void Form_OnRequestReceived(REQUEST_CONTEXT* context)
 {
 	WEB_RequestReceived(context);
+
+	memset(context->ctxResponse._sendBuffer, 0, sizeof(context->ctxResponse._sendBuffer));
+	context->ctxResponse._bytesLeft = 0;
 }
 
 void Form_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 { //clear send buffer for response use
-	memset(context->ctxResponse._sendBuffer, 0, sizeof(context->ctxResponse._sendBuffer));
-	context->ctxResponse._bytesLeft = 0;
-
-	WEB_SetResponseHeaders(context, HttpCodeInfo);
+	WEB_AppendHeaders(context, HttpCodeInfo);
 }

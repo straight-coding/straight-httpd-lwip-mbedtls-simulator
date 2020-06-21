@@ -18,7 +18,7 @@ struct CGI_Mapping g_cgiWebApp = {
 	NULL, //int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size);
 	WEB_RequestReceived, //void (*OnRequestReceived)(REQUEST_CONTEXT* context);
 	
-	WEB_SetResponseHeaders, //void (*SetResponseHeader)(REQUEST_CONTEXT* context, char* HttpCode);
+	WEB_AppendHeaders, //void (*SetResponseHeader)(REQUEST_CONTEXT* context, char* HttpCode);
 	WEB_ReadContent, //int  (*ReadContent)(REQUEST_CONTEXT* context, char* buffer, int maxSize);
 	
 	WEB_AllSent, //int  (*OnAllSent)(REQUEST_CONTEXT* context);
