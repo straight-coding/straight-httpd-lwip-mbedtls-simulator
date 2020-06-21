@@ -93,7 +93,8 @@ void Files_SetResponseHeader(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 {
 	if (context->_requestMethod == METHOD_GET)
 	{
-		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_chunked, HttpCodeInfo, "application/json", "", "close");
+		if (context->_result == CODE_OK)
+			LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_chunked, HttpCodeInfo, "application/json", "", "close");
 	}
 }
 
