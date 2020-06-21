@@ -10,7 +10,7 @@
 #include "netif/etharp.h"
 #include "ethernetif.h"
 
-#include "lwip_port.h"
+#include "arch/port.h" //NIC interfaces
 
 static err_t low_level_init(struct netif *netif)
 {

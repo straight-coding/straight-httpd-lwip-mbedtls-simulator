@@ -10,7 +10,7 @@
 #include "lwip/priv/tcpip_priv.h"
 
 #include "netif/ethernetif.h"
-#include "lwip_port.h"
+#include "arch/port.h"
 
 extern sys_mbox_t tcpip_mbox;
 struct netif main_netif;
@@ -18,13 +18,13 @@ long g_tcpipReady = 0;
 
 int urgentCount = 0;
 int nonUrgent = 0;
-int ethCount = 0;
 
 int noTimerCount = 0;
 int timer0Count = 0;
 int timer1Count = 0;
 int eventCount = 0;
 
+int ethCount = 0;
 struct tcpip_msg eth_msg;
 void NotifyFromEthISR(void)
 {

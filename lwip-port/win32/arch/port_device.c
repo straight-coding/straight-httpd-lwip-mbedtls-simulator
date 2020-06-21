@@ -1,10 +1,11 @@
 /*
-  lwip_port.c
+  port_device.c
   Author: Straight Coder<simpleisrobust@gmail.com>
-  Date: April 12, 2020
+  Date: June 20, 2020
 */
 
-#include "lwip_port.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 unsigned char g_byMyMAC[] = { '\x00', '\x00', '\x00', '\x20', '\xAA', '\x74' };
 

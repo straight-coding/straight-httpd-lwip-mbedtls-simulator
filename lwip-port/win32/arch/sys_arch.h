@@ -3,6 +3,10 @@
 
 #pragma warning(disable:4996) //_CRT_SECURE_NO_WARNINGS
 
+///////////////////////////////////////////////////////////////////////////////////////////
+// OS
+///////////////////////////////////////////////////////////////////////////////////////////
+
 #define SYS_ARCH_DECL_PROTECT(lev)	
 #define SYS_ARCH_PROTECT(lev)		sys_arch_protect()
 #define SYS_ARCH_UNPROTECT(lev)		sys_arch_unprotect()
@@ -52,15 +56,6 @@ typedef struct lwip_mbox sys_mbox_t;
 typedef void* sys_thread_t;
 typedef unsigned int sys_prot_t;
 
-typedef struct FILE LWIP_FIL;
-void* LWIP_fopen(const char* szTemp, const char* mode);
-time_t LWIP_ftime(char* fname, char* buf, int maxSize);
-int  LWIP_fseek(void* f, long offset);
-void LWIP_fclose(void* f);
-long LWIP_fsize(void* f);
-int  LWIP_fread(void* f, char* buf, int count, unsigned int* bytes); //0=success
-int  LWIP_fwrite(void* f, char* buf, int count); //>0:success
-
 unsigned long sys_jiffies(void);
 unsigned long sys_now(void);
 unsigned long msDiff(unsigned long now, unsigned long last);
@@ -79,5 +74,18 @@ time_t parseHttpDate(char* s);
 
 const char wday_name[][4];
 const char mon_name[][4];
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// File
+///////////////////////////////////////////////////////////////////////////////////////////
+
+typedef struct FILE LWIP_FIL;
+void* LWIP_fopen(const char* szTemp, const char* mode);
+time_t LWIP_ftime(char* fname, char* buf, int maxSize);
+int  LWIP_fseek(void* f, long offset);
+void LWIP_fclose(void* f);
+long LWIP_fsize(void* f);
+int  LWIP_fread(void* f, char* buf, int count, unsigned int* bytes); //0=success
+int  LWIP_fwrite(void* f, char* buf, int count); //>0:success
 
 #endif
