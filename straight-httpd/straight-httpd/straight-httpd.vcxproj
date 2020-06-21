@@ -19,6 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\lwip-port\win32\arch\port_device.c" />
+    <ClCompile Include="..\..\lwip-port\win32\arch\port_file.c" />
+    <ClCompile Include="..\..\lwip-port\win32\arch\sys_arch.c" />
     <ClCompile Include="..\..\lwip\src\api\api_lib.c" />
     <ClCompile Include="..\..\lwip\src\api\api_msg.c" />
     <ClCompile Include="..\..\lwip\src\api\err.c" />
@@ -48,8 +51,6 @@
     <ClCompile Include="..\..\lwip\src\core\timeouts.c" />
     <ClCompile Include="..\..\lwip\src\core\udp.c" />
     <ClCompile Include="..\..\lwip\src\netif\ethernet.c" />
-    <ClCompile Include="..\..\lwip-port\win32\arch\sys_arch.c" />
-    <ClCompile Include="..\..\lwip-port\win32\lwip_port.c" />
     <ClCompile Include="..\..\lwip-port\win32\lwip_proc.c" />
     <ClCompile Include="..\..\lwip-port\win32\netif\ethernetif.c" />
     <ClCompile Include="httpd\cgi\cgi_auth.c" />
@@ -68,11 +69,11 @@
     <ClCompile Include="utils.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\lwip-port\win32\arch\port.h" />
+    <ClInclude Include="..\..\lwip-port\win32\arch\sys_arch.h" />
     <ClInclude Include="..\..\lwip\src\include\lwip\arch.h" />
     <ClInclude Include="..\..\lwip\src\include\lwip\opt.h" />
-    <ClInclude Include="..\..\lwip-port\win32\arch\sys_arch.h" />
     <ClInclude Include="..\..\lwip-port\win32\lwipopts.h" />
-    <ClInclude Include="..\..\lwip-port\win32\lwip_port.h" />
     <ClInclude Include="..\..\lwip-port\win32\netif\ethernetif.h" />
     <ClInclude Include="httpd\http_cgi.h" />
     <ClInclude Include="httpd\http_core.h" />

@@ -9,7 +9,7 @@
 #include <conio.h>
 #include <time.h>
 
-#include "../../lwip-port/win32/lwip_port.h"
+#include "../../lwip-port/win32/arch/port.h"
 
 #pragma warning(disable:4996)
 

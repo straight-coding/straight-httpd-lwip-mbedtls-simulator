@@ -8,7 +8,7 @@
 #define _HTTP_CORE_H_
 
 #include "lwip/opt.h"		//only for TCP_MSS definition
-#include "lwip_port.h"		//for device information, network address
+#include "arch/port.h"		//for device information, network address
 #include "arch/sys_arch.h"	//for semaphore, mutex, mbox, file, time, tick, and log functions
 #include "../utils.h"		//for popular pure c functions, such as ston, Strnicmp, DecodeB64, ...
 
