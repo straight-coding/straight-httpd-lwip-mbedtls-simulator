@@ -266,6 +266,7 @@ a lot of data that needs to be copied, this should be set high. */
 
 #define PACK_STRUCT_USE_INCLUDES		1
 
+#define ALTCP_MBEDTLS_RNG_FN			mbedtls_entropy_func 
 /*##############################################################################################*/
 
 void LwipLogPrint(char* format, ... );

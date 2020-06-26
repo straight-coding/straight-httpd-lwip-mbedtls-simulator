@@ -27,7 +27,12 @@
     <ClCompile Include="..\..\lwip\src\api\err.c" />
     <ClCompile Include="..\..\lwip\src\api\netbuf.c" />
     <ClCompile Include="..\..\lwip\src\api\tcpip.c" />
+    <ClCompile Include="..\..\lwip\src\apps\altcp_tls\altcp_tls_mbedtls.c" />
+    <ClCompile Include="..\..\lwip\src\apps\altcp_tls\altcp_tls_mbedtls_mem.c" />
     <ClCompile Include="..\..\lwip\src\apps\netbiosns\netbiosns.c" />
+    <ClCompile Include="..\..\lwip\src\core\altcp.c" />
+    <ClCompile Include="..\..\lwip\src\core\altcp_alloc.c" />
+    <ClCompile Include="..\..\lwip\src\core\altcp_tcp.c" />
     <ClCompile Include="..\..\lwip\src\core\def.c" />
     <ClCompile Include="..\..\lwip\src\core\inet_chksum.c" />
     <ClCompile Include="..\..\lwip\src\core\init.c" />
@@ -53,6 +58,90 @@
     <ClCompile Include="..\..\lwip\src\netif\ethernet.c" />
     <ClCompile Include="..\..\lwip-port\win32\lwip_proc.c" />
     <ClCompile Include="..\..\lwip-port\win32\netif\ethernetif.c" />
+    <ClCompile Include="..\..\mbedtls\library\aes.c" />
+    <ClCompile Include="..\..\mbedtls\library\aesni.c" />
+    <ClCompile Include="..\..\mbedtls\library\arc4.c" />
+    <ClCompile Include="..\..\mbedtls\library\aria.c" />
+    <ClCompile Include="..\..\mbedtls\library\asn1parse.c" />
+    <ClCompile Include="..\..\mbedtls\library\asn1write.c" />
+    <ClCompile Include="..\..\mbedtls\library\base64.c" />
+    <ClCompile Include="..\..\mbedtls\library\bignum.c" />
+    <ClCompile Include="..\..\mbedtls\library\blowfish.c" />
+    <ClCompile Include="..\..\mbedtls\library\camellia.c" />
+    <ClCompile Include="..\..\mbedtls\library\ccm.c" />
+    <ClCompile Include="..\..\mbedtls\library\certs.c" />
+    <ClCompile Include="..\..\mbedtls\library\chacha20.c" />
+    <ClCompile Include="..\..\mbedtls\library\chachapoly.c" />
+    <ClCompile Include="..\..\mbedtls\library\cipher.c" />
+    <ClCompile Include="..\..\mbedtls\library\cipher_wrap.c" />
+    <ClCompile Include="..\..\mbedtls\library\cmac.c" />
+    <ClCompile Include="..\..\mbedtls\library\ctr_drbg.c" />
+    <ClCompile Include="..\..\mbedtls\library\debug.c" />
+    <ClCompile Include="..\..\mbedtls\library\des.c" />
+    <ClCompile Include="..\..\mbedtls\library\dhm.c" />
+    <ClCompile Include="..\..\mbedtls\library\ecdh.c" />
+    <ClCompile Include="..\..\mbedtls\library\ecdsa.c" />
+    <ClCompile Include="..\..\mbedtls\library\ecjpake.c" />
+    <ClCompile Include="..\..\mbedtls\library\ecp.c" />
+    <ClCompile Include="..\..\mbedtls\library\ecp_curves.c" />
+    <ClCompile Include="..\..\mbedtls\library\entropy.c" />
+    <ClCompile Include="..\..\mbedtls\library\entropy_poll.c" />
+    <ClCompile Include="..\..\mbedtls\library\error.c" />
+    <ClCompile Include="..\..\mbedtls\library\gcm.c" />
+    <ClCompile Include="..\..\mbedtls\library\havege.c" />
+    <ClCompile Include="..\..\mbedtls\library\hkdf.c" />
+    <ClCompile Include="..\..\mbedtls\library\hmac_drbg.c" />
+    <ClCompile Include="..\..\mbedtls\library\md.c" />
+    <ClCompile Include="..\..\mbedtls\library\md2.c" />
+    <ClCompile Include="..\..\mbedtls\library\md4.c" />
+    <ClCompile Include="..\..\mbedtls\library\md5.c" />
+    <ClCompile Include="..\..\mbedtls\library\memory_buffer_alloc.c" />
+    <ClCompile Include="..\..\mbedtls\library\net_sockets.c" />
+    <ClCompile Include="..\..\mbedtls\library\nist_kw.c" />
+    <ClCompile Include="..\..\mbedtls\library\oid.c" />
+    <ClCompile Include="..\..\mbedtls\library\padlock.c" />
+    <ClCompile Include="..\..\mbedtls\library\pem.c" />
+    <ClCompile Include="..\..\mbedtls\library\pk.c" />
+    <ClCompile Include="..\..\mbedtls\library\pkcs11.c" />
+    <ClCompile Include="..\..\mbedtls\library\pkcs12.c" />
+    <ClCompile Include="..\..\mbedtls\library\pkcs5.c" />
+    <ClCompile Include="..\..\mbedtls\library\pkparse.c" />
+    <ClCompile Include="..\..\mbedtls\library\pkwrite.c" />
+    <ClCompile Include="..\..\mbedtls\library\pk_wrap.c" />
+    <ClCompile Include="..\..\mbedtls\library\platform.c" />
+    <ClCompile Include="..\..\mbedtls\library\platform_util.c" />
+    <ClCompile Include="..\..\mbedtls\library\poly1305.c" />
+    <ClCompile Include="..\..\mbedtls\library\psa_crypto.c" />
+    <ClCompile Include="..\..\mbedtls\library\psa_crypto_se.c" />
+    <ClCompile Include="..\..\mbedtls\library\psa_crypto_slot_management.c" />
+    <ClCompile Include="..\..\mbedtls\library\psa_crypto_storage.c" />
+    <ClCompile Include="..\..\mbedtls\library\psa_its_file.c" />
+    <ClCompile Include="..\..\mbedtls\library\ripemd160.c" />
+    <ClCompile Include="..\..\mbedtls\library\rsa.c" />
+    <ClCompile Include="..\..\mbedtls\library\rsa_internal.c" />
+    <ClCompile Include="..\..\mbedtls\library\sha1.c" />
+    <ClCompile Include="..\..\mbedtls\library\sha256.c" />
+    <ClCompile Include="..\..\mbedtls\library\sha512.c" />
+    <ClCompile Include="..\..\mbedtls\library\ssl_cache.c" />
+    <ClCompile Include="..\..\mbedtls\library\ssl_ciphersuites.c" />
+    <ClCompile Include="..\..\mbedtls\library\ssl_cli.c" />
+    <ClCompile Include="..\..\mbedtls\library\ssl_cookie.c" />
+    <ClCompile Include="..\..\mbedtls\library\ssl_msg.c" />
+    <ClCompile Include="..\..\mbedtls\library\ssl_srv.c" />
+    <ClCompile Include="..\..\mbedtls\library\ssl_ticket.c" />
+    <ClCompile Include="..\..\mbedtls\library\ssl_tls.c" />
+    <ClCompile Include="..\..\mbedtls\library\threading.c" />
+    <ClCompile Include="..\..\mbedtls\library\timing.c" />
+    <ClCompile Include="..\..\mbedtls\library\version.c" />
+    <ClCompile Include="..\..\mbedtls\library\version_features.c" />
+    <ClCompile Include="..\..\mbedtls\library\x509.c" />
+    <ClCompile Include="..\..\mbedtls\library\x509write_crt.c" />
+    <ClCompile Include="..\..\mbedtls\library\x509write_csr.c" />
+    <ClCompile Include="..\..\mbedtls\library\x509_create.c" />
+    <ClCompile Include="..\..\mbedtls\library\x509_crl.c" />
+    <ClCompile Include="..\..\mbedtls\library\x509_crt.c" />
+    <ClCompile Include="..\..\mbedtls\library\x509_csr.c" />
+    <ClCompile Include="..\..\mbedtls\library\xtea.c" />
     <ClCompile Include="httpd\cgi\cgi_auth.c" />
     <ClCompile Include="httpd\cgi\cgi_files.c" />
     <ClCompile Include="httpd\cgi\cgi_form.c" />
@@ -155,7 +244,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>D:\straight\straight-httpd\lwip\src\include;D:\straight\straight-httpd\pcap\Include;D:\straight\straight-httpd\lwip-port\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\straight\straight-httpd\lwip\src\include;D:\straight\straight-httpd\pcap\Include;D:\straight\straight-httpd\lwip-port\win32;D:\straight\straight-httpd\mbedtls\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -189,7 +278,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>D:\straight\straight-httpd\lwip\src\include;D:\straight\straight-httpd\pcap\Include;D:\straight\straight-httpd\lwip-port\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\straight\straight-httpd\lwip\src\include;D:\straight\straight-httpd\pcap\Include;D:\straight\straight-httpd\lwip-port\win32;D:\straight\straight-httpd\mbedtls\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <StructMemberAlignment>Default</StructMemberAlignment>
     </ClCompile>
     <Link>

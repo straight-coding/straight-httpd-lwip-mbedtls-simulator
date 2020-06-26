@@ -413,12 +413,15 @@ signed char OnHttpAccept(void *pcbListener, struct altcp_pcb *pcbAccepted, signe
 	
 	LWIP_UNUSED_ARG(errIn);
 	LWIP_UNUSED_ARG(pcbListener);
-	
-	LogPrint(LOG_DEBUG_ONLY, "OnHttpAccept %p from %u.%u.%u.%u:%u / %p\n", 
+
+	unsigned long remote_ip = pcbAccepted->remote_ip.addr;// altcp_get_ip(pcbAccepted, 0);
+	unsigned short remote_port = pcbAccepted->remote_port;// altcp_get_port(pcbAccepted, 0);
+
+	LogPrint(LOG_DEBUG_ONLY, "OnHttpAccept pcb=>%p from %u.%u.%u.%u:%u / %p\n", 
 		(void *)pcbAccepted, 
-		((pcbAccepted->remote_ip.addr & 0xFF)), ((pcbAccepted->remote_ip.addr>>8) & 0xFF),
-		((pcbAccepted->remote_ip.addr>>16) & 0xFF), ((pcbAccepted->remote_ip.addr>>24) & 0xFF),
-		pcbAccepted->remote_port, pcbListener);
+		((remote_ip & 0xFF)), ((remote_ip>>8) & 0xFF),
+		((remote_ip>>16) & 0xFF), ((remote_ip>>24) & 0xFF),
+		remote_port, pcbListener);
 	PrintLwipStatus();
 
 	if ((errIn != ERR_OK) || (pcbAccepted == NULL)) //pcbAccepted should be not NULL
@@ -430,7 +433,8 @@ signed char OnHttpAccept(void *pcbListener, struct altcp_pcb *pcbAccepted, signe
 	altcp_setprio(pcbAccepted, TCP_PRIO_NORMAL);
 	
 	/*Set TF_NODELAY*/
-	tcp_nagle_disable(pcbAccepted); //set TF_NODELAY
+	//tcp_nagle_disable(pcbAccepted); //set TF_NODELAY
+	altcp_nagle_disable(pcbAccepted); //set TF_NODELAY
 	//altcp_nagle_enable(pcbAccepted); //clear TF_NODELAY
 
 	/* Allocate memory for the structure that holds the state of the connection - initialized by that function. */
@@ -442,7 +446,7 @@ signed char OnHttpAccept(void *pcbListener, struct altcp_pcb *pcbAccepted, signe
 	}
 
 	context->_pcb = pcbAccepted;
-	context->_ipRemote = context->_pcb->remote_ip.addr;
+	context->_ipRemote = remote_ip;// context->_pcb->remote_ip.addr;
 	
 	/* Tell TCP that this is the structure we wish to be passed for our callbacks. */
 	altcp_arg(pcbAccepted, context);
