@@ -15,4 +15,6 @@ makecert.exe -n "CN=client.straight" -iv CARoot.pvk -ic CARoot.cer -pe -a sha512
 REM pack client cert as pfx
 pvk2pfx.exe -pvk client.pvk -spc client.cer -pfx client.pfx -po straight
 
+REM openssl pkcs12 -in server.pfx -out server.pem
+
 pause

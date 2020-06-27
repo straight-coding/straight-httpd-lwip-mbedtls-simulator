@@ -195,7 +195,6 @@ struct altcp_tls_config* getTlsConfig(void)
 	cert_len = strlen(cert) + 1;
 
 	//mbedtls_memory_buffer_alloc_init(memory_buf, sizeof(memory_buf));
-
 	//mbedtls_threading_set_alt(mutex_init, mutex_free, mutex_lock, mutex_unlock);
 
 	conf = altcp_tls_create_config_server_privkey_cert((u8_t*)privkey, privkey_len, (u8_t*)privkey_pass, privkey_pass_len, (u8_t*)cert, cert_len);
