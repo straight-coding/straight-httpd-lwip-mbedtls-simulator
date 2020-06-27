@@ -6,6 +6,7 @@
 
 #include "lwip/opt.h"
 
+#include "lwip/tcp.h"
 #include "lwip/altcp.h"
 
 #include "http_cgi.h"
@@ -410,17 +411,20 @@ int HttpdStop(struct altcp_pcb *pcbListen)
 signed char OnHttpAccept(void *pcbListener, struct altcp_pcb *pcbAccepted, signed char errIn) //errIn=ERR_MEM or ERR_OK
 { //arg ==> g_pcbListen
 	REQUEST_CONTEXT* context = NULL;
-	
+
+	ip_addr_t* remote_ip = NULL;
+	unsigned short remote_port = 0;
+
 	LWIP_UNUSED_ARG(errIn);
 	LWIP_UNUSED_ARG(pcbListener);
 
-	unsigned long remote_ip = pcbAccepted->remote_ip.addr;// altcp_get_ip(pcbAccepted, 0);
-	unsigned short remote_port = pcbAccepted->remote_port;// altcp_get_port(pcbAccepted, 0);
+	remote_ip = altcp_get_ip(pcbAccepted, 0);
+	remote_port = altcp_get_port(pcbAccepted, 0);
 
 	LogPrint(LOG_DEBUG_ONLY, "OnHttpAccept pcb=>%p from %u.%u.%u.%u:%u / %p\n", 
 		(void *)pcbAccepted, 
-		((remote_ip & 0xFF)), ((remote_ip>>8) & 0xFF),
-		((remote_ip>>16) & 0xFF), ((remote_ip>>24) & 0xFF),
+		((remote_ip->addr & 0xFF)), ((remote_ip->addr >>8) & 0xFF),
+		((remote_ip->addr >>16) & 0xFF), ((remote_ip->addr >>24) & 0xFF),
 		remote_port, pcbListener);
 	PrintLwipStatus();
 
@@ -446,7 +450,7 @@ signed char OnHttpAccept(void *pcbListener, struct altcp_pcb *pcbAccepted, signe
 	}
 
 	context->_pcb = pcbAccepted;
-	context->_ipRemote = remote_ip;// context->_pcb->remote_ip.addr;
+	context->_ipRemote = remote_ip->addr;// context->_pcb->remote_ip.addr;
 	
 	/* Tell TCP that this is the structure we wish to be passed for our callbacks. */
 	altcp_arg(pcbAccepted, context);
