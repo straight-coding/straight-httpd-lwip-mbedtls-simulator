@@ -102,7 +102,7 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* TCP receive window. */
 #undef TCP_WND
-#define TCP_WND                 (4 * TCP_MSS)
+#define TCP_WND                 (12 * TCP_MSS)
 
 /* LWIP_ICMP==1: Enable ICMP module inside the IP stack.
  * Be careful, disable that make your product non-compliant to RFC1122 */
@@ -252,8 +252,8 @@ a lot of data that needs to be copied, this should be set high. */
 #define LWIP_TCPIP_TIMEOUT              1
 
 #define LWIP_ALTCP						1
-#define LWIP_ALTCP_TLS					0
-#define LWIP_ALTCP_TLS_MBEDTLS          0
+#define LWIP_ALTCP_TLS					1
+#define LWIP_ALTCP_TLS_MBEDTLS          1
 
 #define ALTCP_MBEDTLS_DEBUG             LWIP_DBG_ON
 //#define ALTCP_MBEDTLS_SESSION_CACHE_TIMEOUT_SECONDS   (3*60)

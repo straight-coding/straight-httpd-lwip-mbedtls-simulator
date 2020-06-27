@@ -358,6 +358,7 @@ DWORD WINAPI LwipLoopThread(void* data)
 
 extern struct netif main_netif;
 struct altcp_pcb *g_pcbListen80 = NULL;
+struct altcp_pcb *g_pcbListen443 = NULL;
 
 extern void tcp_kill_all(void);
 
@@ -388,7 +389,8 @@ DWORD WINAPI AppThread(void* data)
 
 		ssdpInit(&main_netif);
 
-		g_pcbListen80 = HttpdInit(80);
+		//g_pcbListen80 = HttpdInit(0, 80);
+		g_pcbListen443 = HttpdInit(1, 443);
 
 		LogPrint(0, "App Service started\r\n");
 
@@ -402,7 +404,11 @@ DWORD WINAPI AppThread(void* data)
 			Sleep(50);
 		}
 
-		HttpdStop(g_pcbListen80);
+		if (g_pcbListen80 != NULL)
+			HttpdStop(g_pcbListen80);
+
+		if (g_pcbListen443 != NULL)
+			HttpdStop(g_pcbListen443);
 
 		LogPrint(0, "App Service stopped\r\n");
 

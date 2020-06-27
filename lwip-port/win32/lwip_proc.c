@@ -148,8 +148,9 @@ int mutex_unlock(mbedtls_threading_mutex_t *mutex)
 	return 0;
 }
 */
-void InitCert()
+struct altcp_tls_config* getTlsConfig(void)
 {
+	struct altcp_tls_config* conf;
 	privkey_len = strlen(privkey) + 1;
 	privkey_pass_len = strlen(privkey_pass) + 1;
 	cert_len = strlen(cert) + 1;
@@ -158,7 +159,8 @@ void InitCert()
 
 	//mbedtls_threading_set_alt(mutex_init, mutex_free, mutex_lock, mutex_unlock);
 
-	//cfg = altcp_tls_create_config_server_privkey_cert((u8_t*)privkey, privkey_len, (u8_t*)privkey_pass, privkey_pass_len, (u8_t*)cert, cert_len);
+	conf = altcp_tls_create_config_server_privkey_cert((u8_t*)privkey, privkey_len, (u8_t*)privkey_pass, privkey_pass_len, (u8_t*)cert, cert_len);
+	return conf;
 }
 
 void LwipInit(int reboot)
@@ -166,8 +168,6 @@ void LwipInit(int reboot)
 	struct netif* nif;
 
 	lwip_init();
-
-	InitCert();
 
 	if (sys_mbox_new(&tcpip_mbox, TCPIP_MBOX_SIZE) != ERR_OK) 
 	{

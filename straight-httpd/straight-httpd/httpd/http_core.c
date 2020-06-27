@@ -367,20 +367,44 @@ void FreeHttpContext(REQUEST_CONTEXT* context)
 	UnlockSession(context);
 }
 
-struct altcp_pcb* HttpdInit(unsigned long port)
+struct altcp_tls_config* tlsCfg = NULL;
+struct altcp_pcb* HttpdInit(int tls, unsigned long port)
 {
 	signed char err;
 	struct altcp_pcb* listen = NULL;
 
-	LogPrint(0, "HttpdInit @ %d", port);
+	LogPrint(0, "HttpdInit @ %d, tls=%d", port, tls);
 
-	listen = altcp_tcp_new_ip_type(IPADDR_TYPE_ANY);
+	if (tls > 0)
+	{
+		extern struct altcp_tls_config* getTlsConfig(void);
+
+		struct altcp_pcb *pcb_tls;
+		struct altcp_pcb *pcb_tcp;
+
+		tlsCfg = getTlsConfig();
+
+		pcb_tcp = altcp_tcp_new_ip_type(IPADDR_TYPE_ANY);
+		LWIP_ASSERT("httpd_init: tcp_new failed", pcb_tcp != NULL);
+
+		pcb_tls = altcp_tls_new(tlsCfg, pcb_tcp);
+		LWIP_ASSERT("httpd_init: altcp_tls_new failed", pcb_tls != NULL);
+
+		listen = pcb_tls;
+	}
+	else
+	{
+		listen = altcp_tcp_new_ip_type(IPADDR_TYPE_ANY);
+	}
+
 	if (listen) 
 	{
 		altcp_setprio(listen, HTTP_TCP_PRIO);
 		
 		err = altcp_bind(listen, IP_ANY_TYPE, port);
+
 		listen = altcp_listen_with_backlog_and_err(listen, 2, &err);
+
 		altcp_accept(listen, OnHttpAccept);
 		
 		return listen;
