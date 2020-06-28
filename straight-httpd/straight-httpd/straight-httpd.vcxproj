@@ -22,6 +22,7 @@
     <ClCompile Include="..\..\lwip-port\win32\arch\port_device.c" />
     <ClCompile Include="..\..\lwip-port\win32\arch\port_file.c" />
     <ClCompile Include="..\..\lwip-port\win32\arch\sys_arch.c" />
+    <ClCompile Include="..\..\lwip-port\win32\lwip_api.c" />
     <ClCompile Include="..\..\lwip\src\api\api_lib.c" />
     <ClCompile Include="..\..\lwip\src\api\api_msg.c" />
     <ClCompile Include="..\..\lwip\src\api\err.c" />
@@ -56,7 +57,6 @@
     <ClCompile Include="..\..\lwip\src\core\timeouts.c" />
     <ClCompile Include="..\..\lwip\src\core\udp.c" />
     <ClCompile Include="..\..\lwip\src\netif\ethernet.c" />
-    <ClCompile Include="..\..\lwip-port\win32\lwip_proc.c" />
     <ClCompile Include="..\..\lwip-port\win32\netif\ethernetif.c" />
     <ClCompile Include="..\..\mbedtls\library\aes.c" />
     <ClCompile Include="..\..\mbedtls\library\aesni.c" />
