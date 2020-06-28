@@ -303,7 +303,16 @@ void CGI_HeadersReceived(REQUEST_CONTEXT* context) //called when all HTTP reques
 	if (context->_result < 0)
 		return;
 	
-	if ((SessionTypes(context->_extension) > 0) && (context->handler == NULL))
+	if ((context->_https == 0) && (stricmp(context->_requestPath, "upnp_device.xml") != 0))
+	{
+		unsigned long myip = GetMyIP();
+
+		LogPrint(0, "Redirect all for: %s, @%d", context->_requestPath, context->_sid);
+		LWIP_sprintf(context->_responsePath, "https://%d.%d.%d.%d/", (myip>>24)&0xFF, (myip >> 16) & 0xFF, (myip >> 8) & 0xFF, (myip >> 0) & 0xFF);
+		context->ctxResponse._authorized = 0;
+		context->_result = CODE_REDIRECT; //redirect
+	}
+	else if ((SessionTypes(context->_extension) > 0) && (context->handler == NULL))
 	{
 		LogPrint(0, "No CGI for: %s, @%d", context->_requestPath, context->_sid);
 		strcpy(context->_responsePath, WEB_DEFAULT_PAGE);
@@ -387,6 +396,8 @@ void CGI_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo) //set 
 	//body starts
 	if (context->_result == CODE_REDIRECT)
 	{
+		LogPrint(LOG_DEBUG_ONLY, "Redirect to %s @ %d", context->_responsePath, context->_sid);
+
 		strcat(context->ctxResponse._sendBuffer, redirect_body1);
 		strcat(context->ctxResponse._sendBuffer, context->_responsePath);
 		strcat(context->ctxResponse._sendBuffer, redirect_body2);

@@ -65,7 +65,7 @@ int SSDP_Sending(REQUEST_CONTEXT* context, char* buffer, int maxSize)
 			(int)((ip & 0x00FF0000) >> 16), 
 			(int)((ip & 0x0000FF00) >> 8), 
 			(int)((ip & 0x000000FF) >> 0));
-		LWIP_sprintf(buffer +off, "<URLBase>http://%s</URLBase>\r\n", szIP);
+		LWIP_sprintf(buffer +off, "<URLBase>https://%s</URLBase>\r\n", szIP);
 			off = strlen(buffer);
 			
 		strcat(buffer, "<device>\r\n");
@@ -75,7 +75,7 @@ int SSDP_Sending(REQUEST_CONTEXT* context, char* buffer, int maxSize)
 			off = strlen(buffer);
 		LWIP_sprintf(buffer +off, "<friendlyName>%s</friendlyName>\r\n", GetDeviceName());
 			off = strlen(buffer);
-		LWIP_sprintf(buffer +off, "<presentationURL>http://%s</presentationURL>\r\n", szIP);
+		LWIP_sprintf(buffer +off, "<presentationURL>https://%s</presentationURL>\r\n", szIP);
 			off = strlen(buffer);
 		LWIP_sprintf(buffer +off, "<manufacturer>%s</manufacturer>\r\n", GetVendor());
 			off = strlen(buffer);

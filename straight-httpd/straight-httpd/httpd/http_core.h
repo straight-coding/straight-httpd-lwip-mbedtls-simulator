@@ -109,8 +109,12 @@ typedef struct _REQUEST_CONTEXT
 	unsigned long _tRequestStart;		//tick of the request began, for http_core.c
 	unsigned long _tLastReceived;		//tick of the last received, for http_core.c
 	unsigned long _nReceiveTimeout; 	//60*1000, for http_core.c
-	unsigned long _ipRemote;
-	
+
+	unsigned long  _https;
+	unsigned long  _ipRemote;
+	unsigned short _portRemote;
+	unsigned short _portLocal;
+
 	sys_mutex_t* _pMutex; 		//not used because of single thread processing
 	int 	_killing;			//notification from other tasks
 	

@@ -242,8 +242,8 @@ void ssdp_send_to(SSDP_TYPES type, ip_addr_t* ipDest, unsigned long portDest)
 	if (type != ADVERTISE_DOWN)
 	{ //The location URL (LOCATION) to allow the control point to 
 		//gain more information about this service.
-		LWIP_sprintf(msg + strlen(msg), "LOCATION: http://%s:%d/%s\r\n",
-			htoa((ip_addr_t *)GetLocalhost()), UPNP_LOCATION_PORT, UPNP_LOCATION_XML);
+		LWIP_sprintf(msg + strlen(msg), "LOCATION: http://%s/%s\r\n",
+			htoa((ip_addr_t *)GetLocalhost()), UPNP_LOCATION_XML);
 	}
 
 	//The server system information (SERVER) value 

@@ -438,12 +438,14 @@ signed char OnHttpAccept(void *pcbListener, struct altcp_pcb *pcbAccepted, signe
 
 	ip_addr_t* remote_ip = NULL;
 	unsigned short remote_port = 0;
+	unsigned short local_port = 0;
 
 	LWIP_UNUSED_ARG(errIn);
 	LWIP_UNUSED_ARG(pcbListener);
 
 	remote_ip = altcp_get_ip(pcbAccepted, 0);
 	remote_port = altcp_get_port(pcbAccepted, 0);
+	local_port = altcp_get_port(pcbAccepted, 1);
 
 	LogPrint(LOG_DEBUG_ONLY, "OnHttpAccept pcb=>%p from %u.%u.%u.%u:%u / %p\n", 
 		(void *)pcbAccepted, 
@@ -474,8 +476,12 @@ signed char OnHttpAccept(void *pcbListener, struct altcp_pcb *pcbAccepted, signe
 	}
 
 	context->_pcb = pcbAccepted;
-	context->_ipRemote = remote_ip->addr;// context->_pcb->remote_ip.addr;
-	
+
+	context->_https = (pcbAccepted->inner_conn != 0) ? 1 : 0;
+	context->_ipRemote = remote_ip->addr;
+	context->_portRemote = remote_port;
+	context->_portLocal = local_port;
+
 	/* Tell TCP that this is the structure we wish to be passed for our callbacks. */
 	altcp_arg(pcbAccepted, context);
 

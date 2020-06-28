@@ -389,7 +389,7 @@ DWORD WINAPI AppThread(void* data)
 
 		ssdpInit(&main_netif);
 
-		//g_pcbListen80 = HttpdInit(0, 80);
+		g_pcbListen80  = HttpdInit(0, 80);
 		g_pcbListen443 = HttpdInit(1, 443);
 
 		LogPrint(0, "App Service started\r\n");
