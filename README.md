@@ -16,6 +16,6 @@ subfolder [mbedtls] was copied from the original location:
 QR-Code-generator by nayuki, compressed with gzip
     https://github.com/nayuki/QR-Code-generator/tree/a6ef65d237628a03dee3ae1df592df9a3359204d/javascript
 
-subfolder [lwip-port] lwip port files on Windiws platform
+subfolder [lwip-port] lwip port files on Windows platform
 
 subfolder [straight-httpd] Microsoft Visual Studio 2017 project: straight-httpd.sln
