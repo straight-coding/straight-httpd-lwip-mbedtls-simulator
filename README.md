@@ -2,7 +2,7 @@
 
 Simple httpd for embedded systems based on lwip
 
-Dependencies
+# Dependencies
 
 subfolder [pcap] was copied from the original location: 
 	https://nmap.org/npcap/dist/npcap-sdk-1.04.zip
