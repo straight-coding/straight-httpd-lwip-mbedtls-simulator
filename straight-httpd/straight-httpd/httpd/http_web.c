@@ -142,8 +142,7 @@ void WEB_RequestReceived(REQUEST_CONTEXT* context)
 
 	if ((context->_responsePath[0] == '/') && (context->_responsePath[1] == 0))
 	{ //default path
-		strcpy(context->_responsePath, WEB_ABS_ROOT);
-		strcat(context->_responsePath, WEB_DEFAULT_PAGE);
+		strcpy(context->_responsePath, WEB_DEFAULT_PAGE);
 		char* ext = strstr(WEB_DEFAULT_PAGE, ".");
 		if (ext != NULL)
 			strcpy(context->_extension, ext+1);
@@ -159,19 +158,14 @@ void WEB_RequestReceived(REQUEST_CONTEXT* context)
 	if ((ctxSSI->_ssi > 0) && (context->handler != NULL))
 		context->_options |= CGI_OPT_CHUNK_ENABLED;
 
-	if (context->_responsePath[0] == '/')
-		LWIP_sprintf(szTemp, "%s%s", g_szWebAbsRoot, context->_responsePath+1);
-	else
-		LWIP_sprintf(szTemp, "%s%s", g_szWebAbsRoot, context->_responsePath);
-
-	ctxSSI->_fp = LWIP_fopen(szTemp, "rb");
+	ctxSSI->_fp = WEB_fopen(context->_responsePath, "rb");
 	if (ctxSSI->_fp != NULL)
 	{ //gzip file starts with 1F 8B 08
 		int outBytes=0;
 		unsigned char flag[64];
-		if (LWIP_fread(ctxSSI->_fp, flag, 3, &outBytes) == 0)
+		if (WEB_fread(ctxSSI->_fp, flag, 3, &outBytes) == 0)
 		{
-			LWIP_fseek(ctxSSI->_fp, 0);
+			WEB_fseek(ctxSSI->_fp, 0);
 			if ((flag[0] == 0x1F) && (flag[1] == 0x8B) && (flag[2] == 0x08))
 				context->_options |= CGI_OPT_GZIP;
 		}
@@ -181,7 +175,7 @@ void WEB_RequestReceived(REQUEST_CONTEXT* context)
 			time_t tFile = 0;
 
 			strcpy(ctxSSI->_lastModified, "Last-Modified: ");
-			tFile = LWIP_ftime(szTemp, ctxSSI->_lastModified + 15, sizeof(ctxSSI->_lastModified) - 15 - 2);
+			tFile = WEB_ftime(szTemp, ctxSSI->_lastModified + 15, sizeof(ctxSSI->_lastModified) - 15 - 2);
 
 			if (tFile == 0) //"Date: <xxx>\r\n"
 				ctxSSI->_lastModified[0] = 0;
@@ -201,7 +195,7 @@ void WEB_RequestReceived(REQUEST_CONTEXT* context)
 		}
 
 		context->_fileHandle = ctxSSI->_fp;
-		context->ctxResponse._dwTotal = LWIP_fsize(ctxSSI->_fp);
+		context->ctxResponse._dwTotal = WEB_fsize(ctxSSI->_fp);
 		LogPrint(LOG_DEBUG_ONLY, "File opened: %s, len=%d, SSI=%d @%d", szTemp, context->ctxResponse._dwTotal, ctxSSI->_ssi, context->_sid);
 	}
 	else
@@ -236,7 +230,7 @@ void WEB_AppendHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 			LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_range, context->_rangeFrom, context->_rangeTo-1, context->ctxResponse._dwTotal, GetContentType(context->_extension), size, "close");
 
 		context->ctxResponse._dwTotal = size;
-		LWIP_fseek(context->_fileHandle, context->_rangeFrom);
+		WEB_fseek(context->_fileHandle, context->_rangeFrom);
 	}
 	else if (chunkHeader > 0)
 	{
@@ -303,10 +297,10 @@ int WEB_ReadContent(REQUEST_CONTEXT* context, char* buffer, int maxSize)
 			else
 			{
 				unsigned int bytes = 0;
-				if (0 != LWIP_fread(ctxSSI->_fp, buffer, maxRead, &bytes))
+				if (0 != WEB_fread(ctxSSI->_fp, buffer, maxRead, &bytes))
 				{
 					context->_result = -500;
-					LogPrint(0, "Non-SSI LWIP_fread error=%d, @%d", context->_result, context->_sid);
+					LogPrint(0, "Non-SSI WEB_fread error=%d, @%d", context->_result, context->_sid);
 					return 0;
 				}
 				maxRead = bytes;
@@ -333,10 +327,10 @@ int WEB_ReadContent(REQUEST_CONTEXT* context, char* buffer, int maxSize)
 				else
 				{
 					unsigned int bytes = 0;
-					if (0 != LWIP_fread(ctxSSI->_fp, pCache + ctxSSI->_cacheOffset, maxRead, &bytes))
+					if (0 != WEB_fread(ctxSSI->_fp, pCache + ctxSSI->_cacheOffset, maxRead, &bytes))
 					{
 						context->_result = -500;
-						LogPrint(0, "SSI LWIP_fread error=%d, @%d", context->_result, context->_sid);
+						LogPrint(0, "SSI WEB_fread error=%d, @%d", context->_result, context->_sid);
 						return 0;
 					}
 					maxRead = bytes;
@@ -468,7 +462,7 @@ void WEB_AllSent(REQUEST_CONTEXT* context)
 	{
 		LogPrint(LOG_DEBUG_ONLY, "Web file sent and closed");
 		
-		LWIP_fclose(ctxSSI->_fp);
+		WEB_fclose(ctxSSI->_fp);
 		ctxSSI->_fp = NULL;
 	}
 }
@@ -480,7 +474,7 @@ void WEB_Finished(REQUEST_CONTEXT* context)
 	{
 		LogPrint(LOG_DEBUG_ONLY, "Web file finished and closed");
 		
-		LWIP_fclose(ctxSSI->_fp);
+		WEB_fclose(ctxSSI->_fp);
 		ctxSSI->_fp = NULL;
 	}
 }

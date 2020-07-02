@@ -14,6 +14,7 @@
 
 #include "../utils.h"		//for popular pure c functions, such as ston, Strnicmp, DecodeB64, ...
 #include "http_session.h"
+#include "http_fs.h"
 
 #define LOG_DEBUG_ONLY		0 //max level of debug output
 

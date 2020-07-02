@@ -12,12 +12,6 @@
 
 #define CRLF	"\r\n"
 
-//the first matched folder will be the web home directory, 
-//  where the default homepage <WEB_DRIVE[i] + WEB_ROOT + WEB_ROOT_FILE> is located.
-#define WEB_DRIVE		"D"	//used for multiple dynamic disks ('CDEF' etc.), the first letter has the highest priority
-#define WEB_ABS_ROOT	"/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/"
-#define WEB_REL_UPLOAD	"app/cache/"
-
 #define WEB_DEFAULT_PAGE	"/auth/login.html"
 #define WEB_SESSION_CHECK	"/auth/session_check.cgi"
 #define WEB_LOGOUT_PAGE		"/auth/logout.cgi"
@@ -121,15 +115,5 @@ extern const char header_range[];
 extern const char header_gzip[];
 extern const char redirect_body1[];
 extern const char redirect_body2[];
-
-extern const char* Response_Status_Lines[];
-
-extern char g_szWebDrive[16];
-extern char g_szWebAbsRoot[128];
-extern char g_szWebDefaultPage[128];
-extern char g_szWebAppHomePage[128];
-
-int CheckWebRoot(char* drive, char* absRoot, char* defaultPage);
-void SetWebRoot(char* drive, char* absRoot, char* defaultPage);
 
 #endif

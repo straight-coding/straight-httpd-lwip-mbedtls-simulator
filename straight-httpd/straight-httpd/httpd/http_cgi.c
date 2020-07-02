@@ -15,11 +15,6 @@ extern int  Strnicmp(char *str1, char *str2, int n);
 
 struct CGI_Mapping* g_cgiMapping = NULL;
 
-char g_szWebDrive[16]; // WEB_DRIVE
-char g_szWebAbsRoot[128]; // WEB_ABS_ROOT, MUST start with '/' and end with '/'
-char g_szWebDefaultPage[128]; // "/auth/login.html", MUST start with '/'
-char g_szWebAppHomePage[128]; // "/app/index.html", MUST start with '/'
-
 void CGI_Append(struct CGI_Mapping* newMapping, const char* ovwPath, unsigned long ovwOptions); //append single CGI mapping
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -33,126 +28,12 @@ void CGI_SetupMapping() //called from SetupHttpContext(), CGI handlers could be 
 	extern struct CGI_Mapping g_cgiAuth;	// "/auth/*"
 	extern struct CGI_Mapping g_cgiWebApp;	// "/app/*", MUST be the last one
 
-	SetWebRoot(WEB_DRIVE, WEB_ABS_ROOT, WEB_DEFAULT_PAGE); //default path
-	
 	CGI_Append(&g_cgiSSDP,    "/upnp_device.xml", CGI_OPT_GET_ENABLED | CGI_OPT_CHUNK_ENABLED);
 	CGI_Append(&g_cgiAuth,    "/auth/*", CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED);
 	CGI_Append(&g_cgiForm,	  "/app/form.shtml", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED);
 	CGI_Append(&g_cgiFiles,   "/api/files.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_CHUNK_ENABLED);
 	CGI_Append(&g_cgiUpload,  "/api/upload.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_POST_ENABLED);
 	CGI_Append(&g_cgiWebApp,  "/app/*", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED); //"/app/*", MUST be the last one
-}
-
-int CheckWebRoot(char* drive, char* absRoot, char* defaultPage)
-{
-	LWIP_FIL* fTest;
-
-	char szTemp[128];
-	memset(szTemp, 0, sizeof(szTemp));
-
-	if (drive[0] != 0)
-	{
-		szTemp[0] = drive[0];
-		szTemp[1] = ':';
-	}
-	strcat(szTemp, absRoot);
-	strcat(szTemp, defaultPage+1);
-
-	fTest = LWIP_fopen(szTemp, "rb");
-	if (fTest == NULL)
-		return 0;
-
-	LWIP_fclose(fTest);
-	return 1;
-}
-
-void SetWebRoot(char* drive, char* absRoot, char* defaultFile)
-{
-	int i;
-	int rootResult = 0;
-	
-	memset(g_szWebDrive, 0, sizeof(g_szWebDrive));
-	memset(g_szWebAbsRoot, 0, sizeof(g_szWebAbsRoot));
-	memset(g_szWebDefaultPage, 0, sizeof(g_szWebDefaultPage));
-	memset(g_szWebAppHomePage, 0, sizeof(g_szWebAppHomePage));
-
-	if ((drive != NULL) && (*drive != 0))
-		strcpy(g_szWebDrive, drive);
-
-	if ((absRoot != NULL) && (*absRoot != 0))
-	{
-		strcpy(g_szWebAbsRoot, absRoot);
-
-		i = 0;
-		while (g_szWebAbsRoot[i] != 0)
-		{
-			if (g_szWebAbsRoot[i] == '\\')
-				g_szWebAbsRoot[i] = '/';
-			i++;
-		}
-		if (g_szWebAbsRoot[0] != '/')
-		{
-			memmove(g_szWebAbsRoot + 1, g_szWebAbsRoot, strlen(g_szWebAbsRoot));
-			g_szWebAbsRoot[0] = '/';
-		}
-		if (g_szWebAbsRoot[strlen(g_szWebAbsRoot)-1] != '/')
-			strcat(g_szWebAbsRoot, "/");
-	}
-
-	if ((defaultFile != NULL) && (*defaultFile != 0))
-	{
-		strcpy(g_szWebDefaultPage, defaultFile);
-
-		i = 0;
-		while (g_szWebDefaultPage[i] != 0)
-		{
-			if (g_szWebDefaultPage[i] == '\\')
-				g_szWebDefaultPage[i] = '/';
-			i++;
-		}
-
-		if (g_szWebDefaultPage[0] != '/')
-		{
-			memmove(g_szWebDefaultPage + 1, g_szWebDefaultPage, strlen(g_szWebDefaultPage));
-			g_szWebDefaultPage[0] = '/';
-		}
-	}
-
-	{
-		strcpy(g_szWebAppHomePage, WEB_APP_PAGE);
-
-		i = 0;
-		while (g_szWebAppHomePage[i] != 0)
-		{
-			if (g_szWebAppHomePage[i] == '\\')
-				g_szWebAppHomePage[i] = '/';
-			i++;
-		}
-
-		if (g_szWebAppHomePage[0] != '/')
-		{
-			memmove(g_szWebAppHomePage + 1, g_szWebAppHomePage, strlen(g_szWebAppHomePage));
-			g_szWebAppHomePage[0] = '/';
-		}
-	}
-
-	for (i = 0; i <= strlen(g_szWebDrive); i++)
-	{
-		rootResult = CheckWebRoot(g_szWebDrive + i, g_szWebAbsRoot, g_szWebDefaultPage);
-		if (rootResult > 0)
-		{
-			LogPrint(LOG_DEBUG_ONLY, "WebRoot: %c:%s%s", g_szWebDrive[i], g_szWebAbsRoot, g_szWebDefaultPage+1);
-			if (g_szWebDrive[i] != 0)
-			{
-				memmove(g_szWebAbsRoot + 2, g_szWebAbsRoot, strlen(g_szWebAbsRoot));
-				g_szWebAbsRoot[0] = g_szWebDrive[i];
-				g_szWebAbsRoot[1] = ':';
-			}
-			break;
-		}
-		if (g_szWebDrive[i] == 0)
-			break;
-	}
 }
 
 void CGI_Append(struct CGI_Mapping* newMapping, const char* ovwPath, unsigned long ovwOptions)

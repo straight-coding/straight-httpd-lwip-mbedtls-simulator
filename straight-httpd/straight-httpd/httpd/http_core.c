@@ -266,7 +266,7 @@ void ResetHttpContext(REQUEST_CONTEXT* context)
 
 		context->handler = NULL;
 		if (context->_fileHandle != NULL)
-			LWIP_fclose(context->_fileHandle);
+			WEB_fclose(context->_fileHandle);
 		context->_fileHandle = NULL;
 	
 		//can't clear right now because of pipline
@@ -356,7 +356,7 @@ void FreeHttpContext(REQUEST_CONTEXT* context)
 
 		context->handler = NULL;
 		if (context->_fileHandle != NULL)
-			LWIP_fclose(context->_fileHandle);
+			WEB_fclose(context->_fileHandle);
 		context->_fileHandle = NULL;
 	
 		context->request_length = 0;
