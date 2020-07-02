@@ -366,6 +366,8 @@ DWORD WINAPI AppThread(void* data)
 {
 	long	restart = 0;
 
+	WEB_fs_init();
+
 	SetupHttpContext();
 
 	while (g_nKeepRunning)

@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.28307.779
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "straight-httpd", "straight-httpd\straight-httpd.vcxproj", "{0AC7D242-155F-457D-99F0-0DB7488C9344}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "straight-buildfs", "straight-buildfs\straight-buildfs.vcxproj", "{4EA8DD01-CD53-4892-93BB-593F3B085F86}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -15,6 +17,10 @@ Global
 		{0AC7D242-155F-457D-99F0-0DB7488C9344}.Debug|x86.Build.0 = Debug|Win32
 		{0AC7D242-155F-457D-99F0-0DB7488C9344}.Release|x86.ActiveCfg = Release|Win32
 		{0AC7D242-155F-457D-99F0-0DB7488C9344}.Release|x86.Build.0 = Release|Win32
+		{4EA8DD01-CD53-4892-93BB-593F3B085F86}.Debug|x86.ActiveCfg = Debug|Win32
+		{4EA8DD01-CD53-4892-93BB-593F3B085F86}.Debug|x86.Build.0 = Debug|Win32
+		{4EA8DD01-CD53-4892-93BB-593F3B085F86}.Release|x86.ActiveCfg = Release|Win32
+		{4EA8DD01-CD53-4892-93BB-593F3B085F86}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

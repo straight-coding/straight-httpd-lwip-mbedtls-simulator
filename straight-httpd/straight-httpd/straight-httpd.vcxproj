@@ -151,6 +151,7 @@
     <ClCompile Include="httpd\cgi\cgi_web.c" />
     <ClCompile Include="httpd\http_cgi.c" />
     <ClCompile Include="httpd\http_core.c" />
+    <ClCompile Include="httpd\http_fs.c" />
     <ClCompile Include="httpd\http_session.c" />
     <ClCompile Include="httpd\http_web.c" />
     <ClCompile Include="ssdp\ssdp.c" />
@@ -167,6 +168,7 @@
     <ClInclude Include="..\..\mbedtls\include\mbedtls\ssl.h" />
     <ClInclude Include="httpd\http_cgi.h" />
     <ClInclude Include="httpd\http_core.h" />
+    <ClInclude Include="httpd\http_fs.h" />
     <ClInclude Include="httpd\http_session.h" />
     <ClInclude Include="httpd\http_web.h" />
     <ClInclude Include="ssdp\ssdp.h" />
