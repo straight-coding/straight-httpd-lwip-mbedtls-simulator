@@ -6,6 +6,8 @@
 
 #include "../http_cgi.h"
 
+#define UPLOAD_TO_FOLDER	"C:/Temp/"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern void LogPrint(int level, char* format, ... );
@@ -42,10 +44,12 @@ long Dev_IsBusy(void)
 {
 	return 0;
 }
+
 long Dev_IsOnline(void)
 {
 	return 1;
 }
+
 long Upload_Start(void* context, char* szFileName, long nFileSize)
 {
 	REQUEST_CONTEXT* ctx = (REQUEST_CONTEXT*)context;
@@ -59,16 +63,19 @@ long Upload_Start(void* context, char* szFileName, long nFileSize)
 
 	return 1; //ready to receive f/w
 }
+
 long Upload_GetFreeSize(unsigned long askForSize)
 {
 	return askForSize; //how many it can accept (etc. accept all)
 }
+
 long Upload_Received(REQUEST_CONTEXT* context, unsigned char* pData, unsigned long dwLen)
 {
 	if (LWIP_fwrite(context->_fileHandle, pData, dwLen) > 0) //>0:success
 		return dwLen;  //real count consumed (etc. consume all)
 	return 0;
 }
+
 void Upload_AllReceived(REQUEST_CONTEXT* context)
 { //to upgrade after f/w completely received
 	LogPrint(0, "Post upgrade done: length=%d @%d", context->_contentLength, context->_sid);
@@ -98,7 +105,7 @@ int Upload_OnHeaderReceived(REQUEST_CONTEXT* context, char* header_line)
 		}
 		len = DecodeB64((unsigned char*)(header_line + j));
 		header_line[len+j] = 0;
-		LWIP_sprintf(context->ctxResponse._appContext, "%s%s%s", WEB_ABS_ROOT, WEB_REL_UPLOAD, (char*)header_line + j);
+		LWIP_sprintf(context->ctxResponse._appContext, "%s%s", UPLOAD_TO_FOLDER, (char*)header_line + j);
 		MakeDeepPath(context->ctxResponse._appContext);
 		return 1;
 	}
