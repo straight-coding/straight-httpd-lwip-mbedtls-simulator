@@ -6,6 +6,8 @@
 
 #include "../http_cgi.h"
 
+#define FOLDER_TO_LIST	"C:/Temp/"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern void LogPrint(int level, char* format, ... );
@@ -59,7 +61,7 @@ void Files_OnRequestReceived(REQUEST_CONTEXT* context)
 	memset(ctxSSI, 0, sizeof(SSI_Context));
 	ctxSSI->_valid = 1;
 
-	LWIP_sprintf(context->_responsePath, "%s%s", WEB_ABS_ROOT, WEB_REL_UPLOAD);
+	LWIP_sprintf(context->_responsePath, "%s", FOLDER_TO_LIST);
 
 	if (p != NULL)
 	{ //default path
@@ -167,7 +169,7 @@ int Files_ReadOneFileInfo(REQUEST_CONTEXT* context, char* buffer, int maxSize)
 
 			if ((name[0] == '.') && (name[1] == '.') && (name[2] == 0))
 			{
-				if (strlen(context->_responsePath) == strlen(WEB_ABS_ROOT) + strlen(WEB_REL_UPLOAD) + 3)
+				if (strlen(context->_responsePath) == strlen(FOLDER_TO_LIST) + 3)
 				{
 					LogPrint(LOG_DEBUG_ONLY, "Reached root: folder=%d, name=%s, size=%d, @%d", isFolder, name, size, context->_sid);
 					continue;
