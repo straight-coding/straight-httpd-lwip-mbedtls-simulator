@@ -175,7 +175,7 @@ void WEB_RequestReceived(REQUEST_CONTEXT* context)
 			time_t tFile = 0;
 
 			strcpy(ctxSSI->_lastModified, "Last-Modified: ");
-			tFile = WEB_ftime(szTemp, ctxSSI->_lastModified + 15, sizeof(ctxSSI->_lastModified) - 15 - 2);
+			tFile = WEB_ftime(context->_responsePath, ctxSSI->_lastModified + 15, sizeof(ctxSSI->_lastModified) - 15 - 2);
 
 			if (tFile == 0) //"Date: <xxx>\r\n"
 				ctxSSI->_lastModified[0] = 0;
@@ -184,7 +184,7 @@ void WEB_RequestReceived(REQUEST_CONTEXT* context)
 				if ((context->_ifModified != 0) && (tFile <= context->_ifModified))
 				{
 					context->_result = -304;
-					LogPrint(0, "Not modified %s, @%d", szTemp, context->_sid);
+					LogPrint(0, "Not modified %s, @%d", context->_responsePath, context->_sid);
 					return;
 				}
 				else
@@ -196,13 +196,13 @@ void WEB_RequestReceived(REQUEST_CONTEXT* context)
 
 		context->_fileHandle = ctxSSI->_fp;
 		context->ctxResponse._dwTotal = WEB_fsize(ctxSSI->_fp);
-		LogPrint(LOG_DEBUG_ONLY, "File opened: %s, len=%d, SSI=%d @%d", szTemp, context->ctxResponse._dwTotal, ctxSSI->_ssi, context->_sid);
+		LogPrint(LOG_DEBUG_ONLY, "File opened: %s, len=%d, SSI=%d @%d", context->_responsePath, context->ctxResponse._dwTotal, ctxSSI->_ssi, context->_sid);
 	}
 	else
 	{
 		ctxSSI->_valid = 0;
 		context->_result = -404;
-		LogPrint(0, "Failed to open %s, @%d", szTemp, context->_sid);
+		LogPrint(0, "Failed to open %s, @%d", context->_responsePath, context->_sid);
 	}
 }
 
