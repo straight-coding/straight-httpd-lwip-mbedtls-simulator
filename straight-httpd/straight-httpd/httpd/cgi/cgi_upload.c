@@ -6,7 +6,7 @@
 
 #include "../http_cgi.h"
 
-#define UPLOAD_TO_FOLDER	"C:/Temp/"
+#define UPLOAD_TO_FOLDER	"D:/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/app/cache/"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 

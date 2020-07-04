@@ -6,7 +6,7 @@
 
 #include "../http_cgi.h"
 
-#define FOLDER_TO_LIST	"C:/Temp/"
+#define FOLDER_TO_LIST	"D:/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/app/cache/"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
