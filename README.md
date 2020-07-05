@@ -23,17 +23,14 @@ In a Windows environment, create a virtual device using pcap and lwip, and imple
 
 # Dependencies
 
-folder [pcap]: copied from the original location: 
-	https://nmap.org/npcap/dist/npcap-sdk-1.04.zip
-
-folder [lwip]: copied from the original location: 
-	git://git.savannah.nongnu.org/lwip.git
-	
-folder [mbedtls]: copied from the original location: 
-	https://github.com/ARMmbed/mbedtls.git	
-
-QR-Code-generator by nayuki, compressed with gzip
-    https://github.com/nayuki/QR-Code-generator/tree/a6ef65d237628a03dee3ae1df592df9a3359204d/javascript
+* folder [pcap]: copied from the original location: 
+    [https://nmap.org/npcap/dist/npcap-sdk-1.04.zip]
+* folder [lwip]: copied from the original location: 
+    [git://git.savannah.nongnu.org/lwip.git]
+* folder [mbedtls]: copied from the original location: 
+    [https://github.com/ARMmbed/mbedtls.git]
+* QR-Code-generator by nayuki, compressed with gzip
+    [https://github.com/nayuki/QR-Code-generator/tree/a6ef65d237628a03dee3ae1df592df9a3359204d/javascript]
 
 # Project folders
 
