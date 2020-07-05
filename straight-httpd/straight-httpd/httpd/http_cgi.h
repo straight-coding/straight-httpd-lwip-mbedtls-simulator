@@ -57,18 +57,19 @@ typedef struct
 	short _valid;	//>0: valid
 	short _source; 	//0=buffer or 1=file
 
-	void* _fp;
-	char  _lastModified[64];
-	char* _buffer;
+	void* _fp;		//file handle and info
+	char  _lastModified[64]; //keep file date in GMT format
+	char* _buffer;		//static content
 
-	long  _options;
+	long  _options;		//default options
 
 	short _ssi; 		//1=SSI
 	short _ssiState; 	//0=idle, 1=searching start, 2=start found, 3=collecting name, 4=searching end, 5=end found
-	short _cacheOffset; //
-	short _tagLength; 	//
 
-	char  _tagName[64];
+	short _tagLength; 	//length of tag name
+	char  _tagName[64];	//buffer of tag name
+
+	short _cacheOffset; //for tag parsing
 	char  _cache[MAX_TAG_LEN]; //pre-read buffer
 }SSI_Context;
 
@@ -105,7 +106,8 @@ void CGI_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo);
 //	  context->ctxResponse._dwOperIndex = 0; //sub-progress for each stage, for app layer internal use
 //    caller: called from HTTP_PROC_CALLER_RECV (event) / HTTP_PROC_CALLER_POLL (timer) / HTTP_PROC_CALLER_SENT (event)
 //  return 1 if data is ready to send
-//	  data MUST be put in context->ctxResponse._sendBuffer, and the buffer size set to context->ctxResponse._bytesLeft in advance
+//	  data MUST be put in context->ctxResponse._sendBuffer, 
+//			and the buffer size set to context->ctxResponse._bytesLeft in advance
 int  CGI_LoadContentToSend(REQUEST_CONTEXT* context, int caller);
 
 extern const char header_nocache[];

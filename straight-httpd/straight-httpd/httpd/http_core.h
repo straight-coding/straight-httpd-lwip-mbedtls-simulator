@@ -98,7 +98,7 @@ typedef struct _RESPONSE_CONTEXT
 	int 	_bytesLeft;				//remaining data length, for http_core.c
 	char 	_sendBuffer[2*TCP_MSS];	//remaining data, for http_core.c
 	
-	char	_appContext[MAX_APP_CONTEXT_SIZE]; //can be used by app layer to save anything
+	char	_appContext[MAX_APP_CONTEXT_SIZE]; //additional context for app layer to save anything, e.g. file read/write info
 }RESPONSE_CONTEXT;
 
 typedef struct _REQUEST_CONTEXT
@@ -107,14 +107,14 @@ typedef struct _REQUEST_CONTEXT
 	int 	_state;			//HTTP FSM, for http_core.c
 	int 	_peer_closing;	//half close, for http_core.c
 	
-	unsigned long _tRequestStart;		//tick of the request began, for http_core.c
-	unsigned long _tLastReceived;		//tick of the last received, for http_core.c
-	unsigned long _nReceiveTimeout; 	//60*1000, for http_core.c
+	unsigned long _tRequestStart;	//tick of the request began, for http_core.c
+	unsigned long _tLastReceived;	//tick of the last received, for http_core.c
+	unsigned long _nReceiveTimeout; //60*1000, for http_core.c
 
-	unsigned long  _https;
-	unsigned long  _ipRemote;
-	unsigned short _portRemote;
-	unsigned short _portLocal;
+	unsigned long  _https;		//is it HTTPS request? for redirecting from http to https
+	unsigned long  _ipRemote;	//keep user's IP when logged in
+	unsigned short _portRemote; //peer port
+	unsigned short _portLocal;  //local port: 80 or 443
 
 	sys_mutex_t* _pMutex; 		//not used because of single thread processing
 	int 	_killing;			//notification from other tasks
@@ -131,18 +131,18 @@ typedef struct _REQUEST_CONTEXT
 	int _chunked;			//chunk header, for http_core.c
 	int _expect00;			//Expect 100 header, for http_core.c
 
-	time_t _ifModified;
+	time_t _ifModified;		//for hrader: If-Modified-Since
 
-	long _rangeFrom;		//included
-	long _rangeTo;			//not included
+	long _rangeFrom;		//included		[from,to)
+	long _rangeTo;			//not included	[from,to)
 
 	int _contentReceived;	//count while receiving, for http_core.c
 	int _result;			//200 for success, 0 for pending, negative for failure, for http_core.c
 
-	SESSION* _session;
+	SESSION* _session;		//for session management
 
 	struct CGI_Mapping* handler;	//matched CGI handler
-	long _options;
+	long _options;	//working options copied from default CGI_Mapping, which may be changed by privilege
 	RESPONSE_CONTEXT ctxResponse;	
 	
 	char _ver[4];			//HTTP version
@@ -158,22 +158,22 @@ typedef struct _REQUEST_CONTEXT
 	char http_request_buffer[MAX_REQ_BUF_SIZE + 20]; //receiving buffer, max space to hold the request
 }REQUEST_CONTEXT;
 
-void PrintLwipStatus(void);
+void PrintLwipStatus(void); //kill the odlest TIME_WAIT pcb and print active count
 
 void SetKilling(REQUEST_CONTEXT* context);				//for app to kill session
-int  IsKilling(REQUEST_CONTEXT* context, int reset);
+int  IsKilling(REQUEST_CONTEXT* context, int reset);	//read killing flag, and clear it
 
-void LockSession(REQUEST_CONTEXT* context);
-void UnlockSession(REQUEST_CONTEXT* context);
+void LockSession(REQUEST_CONTEXT* context);		//locked the specified context
+void UnlockSession(REQUEST_CONTEXT* context);	//unlocked the specified context
 
-void SetupHttpContext(void);
-REQUEST_CONTEXT* GetHttpContext(void);
-void ResetHttpContext(REQUEST_CONTEXT* context);
-void CloseHttpContext(REQUEST_CONTEXT* context);
-void FreeHttpContext(REQUEST_CONTEXT* context);
-int  IsContextTimeout(REQUEST_CONTEXT* context);
+void SetupHttpContext(void); //initialize context for connections
+REQUEST_CONTEXT* GetHttpContext(void); //get a context for the new connection
+void ResetHttpContext(REQUEST_CONTEXT* context);	//for HTTP pipeline (keep-alive), reset part of the context for the following request
+void CloseHttpContext(REQUEST_CONTEXT* context);	//called when disconnected
+void FreeHttpContext(REQUEST_CONTEXT* context);		//clear context
+int  IsContextTimeout(REQUEST_CONTEXT* context);	//check timeout of the connection
 
-signed char sendBuffered(REQUEST_CONTEXT* context);
+signed char sendBuffered(REQUEST_CONTEXT* context); //send data in context->ctxResponse._sendBuffer
 
 struct altcp_pcb* HttpdInit(int tls, unsigned long port);
 int HttpdStop(struct altcp_pcb *pcbListen);

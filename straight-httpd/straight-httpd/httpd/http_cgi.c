@@ -28,6 +28,7 @@ void CGI_SetupMapping() //called from SetupHttpContext(), CGI handlers could be 
 	extern struct CGI_Mapping g_cgiAuth;	// "/auth/*"
 	extern struct CGI_Mapping g_cgiWebApp;	// "/app/*", MUST be the last one
 
+	//search sequence, full path first, longer second, wildcard last
 	CGI_Append(&g_cgiSSDP,    "/upnp_device.xml", CGI_OPT_GET_ENABLED | CGI_OPT_CHUNK_ENABLED);
 	CGI_Append(&g_cgiAuth,    "/auth/*", CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED);
 	CGI_Append(&g_cgiForm,	  "/app/form.shtml", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED);

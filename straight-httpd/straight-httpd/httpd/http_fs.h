@@ -12,11 +12,11 @@
 typedef struct _http_file_info
 {
 	unsigned long nIndex; //index for read pointer
-	unsigned long tLastModified;
-	unsigned long nSize;
+	unsigned long tLastModified; //file date
+	unsigned long nSize; //file size
 	unsigned long nOffsetFileData; //file content offset
 	unsigned long nOffsetNextFile; // ==> _http_file_info*
-	char  szfilepath[0];
+	char  szfilepath[0]; //file full path
 }http_file_info;
 
 void WEB_fs_init(void);
