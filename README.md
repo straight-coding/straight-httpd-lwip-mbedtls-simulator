@@ -1,6 +1,6 @@
 # straight-httpd
 
-Simple httpd for embedded systems based on lwip, mbedtls
+Simple httpd for embedded systems based on lwip and mbedtls
 
 # Objective
 
