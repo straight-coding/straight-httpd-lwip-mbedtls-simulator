@@ -28,7 +28,7 @@ DWORD WINAPI LwipLoopThread(void* data);
 HANDLE	g_appThread = NULL;
 DWORD WINAPI AppThread(void* data);
 
-extern long g_tcpipReady;
+extern long g_ipIsReady;
 
 HANDLE	g_dmaQLock = NULL;
 long	g_qLength = 0;
@@ -341,7 +341,7 @@ DWORD WINAPI LwipLoopThread(void* data)
 
 	LogPrint(0, "LWIP started\r\n");
 
-	LwipInit(0);
+	LwipInit(0); //initialize lwip stack and start dhcp
 
 	while(g_nKeepRunning)
 	{
@@ -374,7 +374,7 @@ DWORD WINAPI AppThread(void* data)
 	{
 		SessionClearAll(); //lock used inside
 
-		while (g_tcpipReady == 0)
+		while (g_ipIsReady == 0)
 		{
 			Sleep(50);
 		}
@@ -400,7 +400,7 @@ DWORD WINAPI AppThread(void* data)
 
 		while(TRUE)
 		{
-			if (g_tcpipReady == 0)
+			if (g_ipIsReady == 0)
 				break;
 
 			Sleep(50);

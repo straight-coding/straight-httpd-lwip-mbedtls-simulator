@@ -111,7 +111,7 @@ const char *cert = "-----BEGIN CERTIFICATE-----\n"\
 
 extern sys_mbox_t tcpip_mbox;
 struct netif main_netif;
-long g_tcpipReady = 0;
+long g_ipIsReady = 0; //
 
 int urgentCount = 0;
 int nonUrgent = 0;
@@ -343,12 +343,12 @@ void OnDhcpFinished(void)
 		((GetSubnet() >> 24) & 0xFF), ((GetSubnet() >> 16) & 0xFF),
 		((GetSubnet() >> 8) & 0xFF), ((GetSubnet() & 0xFF))));
 
-	g_tcpipReady = 1;
+	g_ipIsReady = 1;
 }
 
 void LwipLinkDown(void)
 {
-	g_tcpipReady = 0;
+	g_ipIsReady = 0;
 	
 	dhcp_stop(&main_netif);
 	
