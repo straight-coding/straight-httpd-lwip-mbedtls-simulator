@@ -224,7 +224,7 @@ int IsContextTimeout(REQUEST_CONTEXT* context) //called by OnHttpPoll
 
 void ResetHttpContext(REQUEST_CONTEXT* context)
 { //called when every request finished
-	LockSession(context);
+	LockContext(context);
 		//if (context->_reqBufList != NULL)
 			//pbuf_free(context->_reqBufList);
 		//context->_reqBufList = NULL;
@@ -276,7 +276,7 @@ void ResetHttpContext(REQUEST_CONTEXT* context)
 		
 		LogPrint(LOG_DEBUG_ONLY, "Reset connection @%d", context->_sid);
 		
-	UnlockSession(context);
+	UnlockContext(context);
 }
 
 void CloseHttpContext(REQUEST_CONTEXT* context)
@@ -286,7 +286,7 @@ void CloseHttpContext(REQUEST_CONTEXT* context)
 	if (context == NULL)
 		return;
 	
-	LockSession(context);
+	LockContext(context);
 		if (context->_pcb != NULL)
 		{
 			altcp_arg(context->_pcb, NULL);
@@ -315,7 +315,7 @@ void CloseHttpContext(REQUEST_CONTEXT* context)
 		{
 			LogPrint(0, "Close connection @%d, pcb is null", context->_sid);
 		}
-	UnlockSession(context);
+	UnlockContext(context);
 
 	FreeHttpContext(context);
 		
@@ -324,7 +324,7 @@ void CloseHttpContext(REQUEST_CONTEXT* context)
 
 void FreeHttpContext(REQUEST_CONTEXT* context)
 {
-	LockSession(context);
+	LockContext(context);
 		CGI_Finish(context);
 	
 		if (context->_reqBufList != NULL)
@@ -364,7 +364,7 @@ void FreeHttpContext(REQUEST_CONTEXT* context)
 		memset(context->http_request_buffer, 0, sizeof(context->http_request_buffer));
 		
 		LogPrint(0, "Free connection @%d", context->_sid);
-	UnlockSession(context);
+	UnlockContext(context);
 }
 
 struct altcp_tls_config* tlsCfg = NULL;
@@ -538,7 +538,7 @@ signed char OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *p, sign
 		}
 	}
 	
-	LockSession(context); //lock queue
+	LockContext(context); //lock queue
 	
 	context->_tLastReceived = LWIP_GetTickCount();
 	if (context->_tLastReceived == 0)
@@ -546,18 +546,18 @@ signed char OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *p, sign
 
 	SessionReceived(context->_session); //mutex used inside
 	
-	UnlockSession(context); //unlock queue
+	UnlockContext(context); //unlock queue
 
 	if (p != NULL)
 	{
-		LockSession(context); //lock queue
+		LockContext(context); //lock queue
 		
 		if (context->_reqBufList != NULL) 
 		{ //enqueue pbuf
 			pbuf_cat(context->_reqBufList, p);
 			LogPrint(LOG_DEBUG_ONLY, "pbuf enqueued, size=%d, total=%d, @%d", p->tot_len, context->_reqBufList->tot_len, context->_sid);
 			
-			UnlockSession(context); //unlock queue
+			UnlockContext(context); //unlock queue
 			
 			errRet = ERR_OK;
 		}
@@ -567,7 +567,7 @@ signed char OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *p, sign
 			LogPrint(LOG_DEBUG_ONLY, "first pbuf enqueued, size=%d @%d", p->tot_len, context->_sid);
 			context->_reqBufList = p;
 
-			UnlockSession(context); //unlock queue
+			UnlockContext(context); //unlock queue
 			
 			errRet = ERR_OK;
 			//errRet = ERR_INPROGRESS;
@@ -582,7 +582,7 @@ signed char OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *p, sign
 			context->http_request_buffer[context->request_length] = 0;
 			context->http_request_buffer[context->request_length+1] = 0;
 			
-			UnlockSession(context); //unlock queue
+			UnlockContext(context); //unlock queue
 			
 			altcp_recved(pcb, p->tot_len); //move tcp window
 			pbuf_free(p);
@@ -775,20 +775,16 @@ int IsKilling(REQUEST_CONTEXT* context, int reset)
 	return killing;
 }
 
-void LockSession(REQUEST_CONTEXT* context)
+void LockContext(REQUEST_CONTEXT* context)
 {
-#if (0)
 	if (context->_pMutex != NULL)
 		sys_mutex_lock(context->_pMutex);
-#endif
 }
 
-void UnlockSession(REQUEST_CONTEXT* context)
+void UnlockContext(REQUEST_CONTEXT* context)
 {
-#if (0)
 	if (context->_pMutex != NULL)
 		sys_mutex_unlock(context->_pMutex);
-#endif
 }
 
 void ParseQueryString(REQUEST_CONTEXT* context)
@@ -858,7 +854,7 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 	
 	while(context->_state < HTTP_STATE_BODY_DONE)
 	{
-		LockSession(context); //unlock queue
+		LockContext(context); //unlock queue
 			if (context->_reqBufList != NULL)
 			{
 				int nSpace = context->max_level - context->request_length;
@@ -918,7 +914,7 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 			}
 		
 			size = context->request_length;
-		UnlockSession(context); //unlock queue
+		UnlockContext(context); //unlock queue
 		
 		//LogPrint(LOG_DEBUG_ONLY, "Session recv buffer: %d bytes @%d", size, context->_sid);
 		if (size == 0)
@@ -1154,14 +1150,14 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 				
 				size -= nLinePos;
 				
-				LockSession(context);
+				LockContext(context);
 				if (nLinePos > 0)
 				{
 					context->request_length -= nLinePos;
 					if (context->request_length > 0)
 						memmove(context->http_request_buffer, context->http_request_buffer+nLinePos, context->request_length);
 				}
-				UnlockSession(context);
+				UnlockContext(context);
 			} //endif size > 0
 		} //endif parsing request header in session buffer
 
@@ -1252,11 +1248,11 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 					context->_contentReceived = 0;
 					context->_state = HTTP_STATE_CHUNK_RECEIVING;
 					
-					LockSession(context);
+					LockContext(context);
 						context->request_length -= (c+2); //skip chunk length
 						if (context->request_length > 0)
 							memmove(context->http_request_buffer, context->http_request_buffer+(c+2), context->request_length);
-					UnlockSession(context);
+					UnlockContext(context);
 					break;
 				}
 			}
@@ -1273,12 +1269,12 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 			if (consumed <= 0)
 				break;
 			
-			LockSession(context);
+			LockContext(context);
 				context->_contentReceived += consumed;
 				context->request_length -= consumed;
 				if (context->request_length > 0)
 					memmove(context->http_request_buffer, context->http_request_buffer + consumed, context->request_length);
-			UnlockSession(context);
+			UnlockContext(context);
 			
 			if (context->_contentReceived >= context->_contentLength)
 			{ //chunk or body done
@@ -1321,14 +1317,14 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 			break;
 		}
 		
-		LockSession(context);
+		LockContext(context);
 		if ((context->_reqBufList == NULL) || 
 			(consumed <= 0))
 		{
-			UnlockSession(context);
+			UnlockContext(context);
 			break;
 		}
-		UnlockSession(context); //continue processing data 
+		UnlockContext(context); //continue processing data 
 	} //end of parsing loop
 	
 	//request finished, send response now

@@ -35,11 +35,18 @@ typedef struct
 	void* _tagHandler;
 }SSI_Tag;
 
+//////////////////////////////////////////////////////////////////////////////////
+//all SSI variables must be protected by g_ssiMutex
+
+sys_mutex_t g_ssiMutex;
+
 char g_szColor[16] = { 0 };
 char g_szDate[16]  = { 0 };
 char g_szFont[16] = { 0 };
 char g_szLocation[16] = { 0 };
 long g_nLog = 0;
+
+//////////////////////////////////////////////////////////////////////////////////
 
 static SSI_Tag g_tagsBuiltin[] = {
 	{ "DEV_VENDOR",		TAG_GETTER, GetVendor }, //for home use
@@ -67,6 +74,21 @@ static SSI_Tag g_tagsBuiltin[] = {
 	{NULL, NULL, NULL}
 };
 
+void InitSSI(void)
+{
+	if (sys_mutex_new(&g_ssiMutex) != 0) {}
+}
+
+void SSI_Lock(void)
+{
+	sys_mutex_lock(&g_ssiMutex);
+}
+
+void SSI_Unlock(void)
+{
+	sys_mutex_unlock(&g_ssiMutex);
+}
+
 void TAG_Setter(char* name, char* value)
 {
 	int i = 0;
@@ -88,6 +110,7 @@ void TAG_Setter(char* name, char* value)
 		type = (tag->_tagType & 0xF000);
 		size = (tag->_tagType & 0x0FFF);
 
+		SSI_Lock();
 		if (type == TAG_STRING)
 		{
 			strncpy(tag->_tagHandler, value, size - 1);
@@ -117,6 +140,7 @@ void TAG_Setter(char* name, char* value)
 			double fValue = atof(value);
 			((double*)tag->_tagHandler)[0] = fValue;
 		}
+		SSI_Unlock();
 		break;
 	}
 }
@@ -146,6 +170,8 @@ int ReplaceTag(REQUEST_CONTEXT* context, char* tagName, char* appendTo, int maxA
 		if (size > sizeof(szTemp)-1)
 			size = sizeof(szTemp)-1;
 
+		SSI_Lock();
+
 		if (type == TAG_GETTER)
 		{
 			char* (*getter)(void) = tag->_tagHandler;
@@ -169,6 +195,7 @@ int ReplaceTag(REQUEST_CONTEXT* context, char* tagName, char* appendTo, int maxA
 		else if (type == TAG_DOUBLE)
 			LWIP_sprintf(szTemp, FORMATER_DOUBLE, ((double*)tag->_tagHandler)[0]);
 
+		SSI_Unlock();
 		break;
 	}
 

@@ -16,6 +16,7 @@ extern int  Strnicmp(char *str1, char *str2, int n);
 struct CGI_Mapping* g_cgiMapping = NULL;
 
 void CGI_Append(struct CGI_Mapping* newMapping, const char* ovwPath, unsigned long ovwOptions); //append single CGI mapping
+extern void InitSSI(void);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -35,6 +36,8 @@ void CGI_SetupMapping() //called from SetupHttpContext(), CGI handlers could be 
 	CGI_Append(&g_cgiFiles,   "/api/files.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_CHUNK_ENABLED);
 	CGI_Append(&g_cgiUpload,  "/api/upload.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_POST_ENABLED);
 	CGI_Append(&g_cgiWebApp,  "/app/*", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED); //"/app/*", MUST be the last one
+
+	InitSSI();
 }
 
 void CGI_Append(struct CGI_Mapping* newMapping, const char* ovwPath, unsigned long ovwOptions)

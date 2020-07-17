@@ -163,8 +163,8 @@ void PrintLwipStatus(void); //kill the odlest TIME_WAIT pcb and print active cou
 void SetKilling(REQUEST_CONTEXT* context);				//for app to kill session
 int  IsKilling(REQUEST_CONTEXT* context, int reset);	//read killing flag, and clear it
 
-void LockSession(REQUEST_CONTEXT* context);		//locked the specified context
-void UnlockSession(REQUEST_CONTEXT* context);	//unlocked the specified context
+void LockContext(REQUEST_CONTEXT* context);		//locked the specified context
+void UnlockContext(REQUEST_CONTEXT* context);	//unlocked the specified context
 
 void SetupHttpContext(void); //initialize context for connections
 REQUEST_CONTEXT* GetHttpContext(void); //get a context for the new connection
