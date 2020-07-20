@@ -152,3 +152,13 @@ function checkSession(opt)
     session.open("GET", "/auth/session_check.cgi");
     session.send();
 }
+
+function setSessionCHecker()
+{
+    if (window == top)
+    {
+        setInterval(function() { 
+            checkSession({ alive: function() {} }); 
+        }, 30*1000);
+    }
+}

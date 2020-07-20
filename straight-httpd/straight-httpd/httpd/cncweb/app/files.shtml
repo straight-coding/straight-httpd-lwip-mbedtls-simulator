@@ -1,15 +1,14 @@
 <!DOCTYPE html>
 <html style='width:100%;height:100%;'>
-
 <head>
   <meta charset='UTF-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1'>
   <title>Virtual Device</title>
 
-  <script type="application/javascript" src="js/base64js.min.js"></script>
-
   <link rel="stylesheet" href="css/share.css">
   <script type="application/javascript" src="js/share.js"></script>
+
+  <script type="application/javascript" src="js/base64js.min.js"></script>
   
   <link rel="stylesheet" href="plugin/fileList/fileList.css">
   <script type="application/javascript" src="plugin/fileList/fileList.js"></script>
@@ -46,6 +45,8 @@
   </div>
 
   <script>
+
+    setSessionCHecker();
 
     var folderHost = null;
 

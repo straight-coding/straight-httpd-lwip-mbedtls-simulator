@@ -19,7 +19,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern void LogPrint(int level, char* format, ... );
-extern long ston(u8_t* s);
+extern long ston(unsigned char* s);
 extern int  Strnicmp(char *str1, char *str2, int n);
 
 extern struct tcp_pcb *tcp_active_pcbs;
@@ -28,14 +28,14 @@ extern void tcp_kill_timewait(void);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller);
-signed char HttpResponseProc(REQUEST_CONTEXT* context, int caller);
+static signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller);
+static signed char HttpResponseProc(REQUEST_CONTEXT* context, int caller);
 
-signed char OnHttpAccept(void *arg, struct altcp_pcb *pcb, signed char err);
-signed char OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *p, signed char err);
-signed char OnHttpPoll(void *arg, struct altcp_pcb *pcb);
-signed char OnHttpSent(void *arg, struct altcp_pcb *pcb, u16_t len);
-void  OnHttpError(void *arg, signed char err);
+static signed char OnHttpAccept(void *arg, struct altcp_pcb *pcb, signed char err);
+static signed char OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *p, signed char err);
+static signed char OnHttpPoll(void *arg, struct altcp_pcb *pcb);
+static signed char OnHttpSent(void *arg, struct altcp_pcb *pcb, u16_t len);
+static void  OnHttpError(void *arg, signed char err);
 
 static const char* Response_Status_Lines[] = {
 	// 1xx: Informational - Request received, continuing process 
@@ -97,8 +97,8 @@ const char redirect_body1[] = "<html><head/><body><script>location.href='";
 const char redirect_body2[] = "';</script></body></html>";
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-REQUEST_CONTEXT g_httpContext[MAX_CONNECTIONS];
-sys_mutex_t	    g_httpMutex[MAX_CONNECTIONS];
+static REQUEST_CONTEXT g_httpContext[MAX_CONNECTIONS];
+static sys_mutex_t	    g_httpMutex[MAX_CONNECTIONS];
 
 void PrintLwipStatus(void)
 {
@@ -148,7 +148,7 @@ void SetupHttpContext(void)
 	CGI_SetupMapping();
 }
 
-REQUEST_CONTEXT* GetHttpContext(void)
+static REQUEST_CONTEXT* GetHttpContext(void)
 {
 	int i;
 	for(i = 0; i < MAX_CONNECTIONS; i ++)
@@ -172,7 +172,7 @@ REQUEST_CONTEXT* GetHttpContext(void)
 	return NULL;
 }
 
-int IsContextTimeout(REQUEST_CONTEXT* context) //called by OnHttpPoll
+static int IsContextTimeout(REQUEST_CONTEXT* context) //called by OnHttpPoll
 {
 	unsigned long recvElapsed = LWIP_GetTickCount();
 	unsigned long sendElapsed = recvElapsed;
@@ -222,7 +222,7 @@ int IsContextTimeout(REQUEST_CONTEXT* context) //called by OnHttpPoll
 	return 0;
 }
 
-void ResetHttpContext(REQUEST_CONTEXT* context)
+static void ResetHttpContext(REQUEST_CONTEXT* context)
 { //called when every request finished
 	LockContext(context);
 		//if (context->_reqBufList != NULL)
@@ -279,7 +279,7 @@ void ResetHttpContext(REQUEST_CONTEXT* context)
 	UnlockContext(context);
 }
 
-void CloseHttpContext(REQUEST_CONTEXT* context)
+static void CloseHttpContext(REQUEST_CONTEXT* context)
 {
 	signed char err;
 	
@@ -322,7 +322,7 @@ void CloseHttpContext(REQUEST_CONTEXT* context)
 	PrintLwipStatus();
 }
 
-void FreeHttpContext(REQUEST_CONTEXT* context)
+static void FreeHttpContext(REQUEST_CONTEXT* context)
 {
 	LockContext(context);
 		CGI_Finish(context);
@@ -432,7 +432,7 @@ int HttpdStop(struct altcp_pcb *pcbListen)
  *  Return ERR_OK to continue receiving
  * 	Otherwise, tcp_abort() will be called by stack out of this callback function
  */
-signed char OnHttpAccept(void *pcbListener, struct altcp_pcb *pcbAccepted, signed char errIn) //errIn=ERR_MEM or ERR_OK
+static signed char OnHttpAccept(void *pcbListener, struct altcp_pcb *pcbAccepted, signed char errIn) //errIn=ERR_MEM or ERR_OK
 { //arg ==> g_pcbListen
 	REQUEST_CONTEXT* context = NULL;
 
@@ -501,7 +501,7 @@ signed char OnHttpAccept(void *pcbListener, struct altcp_pcb *pcbAccepted, signe
  *    return ERR_OK if data eaten by app layer
  *    otherwise keep data in pcb
  */
-signed char OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *p, signed char err) //err always ERR_OK currently
+static signed char OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *p, signed char err) //err always ERR_OK currently
 { //return ERR_OK if data eaten; return IN_PROGRESS if data not eaten; return ERR_ABRT if tcp_abort before return
 	signed char errRet = ERR_OK;
 	
@@ -543,8 +543,6 @@ signed char OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *p, sign
 	context->_tLastReceived = LWIP_GetTickCount();
 	if (context->_tLastReceived == 0)
 		context->_tLastReceived ++;
-
-	SessionReceived(context->_session); //mutex used inside
 	
 	UnlockContext(context); //unlock queue
 
@@ -607,6 +605,9 @@ signed char OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *p, sign
 			
 			return ERR_OK;
 		}
+
+		if (Strnicmp(context->_requestPath, WEB_SESSION_CHECK, strlen(WEB_SESSION_CHECK)) != 0)
+			SessionReceived(context->_session); //mutex used inside
 	}
 
 	return errRet;
@@ -617,7 +618,7 @@ signed char OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *p, sign
  * @return ERR_OK: try to send some data by calling tcp_output
  *     Only return ERR_ABRT if you have called tcp_abort from within the callback function!
  */
-signed char OnHttpPoll(void *arg, struct altcp_pcb *pcb)
+static signed char OnHttpPoll(void *arg, struct altcp_pcb *pcb)
 {
 	signed char err = ERR_OK;
 	REQUEST_CONTEXT* context = (REQUEST_CONTEXT*)arg;
@@ -675,7 +676,7 @@ signed char OnHttpPoll(void *arg, struct altcp_pcb *pcb)
  * @return ERR_OK: try to send some data by calling tcp_output
  *    Only return ERR_ABRT if you have called tcp_abort from within the callback function!
  */
-signed char OnHttpSent(void *arg, struct altcp_pcb *pcb, u16_t len)
+static signed char OnHttpSent(void *arg, struct altcp_pcb *pcb, u16_t len)
 {
 	signed char err = ERR_OK;
 	
@@ -684,6 +685,9 @@ signed char OnHttpSent(void *arg, struct altcp_pcb *pcb, u16_t len)
 	{
 		LogPrint(LOG_DEBUG_ONLY, "OnHttpSent, size=%d, err=%d  @%d", len, err, context->_sid);
 		
+		if (Strnicmp(context->_requestPath, WEB_SESSION_CHECK, strlen(WEB_SESSION_CHECK)) != 0)
+			SessionSent(context->_session); //mutex used inside
+
 		context->ctxResponse._totalSent += len;
 
 		HttpRequestProc(context, HTTP_PROC_CALLER_SENT); //ResetHttpContext() or CloseHttpContext() may be already called
@@ -702,8 +706,6 @@ signed char OnHttpSent(void *arg, struct altcp_pcb *pcb, u16_t len)
 			return ERR_OK;
 		}
 
-		SessionSent(context->_session); //mutex used inside
-		
 		return err;
 	}
 
@@ -727,7 +729,7 @@ signed char OnHttpSent(void *arg, struct altcp_pcb *pcb, u16_t len)
  *    ERR_ABRT: aborted through tcp_abort or by a TCP timer
  *    ERR_RST: the connection was reset by the remote host
  */
-void OnHttpError(void *arg, signed char err)
+static void OnHttpError(void *arg, signed char err)
 { //pcb already freed
 	REQUEST_CONTEXT* context = (REQUEST_CONTEXT*)arg;
 	LWIP_UNUSED_ARG(err);
@@ -747,7 +749,7 @@ void OnHttpError(void *arg, signed char err)
 	PrintLwipStatus();
 }
 
-void SetKilling(REQUEST_CONTEXT* context)
+static void SetKilling(REQUEST_CONTEXT* context)
 {
 	if (context->_pMutex != NULL)
 		sys_mutex_lock(context->_pMutex);
@@ -775,19 +777,19 @@ int IsKilling(REQUEST_CONTEXT* context, int reset)
 	return killing;
 }
 
-void LockContext(REQUEST_CONTEXT* context)
+static void LockContext(REQUEST_CONTEXT* context)
 {
 	if (context->_pMutex != NULL)
 		sys_mutex_lock(context->_pMutex);
 }
 
-void UnlockContext(REQUEST_CONTEXT* context)
+static void UnlockContext(REQUEST_CONTEXT* context)
 {
 	if (context->_pMutex != NULL)
 		sys_mutex_unlock(context->_pMutex);
 }
 
-void ParseQueryString(REQUEST_CONTEXT* context)
+static void ParseQueryString(REQUEST_CONTEXT* context)
 {
 	int i = 0;
 	int len = 0;
@@ -843,7 +845,7 @@ void ParseQueryString(REQUEST_CONTEXT* context)
 	LogPrint(LOG_DEBUG_ONLY, "Extension: %s", context->_extension);
 }
 
-signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always return ERR_OK
+static signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always return ERR_OK
 { //return 0, or http error code
 	char* buffer = context->http_request_buffer;
 	
@@ -1361,7 +1363,7 @@ signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //always retur
 	return ERR_OK; //continue the session
 }
 
-signed char sendBuffered(REQUEST_CONTEXT* context)
+static signed char sendBuffered(REQUEST_CONTEXT* context)
 {
 	int size2Send;
 	int maxbuf; //tcp_sndbuf()
@@ -1402,7 +1404,7 @@ signed char sendBuffered(REQUEST_CONTEXT* context)
 	return ERR_OK;
 }
 
-signed char HttpResponseProc(REQUEST_CONTEXT* context, int caller) //always return ERR_OK
+static signed char HttpResponseProc(REQUEST_CONTEXT* context, int caller) //always return ERR_OK
 {
 	signed char err = ERR_OK;
 

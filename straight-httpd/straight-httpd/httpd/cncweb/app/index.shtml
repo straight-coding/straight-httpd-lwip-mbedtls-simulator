@@ -4,7 +4,10 @@
   <meta charset='UTF-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1'>
   <title>Virtual Device</title>
+
   <link rel="stylesheet" href="css/share.css">
+  <script type="application/javascript" src="js/share.js"></script>
+
   <style>
   </style>
 </head>
@@ -22,9 +25,6 @@
       <div class='key margin-t8'>UUID</div>             <div class='value margin-t2'><!--#DEV_UUID--></div>
       <div class='key margin-t8'>Serial Number</div>    <div class='value margin-t2'><!--#DEV_SN--></div>
       <div class='key margin-t8'>MAC Address</div>      <div class='value margin-t2'><!--#DEV_MAC--></div>
-      <div class='key margin-t8'>IP Address</div>       <div class='value margin-t2'><!--#DEV_IP--></div>
-      <div class='key margin-t8'>Gateway</div>          <div class='value margin-t2'><!--#DEV_GATEWAY--></div>
-      <div class='key margin-t8'>Subnet</div>           <div class='value margin-t2'><!--#DEV_SUBNET--></div>
       <div class='key margin-t8'>Vendor Home</div>      <div class='value margin-t2'><!--#DEV_VENDOR_URL--></div>
       <div class='key margin-t8'>Model Home</div>       <div class='value margin-t2'><!--#DEV_MODEL_URL--></div>
 
@@ -45,6 +45,9 @@
   
   <script type="application/javascript" src="js/qrcodegen.js"></script>
   <script>
+
+    setSessionCHecker();
+
     var ecl = qrcodegen.QrCode.Ecc.MEDIUM;//MEDIUM,QUARTILE,HIGH,LOW
     var text = "http://<!--#DEV_IP-->";
     var segs = qrcodegen.QrSegment.makeSegments(text);

@@ -4,11 +4,11 @@
   <meta charset='UTF-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1'>
   <title>Virtual Device</title>
-  
-  <script type="application/javascript" src="js/base64js.min.js"></script>
 
   <link rel="stylesheet" href="css/share.css">
   <script type="application/javascript" src="js/share.js"></script>
+  
+  <script type="application/javascript" src="js/base64js.min.js"></script>
 
   <link rel="stylesheet" href="plugin/fileTransfer/fileTransfer.css">
   <script type="application/javascript" src="plugin/fileTransfer/fileTransfer.js"></script>
@@ -53,6 +53,9 @@
     </div>
  </div>
  <script>
+
+    setSessionCHecker();    
+
     document.getElementById('home').addEventListener('click', goHome);
     function goHome() { location.href = '/app/index.shtml'; }
    

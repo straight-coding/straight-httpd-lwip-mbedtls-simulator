@@ -16,8 +16,8 @@ extern int  Strnicmp(char *str1, char *str2, int n);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-sys_mutex_t		g_sessionMutex;
-SESSION			g_httpSessions[MAX_SESSIONS];
+static sys_mutex_t		g_sessionMutex;
+static SESSION			g_httpSessions[MAX_SESSIONS];
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 void SetupSession(void)
@@ -163,7 +163,7 @@ void SessionCheck(void) //called when header 'X-Auth-Token' or 'Cookie' received
 			else
 				sendElapsed = 0;
 
-			if (((sendElapsed < recvElapsed) ? sendElapsed : recvElapsed) > TO_SESSION)
+			if ((GetSessionTimeout() > 0) && (((sendElapsed < recvElapsed) ? sendElapsed : recvElapsed) > GetSessionTimeout()))
 			{
 				LogPrint(0, "Session killed (timeout) @ %s from %08lX", g_httpSessions[i]._token, g_httpSessions[i]._nLoginIP);
 

@@ -9,7 +9,7 @@
 
 #define MAX_SESSIONS		5
 #define MAX_COOKIE_SIZE		32		//max length of the cookie string
-#define TO_SESSION			3*60*1000
+//#define TO_SESSION			3*60*1000
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
