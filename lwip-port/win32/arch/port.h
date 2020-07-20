@@ -21,6 +21,7 @@ struct packet_wrapper
 
 void LwipInit(int reboot);
 extern int tcpip_inloop(void);
+void InitDevInfo(void);
 
 struct packet_wrapper* DMA_pop();
 void DMA_free(struct packet_wrapper* pkt);
@@ -30,18 +31,38 @@ long NIC_Send(unsigned char *buf, int size);
 void NotifyFromEthISR();
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-// Device
+// Network
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 unsigned char* GetMyMAC(void);
-unsigned long GetMyIP(void);
-unsigned long GetGateway(void);
-unsigned long GetSubnet(void);
+int FillMAC(void* context, char* buffer, int maxSize);
 
-void  SetMyIP(unsigned long addr);
-void  SetGateway(unsigned long addr);
-void  SetSubnet(unsigned long addr);
-	
+unsigned long GetMyIP(void);
+int FillIP(void* context, char* buffer, int maxSize);
+void SetMyIP(unsigned long addr);
+
+unsigned long GetGateway(void);
+int FillGateway(void* context, char* buffer, int maxSize);
+void SetGateway(unsigned long addr);
+
+unsigned long GetSubnet(void);
+int FillSubnet(void* context, char* buffer, int maxSize);
+void SetSubnet(unsigned long addr);
+
+unsigned long IsDhcpEnabled();
+int FillDhcp(void* context, char* buffer, int maxSize);
+void SetDhcpEnabled(char* value);
+
+void OnDhcpFinished(void);
+
+long GetSessionTimeout();
+int FillSessionTimeout(void* context, char* buffer, int maxSize);
+void SetSessionTimeout(char* value);
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// Device
+///////////////////////////////////////////////////////////////////////////////////////////
+
 char* GetVendor(void);
 char* GetVendorURL(void);
 
@@ -53,7 +74,20 @@ char* GetDeviceSN(void);
 char* GetDeviceUUID(void);
 char* GetDeviceVersion(void);
 
-void  OnDhcpFinished(void);
+char* GetLocation();
+void SetLocation(char* value);
+
+char* GetColor();
+void SetColor(char* value);
+
+char* GetDate();
+void SetDate(char* value);
+
+char* GetFont();
+void SetFont(char* value);
+
+int FillLog(void* context, char* buffer, int maxSize);
+void SetLog(char* value);
 
 #endif
 
