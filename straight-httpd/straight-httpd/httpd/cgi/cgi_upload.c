@@ -14,11 +14,11 @@ extern void LogPrint(int level, char* format, ... );
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Upload_OnCancel(REQUEST_CONTEXT* context);
-int  Upload_OnHeaderReceived(REQUEST_CONTEXT* context, char* header_line);
-void Upload_OnHeadersReceived(REQUEST_CONTEXT* context);
-int  Upload_OnContentReceived(REQUEST_CONTEXT* context, char* buffer, int size);
-void Upload_AllReceived(REQUEST_CONTEXT* context);
+static void Upload_OnCancel(REQUEST_CONTEXT* context);
+static int  Upload_OnHeaderReceived(REQUEST_CONTEXT* context, char* header_line);
+static void Upload_OnHeadersReceived(REQUEST_CONTEXT* context);
+static int  Upload_OnContentReceived(REQUEST_CONTEXT* context, char* buffer, int size);
+static void Upload_AllReceived(REQUEST_CONTEXT* context);
 
 struct CGI_Mapping g_cgiUpload = {
 	"/api/upload.cgi",
@@ -40,17 +40,12 @@ struct CGI_Mapping g_cgiUpload = {
 	NULL //struct CGI_Mapping* next;
 };
 
-long Dev_IsBusy(void)
+static long Dev_IsBusy(void)
 {
 	return 0;
 }
 
-long Dev_IsOnline(void)
-{
-	return 1;
-}
-
-long Upload_Start(void* context, char* szFileName, long nFileSize)
+static long Upload_Start(void* context, char* szFileName, long nFileSize)
 {
 	REQUEST_CONTEXT* ctx = (REQUEST_CONTEXT*)context;
 
@@ -64,26 +59,26 @@ long Upload_Start(void* context, char* szFileName, long nFileSize)
 	return 1; //ready to receive f/w
 }
 
-long Upload_GetFreeSize(unsigned long askForSize)
+static long Upload_GetFreeSize(unsigned long askForSize)
 {
 	return askForSize; //how many it can accept (etc. accept all)
 }
 
-long Upload_Received(REQUEST_CONTEXT* context, unsigned char* pData, unsigned long dwLen)
+static long Upload_Received(REQUEST_CONTEXT* context, unsigned char* pData, unsigned long dwLen)
 {
 	if (LWIP_fwrite(context->_fileHandle, pData, dwLen) > 0) //>0:success
 		return dwLen;  //real count consumed (etc. consume all)
 	return 0;
 }
 
-void Upload_AllReceived(REQUEST_CONTEXT* context)
+static void Upload_AllReceived(REQUEST_CONTEXT* context)
 { //to upgrade after f/w completely received
 	LogPrint(0, "Post upgrade done: length=%d @%d", context->_contentLength, context->_sid);
 
 	LWIP_fclose(context->_fileHandle);
 }
 
-int Upload_OnHeaderReceived(REQUEST_CONTEXT* context, char* header_line)
+static int Upload_OnHeaderReceived(REQUEST_CONTEXT* context, char* header_line)
 {
 	if (Strnicmp(header_line, "X-File-Name:", 12) == 0)
 	{
@@ -112,12 +107,12 @@ int Upload_OnHeaderReceived(REQUEST_CONTEXT* context, char* header_line)
 	return 0;
 }
 
-void Upload_OnCancel(REQUEST_CONTEXT* context)
+static void Upload_OnCancel(REQUEST_CONTEXT* context)
 { //to cancel upgrade because of connection error
 	LogPrint(0, "Post upgrade canceled: length=%d @%d", context->_contentLength, context->_sid);
 }
 
-void Upload_OnHeadersReceived(REQUEST_CONTEXT* context)
+static void Upload_OnHeadersReceived(REQUEST_CONTEXT* context)
 {
 	if (context->_requestMethod == METHOD_GET)
 	{
@@ -145,7 +140,7 @@ void Upload_OnHeadersReceived(REQUEST_CONTEXT* context)
 	}
 }
 
-int Upload_OnContentReceived(REQUEST_CONTEXT* context, char* buffer, int size)
+static int Upload_OnContentReceived(REQUEST_CONTEXT* context, char* buffer, int size)
 {
 	int consumed = 0;
 	int maxToConsume = context->_contentLength - context->_contentReceived;

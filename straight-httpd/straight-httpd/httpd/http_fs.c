@@ -13,8 +13,8 @@
 #define LOCAL_WEBROOT	"D:/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/"
 #endif
 
-http_file_info* g_WebPages = (http_file_info*)g_szWebRoot; //web pages in ROM
-unsigned long g_FilePosition[MAX_FILES]; //read pointers in RAM
+static http_file_info* g_WebPages = (http_file_info*)g_szWebRoot; //web pages in ROM
+static unsigned long g_FilePosition[MAX_FILES]; //read pointers in RAM
 
 void WEB_fs_init(void)
 {

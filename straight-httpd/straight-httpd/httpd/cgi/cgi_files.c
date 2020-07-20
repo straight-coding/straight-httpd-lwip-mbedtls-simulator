@@ -13,10 +13,9 @@
 extern void LogPrint(int level, char* format, ... );
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-void Files_OnRequestReceived(REQUEST_CONTEXT* context);
-
-void Files_SetResponseHeader(REQUEST_CONTEXT* context, char* HttpCodeInfo);
-int  Files_ReadOneFileInfo(REQUEST_CONTEXT* context, char* buffer, int maxSize);
+static void Files_OnRequestReceived(REQUEST_CONTEXT* context);
+static void Files_SetResponseHeader(REQUEST_CONTEXT* context, char* HttpCodeInfo);
+static int  Files_ReadOneFileInfo(REQUEST_CONTEXT* context, char* buffer, int maxSize);
 
 struct CGI_Mapping g_cgiFiles = {
 	"/api/files.cgi",
@@ -37,7 +36,7 @@ struct CGI_Mapping g_cgiFiles = {
 	NULL //struct CGI_Mapping* next;
 };
 
-void Files_OnRequestReceived(REQUEST_CONTEXT* context)
+static void Files_OnRequestReceived(REQUEST_CONTEXT* context)
 {
 	char* p = NULL;
 	if (context->_posQuestion >= 0)
@@ -91,7 +90,7 @@ void Files_OnRequestReceived(REQUEST_CONTEXT* context)
 	}
 }
 
-void Files_SetResponseHeader(REQUEST_CONTEXT* context, char* HttpCodeInfo)
+static void Files_SetResponseHeader(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 {
 	if (context->_requestMethod == METHOD_GET)
 	{
@@ -100,7 +99,7 @@ void Files_SetResponseHeader(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 	}
 }
 
-int Files_ReadOneFileInfo(REQUEST_CONTEXT* context, char* buffer, int maxSize)
+static int Files_ReadOneFileInfo(REQUEST_CONTEXT* context, char* buffer, int maxSize)
 {
 	int outputCount = -1; //output count
 

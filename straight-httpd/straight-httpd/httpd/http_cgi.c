@@ -10,13 +10,13 @@
 
 extern void LogPrint(int level, char* format, ... );
 extern int  Strnicmp(char *str1, char *str2, int n);
+extern void InitDevInfo(void);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct CGI_Mapping* g_cgiMapping = NULL;
+static struct CGI_Mapping* g_cgiMapping = NULL;
 
-void CGI_Append(struct CGI_Mapping* newMapping, const char* ovwPath, unsigned long ovwOptions); //append single CGI mapping
-extern void InitSSI(void);
+static void CGI_Append(struct CGI_Mapping* newMapping, const char* ovwPath, unsigned long ovwOptions); //append single CGI mapping
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -36,11 +36,9 @@ void CGI_SetupMapping() //called from SetupHttpContext(), CGI handlers could be 
 	CGI_Append(&g_cgiFiles,   "/api/files.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_CHUNK_ENABLED);
 	CGI_Append(&g_cgiUpload,  "/api/upload.cgi", CGI_OPT_AUTH_REQUIRED | CGI_OPT_POST_ENABLED);
 	CGI_Append(&g_cgiWebApp,  "/app/*", CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED); //"/app/*", MUST be the last one
-
-	InitSSI();
 }
 
-void CGI_Append(struct CGI_Mapping* newMapping, const char* ovwPath, unsigned long ovwOptions)
+static void CGI_Append(struct CGI_Mapping* newMapping, const char* ovwPath, unsigned long ovwOptions)
 {
 	int i = 0;
 	struct CGI_Mapping* next;

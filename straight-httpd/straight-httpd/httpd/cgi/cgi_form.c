@@ -13,9 +13,8 @@ extern void TAG_Setter(char* name, char* value);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Form_OnRequestReceived(REQUEST_CONTEXT* context);
-	
-void Form_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo);
+static void Form_OnRequestReceived(REQUEST_CONTEXT* context);
+static void Form_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo);
 
 struct CGI_Mapping g_cgiForm = {
 	"/app/form.shtml", //char* path;
@@ -36,7 +35,7 @@ struct CGI_Mapping g_cgiForm = {
 	NULL //struct CGI_Mapping* next;
 };
 
-void Form_OnRequestReceived(REQUEST_CONTEXT* context)
+static void Form_OnRequestReceived(REQUEST_CONTEXT* context)
 {
 	WEB_RequestReceived(context);
 
@@ -44,7 +43,7 @@ void Form_OnRequestReceived(REQUEST_CONTEXT* context)
 	context->ctxResponse._bytesLeft = 0;
 }
 
-void Form_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
+static void Form_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 { //clear send buffer for response use
 	WEB_AppendHeaders(context, HttpCodeInfo);
 }

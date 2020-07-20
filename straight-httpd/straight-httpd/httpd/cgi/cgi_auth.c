@@ -12,11 +12,10 @@ extern void LogPrint(int level, char* format, ... );
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Auth_OnHeaders(REQUEST_CONTEXT* context);
-int  Auth_OnPostData(REQUEST_CONTEXT* context, char* buffer, int size);
-void Auth_OnRequestReceived(REQUEST_CONTEXT* context);
-	
-void Auth_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo);
+static void Auth_OnHeaders(REQUEST_CONTEXT* context);
+static int  Auth_OnPostData(REQUEST_CONTEXT* context, char* buffer, int size);
+static void Auth_OnRequestReceived(REQUEST_CONTEXT* context);
+static void Auth_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo);
 
 struct CGI_Mapping g_cgiAuth = {
 	"/auth/*", //char* path;
@@ -37,7 +36,7 @@ struct CGI_Mapping g_cgiAuth = {
 	NULL //struct CGI_Mapping* next;
 };
 
-int CheckUser(char* u, char* p)
+static int CheckUser(char* u, char* p)
 {
 	int success = 0;
 	if ((stricmp(u, "admin") == 0))// && (stricmp(p, "password") == 0))
@@ -47,7 +46,7 @@ int CheckUser(char* u, char* p)
 	return success;
 }
 
-int AuthCheck(REQUEST_CONTEXT* context)
+static int AuthCheck(REQUEST_CONTEXT* context)
 {
 	if (context->ctxResponse._appContext[0] != 0)
 	{
@@ -99,12 +98,12 @@ int AuthCheck(REQUEST_CONTEXT* context)
 	return 0;
 }
 
-void Auth_OnHeaders(REQUEST_CONTEXT* context)
+static void Auth_OnHeaders(REQUEST_CONTEXT* context)
 {
 	memset(context->ctxResponse._appContext, 0, sizeof(context->ctxResponse._appContext));
 }
 
-int Auth_OnPostData(REQUEST_CONTEXT* context, char* buffer, int size)
+static int Auth_OnPostData(REQUEST_CONTEXT* context, char* buffer, int size)
 {
 	if (size > 0)
 	{
@@ -115,7 +114,7 @@ int Auth_OnPostData(REQUEST_CONTEXT* context, char* buffer, int size)
 	return size;
 }
 
-void Auth_OnRequestReceived(REQUEST_CONTEXT* context)
+static void Auth_OnRequestReceived(REQUEST_CONTEXT* context)
 {
 	SSI_Context* ctxSSI = (SSI_Context*)context->ctxResponse._appContext;
 
@@ -162,7 +161,7 @@ void Auth_OnRequestReceived(REQUEST_CONTEXT* context)
 	WEB_RequestReceived(context);
 }
 
-void Auth_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
+static void Auth_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 { //append headers
 	int nSize = strlen(context->ctxResponse._sendBuffer);
 

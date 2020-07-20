@@ -12,8 +12,8 @@ extern void LogPrint(int level, char* format, ... );
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SSDP_SendHeader(REQUEST_CONTEXT* context, char* HttpCodeInfo);
-int  SSDP_Sending(REQUEST_CONTEXT* context, char* buffer, int maxSize);
+static void SSDP_SendHeader(REQUEST_CONTEXT* context, char* HttpCodeInfo);
+static int  SSDP_Sending(REQUEST_CONTEXT* context, char* buffer, int maxSize);
 
 struct CGI_Mapping g_cgiSSDP = {
 	"/upnp_device.xml", //char* path;
@@ -34,7 +34,7 @@ struct CGI_Mapping g_cgiSSDP = {
 	NULL //struct CGI_Mapping* next;
 };
 
-void SSDP_SendHeader(REQUEST_CONTEXT* context, char* HttpCodeInfo)
+static void SSDP_SendHeader(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 {
 	if (context->_requestMethod == METHOD_GET)
 	{
@@ -42,7 +42,7 @@ void SSDP_SendHeader(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 	}
 }
 
-int SSDP_Sending(REQUEST_CONTEXT* context, char* buffer, int maxSize)
+static int SSDP_Sending(REQUEST_CONTEXT* context, char* buffer, int maxSize)
 {
 	int off = 0;
 	if (context->_requestMethod == METHOD_GET)
