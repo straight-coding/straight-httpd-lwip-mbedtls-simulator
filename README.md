@@ -27,7 +27,11 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
   * **Files** page: you can browse all the files in the specified device directory, enter subdirectories or return to the parent directory.
   * **Form** page: demonstrates parameter modification and saving.
 
-#	Prerequisites
+# Future work
+
+* Port httpd to a real embedded system, such as Cortex-M4 LPC40xx.
+
+# Prerequisites
 
 * `Computer A`: only need a browser installed.
 * `Computer B`: need to install [`wpcap driver`](https://www.winpcap.org/), or simply install [`Wireshark`](https://www.wireshark.org/) that includes wpcap driver.
