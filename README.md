@@ -4,7 +4,7 @@ Simple httpd for embedded systems based on lwip and mbedtls
 
 # Objective
 
-In a Windows environment, create a `Virtual Device (VD)` using pcap and lwip, and implement a simple but typical web server.
+In a Windows environment, create a `Virtual Device (VD)` using `pcap`, `lwip` and `mbedtls`, and implement a simple but typical web server.
 
 ![stack](/stack.png)
 
