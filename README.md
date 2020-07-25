@@ -51,7 +51,7 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
 # Self-signed Certificate for HTTPS
 
 * If you want to create your customized certificate, run `makecert.bat`. Both the certificate and the private key will be saved in the file `server.pfx`.
-*	Use OpenSSL or other tools to convert PFX file to PEM format.
+*	Use [**OpenSSL**](https://slproweb.com/products/Win32OpenSSL.html) or other tools to convert PFX file to PEM format.
 ```
    openssl pkcs12 -in server.pfx -out server.pem
 ```
