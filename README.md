@@ -75,6 +75,10 @@ const char *cert = "-----BEGIN CERTIFICATE-----\n"\
 ```
 # Task / Thread
 
+* LWIP task can be thought as a black-box that is asynchronously driven by the network events. 
+* Immediate response is very important for high throughput.
+* This task need access various data in local database or variables which should be protected for concurrency.
+
   ![tasks](/tasks.png)
 
 # Modifications
