@@ -34,12 +34,16 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
 
 # Dependencies
 
-* folder `pcap`: copied from the original location: [pcap](https://nmap.org/npcap/dist/npcap-sdk-1.04.zip)
+* folder `pcap`: `wpcap` C library copied from the original location: [pcap](https://nmap.org/npcap/dist/npcap-sdk-1.04.zip)
 * folder `lwip`: copied from the original location: **git://git.savannah.nongnu.org/lwip.git**
-* folder `mbedtls`: copied from the original location: [mbedtls](https://github.com/ARMmbed/mbedtls.git)
+* folder `mbedtls`: copied from the original location: [mbedtls](https://github.com/ARMmbed/mbedtls.git). The file config.h has been modified.
 * `QR-Code-generator` by nayuki, copied from the original location: [source](https://github.com/nayuki/QR-Code-generator/tree/a6ef65d237628a03dee3ae1df592df9a3359204d/javascript)
 
 # Project folders
 
 * folder `lwip-port`: lwip porting files on Windows platform
+  * Receive ethernet frame from `wpcap` and send it to `lwip stack`.
+  * Send ethernet frame from `lwip` stack via `wpcap`.
+  * Also provide features: `Mutex`, `Semaphore`, `Mailbox`, `System Tick`, and `File API`.
+
 * folder `straight-httpd`: Microsoft Visual Studio 2017 project: `straight-httpd.sln`, and the project `straight-buildfs` can package all web pages and convert them into source code.
