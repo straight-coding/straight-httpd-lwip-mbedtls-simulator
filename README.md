@@ -50,6 +50,12 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
 
 # GET Handling
 
+| Tables        | Are           | Cool  |
+| ------------- |:-------------:| -----:|
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
+
 | Device HTTP Events | CGI Adapter - Actions | 
 | ------------ | ------------- | ------------- |
 | GET /app/index.shtml HTTP/1.1 |	CGI_SetCgiHandler(context)	| First request line |
