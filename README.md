@@ -117,22 +117,32 @@ cgi_ssdp.c processes SSDP requests. All information tags can be modified using A
 * `/auth/session_check.cgi` checks if the current session has timed out.
 * `/auth/logout.cgi` signs out the user and frees the session context.
 
+![signin](/signin.png)
+
 #	Example for status and information
 
 * `/app/index.shtml` is the home page after authentication.
 * `cgi_web.c` responds to all requests with prefix `/app/*` after authentication.
+
+![info](/info.png)
 
 #	Example for uploading
 
 * `/app/upload.shtml` and `/app/plugin/fileTransfer/fileTransfer.js` provide a demo for uploading files. The destination folder is defined by `UPLOAD_TO_FOLDER`.
 * `cgi_upload.c` responds to the request URL `/api/upload.cgi`.
 
+![upload](/upload.png)
+
 #	Example for file explorer
 
 * `/app/files.shtml` and `/app/plugin/fileList/fileList.js` provide a demo for file browsing. The directory is defined by `FOLDER_TO_LIST`.
 * `cgi_files.c` responds to the request with URL `/api/files.cgi`
 
+![files](/files.png)
+
 #	Example for form
 
 * `/app/form.shtml` is a demo for modifying parameters. All parameters are processed by `cgi_ssi.c`.
 * `cgi_form.c` provides general processing for all forms. All parameters and types are defined in `cgi_ssi.c`.
+
+![form](/form.png)
