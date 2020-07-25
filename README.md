@@ -48,12 +48,14 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
 
 * folder `straight-httpd`: Microsoft Visual Studio 2017 project: `straight-httpd.sln`, and the project `straight-buildfs` can package all web pages and convert them into source code.
 
-# Self-Signed Certificate for HTTPS
+# Self-signed Certificate for HTTPS
 
-* If you want to create your customized certificate, run “makecert.bat”. Both the certificate and the private key will be saved in the file “server.pfx”.
+* If you want to create your customized certificate, run `makecert.bat`. Both the certificate and the private key will be saved in the file `server.pfx`.
 *	Use OpenSSL or other tools to convert PFX file to PEM format.
-       openssl pkcs12 -in server.pfx -out server.pem
-*	Copy the following content in the pem file to “http_api.c”
+```
+   openssl pkcs12 -in server.pfx -out server.pem
+```
+*	Copy the following content in the pem file to `http_api.c`
 ```
 const char *privkey_pass = "straight";
 const char *privkey = "-----BEGIN ENCRYPTED PRIVATE KEY-----\n"\
