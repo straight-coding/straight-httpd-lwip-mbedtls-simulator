@@ -47,3 +47,13 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
   * Also provide features: `Mutex`, `Semaphore`, `Mailbox`, `System Tick`, and `File API`.
 
 * folder `straight-httpd`: Microsoft Visual Studio 2017 project: `straight-httpd.sln`, and the project `straight-buildfs` can package all web pages and convert them into source code.
+
+# GET Handling
+
+Device HTTP Events | CGI Adapter - Actions | 
+------------ | ------------- | -------------
+GET /app/index.shtml HTTP/1.1 |	CGI_SetCgiHandler(context)	| First request line
+Connection: keep-alive	| http_core.c
+
+# POST Handling
+
