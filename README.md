@@ -29,6 +29,7 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
 
 # Future work
 
+* Spport MQTT protocol.
 * Port httpd to a real embedded system, such as Cortex-M4 LPC40xx.
 
 # Prerequisites
