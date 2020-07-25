@@ -23,8 +23,6 @@
 pcap_t* g_hPcap = NULL;
 
 long	g_nKeepRunning = 0;
-HANDLE	g_mainThread = NULL;
-DWORD WINAPI LwipLoopThread(void* data);
 HANDLE	g_appThread = NULL;
 DWORD WINAPI AppThread(void* data);
 
@@ -76,7 +74,7 @@ void DMA_push(const struct pcap_pkthdr* packet_header, const u_char* packet)
 	if (g_dmaQLock != NULL)
 		ReleaseMutex(g_dmaQLock);
 
-	NotifyFromEthISR();
+	NotifyFromEthISR(); //send event to lwip thread
 }
 
 struct packet_wrapper* DMA_pop()
@@ -159,32 +157,7 @@ int main()
 	char szHostSubnet[128];
 
 	char szFilter[512];
-/*
-	time_t now;
-	time(&now);
-	strcpy(szFilter, "Fri, 02 Oct 2015 07:28:00 GMT"); now = parseHttpDate(szFilter);
-	printf("Now: %s\r\n", gmt4http(&now, szFilter, sizeof(szFilter)));
-	time_t rev = parseHttpDate(szFilter);
-	printf("Parsed: %s\r\n", gmt4http(&rev, szFilter, sizeof(szFilter)));
-*/
 
-/*
-	int isFolder;
-	char name[64];
-	int size;
-	int off = 0;
-	time_t date;
-	void* hDir = NULL;
-
-	hDir = LWIP_firstdir("/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/app/cache/*.*", &isFolder, name, sizeof(name), &size, &date);
-	while(hDir != NULL)
-	{
-		if (LWIP_readdir(hDir, &isFolder, name, sizeof(name), &size, &date) <= 0)
-			break;
-	}
-	if (hDir != NULL)
-		LWIP_closedir(hDir);
-*/
 	memset(szHostName, 0, sizeof(szHostName));
 	memset(szFilter, 0, sizeof(szFilter));
 
@@ -281,13 +254,13 @@ int main()
 	InterlockedExchange(&g_nKeepRunning, 1);
 
 	g_appThread  = CreateThread(NULL, 0, AppThread, NULL, 0, NULL);
-	g_mainThread = CreateThread(NULL, 0, LwipLoopThread, NULL, 0, NULL);
-	if (g_mainThread != NULL)
+	//g_mainThread = CreateThread(NULL, 0, LwipLoopThread, NULL, 0, NULL);
+	if (g_appThread != NULL)
 		printf("Please press ESC key to quit\n ");
 
 	sys_init();
 
-	while(g_mainThread != NULL)
+	while(g_appThread != NULL)
 	{
 		struct pcap_pkthdr* pkt_header;
 		u_char*				pkt_data;
@@ -318,9 +291,10 @@ int main()
 	}
 	pcap_close(g_hPcap);
 
-	if (g_mainThread != NULL)
-		CloseHandle(g_mainThread);
+	if (g_appThread != NULL)
+		CloseHandle(g_appThread);
 
+	//free the packet queue
 	while (TRUE)
 	{
 		struct packet_wrapper* pkt = NULL;
@@ -332,30 +306,6 @@ int main()
 	}
 }
 
-DWORD WINAPI LwipLoopThread(void* data)
-{
-	long	nNeedRecall = 0;
-	long 	timeToNext = 200;
-
-	struct packet_wrapper* pkt = NULL;
-
-	LogPrint(0, "LWIP started\r\n");
-
-	LwipInit(0); //initialize lwip stack and start dhcp
-
-	while(g_nKeepRunning)
-	{
-		if (tcpip_inloop() > 0)
-			continue;
-
-		//more check
-		SessionCheck();
-	}
-
-	LogPrint(0, "LWIP stopped\r\n");
-	return 0;
-}
-
 extern struct netif main_netif;
 struct altcp_pcb *g_pcbListen80 = NULL;
 struct altcp_pcb *g_pcbListen443 = NULL;
@@ -364,13 +314,13 @@ extern void tcp_kill_all(void);
 
 DWORD WINAPI AppThread(void* data)
 {
-	long	restart = 0;
-
 	InitDevInfo();
 
 	WEB_fs_init();
 
 	SetupHttpContext();
+
+	LwipInit(0); //initialize lwip stack and start dhcp
 
 	while (g_nKeepRunning)
 	{
@@ -378,12 +328,9 @@ DWORD WINAPI AppThread(void* data)
 
 		while (g_ipIsReady == 0)
 		{
-			Sleep(50);
-		}
-
-		if (restart > 0)
-		{
-			Sleep(10*1000);
+			if (tcpip_inloop() > 0)
+				continue;
+			SessionCheck();
 		}
 
 		PrintLwipStatus();
@@ -405,7 +352,10 @@ DWORD WINAPI AppThread(void* data)
 			if (g_ipIsReady == 0)
 				break;
 
-			Sleep(50);
+			if (tcpip_inloop() > 0)
+				continue;
+
+			SessionCheck();
 		}
 
 		if (g_pcbListen80 != NULL)
@@ -422,8 +372,6 @@ DWORD WINAPI AppThread(void* data)
 		tcp_kill_all();
 
 		PrintLwipStatus();
-
-		restart = 1;
 	}
 	return 0;
 }
