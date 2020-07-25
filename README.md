@@ -106,7 +106,7 @@ const char *cert = "-----BEGIN CERTIFICATE-----\n"\
 | When connection disconnected or -500	| CGI_Finish(context)		| For additional cleanup	| 
 | lwip error, request error, timeout, <=-400	| CGI_Cancel(context)		| For additional cleanup	| 
 
-# Example for SSDP Response
+# Example for SSDP response
 
 cgi_ssdp.c processes SSDP requests. All information tags can be modified using API functions, e.g. GetDeviceName(), GetVendor(), GetModel(), GetDeviceUUID(). All tags are defined and parsed by cgi_ssi.c.
 
@@ -117,22 +117,22 @@ cgi_ssdp.c processes SSDP requests. All information tags can be modified using A
 * `/auth/session_check.cgi` checks if the current session has timed out.
 * `/auth/logout.cgi` signs out the user and frees the session context.
 
-#	Example for Status and Information
+#	Example for status and information
 
 * `/app/index.shtml` is the home page after authentication.
 * `cgi_web.c` responds to all requests with prefix `/app/*` after authentication.
 
-#	Example for Uploading
+#	Example for uploading
 
 * `/app/upload.shtml` and `/app/plugin/fileTransfer/fileTransfer.js` provide a demo for uploading files. The destination folder is defined by `UPLOAD_TO_FOLDER`.
 * `cgi_upload.c` responds to the request URL `/api/upload.cgi`.
 
-#	Example for File Explorer
+#	Example for file explorer
 
 * `/app/files.shtml` and `/app/plugin/fileList/fileList.js` provide a demo for file browsing. The directory is defined by `FOLDER_TO_LIST`.
 * `cgi_files.c` responds to the request with URL `/api/files.cgi`
 
-#	Example for Form
+#	Example for form
 
 * `/app/form.shtml` is a demo for modifying parameters. All parameters are processed by `cgi_ssi.c`.
 * `cgi_form.c` provides general processing for all forms. All parameters and types are defined in `cgi_ssi.c`.
