@@ -50,16 +50,22 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
 
 # GET Handling
 
-| Tables        | Are           | Cool  |
-| ------------- |:-------------:| -----:|
-| col 3 is      | right-aligned | $1600 |
-| col 2 is      | centered      |   $12 |
-| zebra stripes | are neat      |    $1 |
-
 | Device HTTP Events | CGI Adapter - Actions |  |
 | ------------ |:-------------:| -------------:|
 | GET /app/index.shtml HTTP/1.1 |	CGI_SetCgiHandler(context)	| First request line |
 | Connection: keep-alive	| http_core.c |  |
+| Cookie: SID=0123ABCD	| http_core.c	|  |
+| Range: bytes=0-	| http_core.c	|  |
+| If-Modified-Since: | http_core.c	|  |
+| X-Auth-Token: SID=0123ABCD	| http_core.c	|  |
+| other header	| CGI_HeaderReceived(context,line)		| 
+| all headers received	| Check session: GetSession CGI_HeadersReceived(context)	| End of the request headers	|
+| request received		| CGI_RequestReceived(context)		| 
+| send response headers		| CGI_SetResponseHeaders(context,codeInfo)		| Response headers	| 
+| response with content		| CGI_LoadContentToSend(context, caller)		| Response body	| 
+| Response completely sent out		| OnAllSent(context)		| Response body	|  
+| When connection disconnected or -500		| CGI_Finish(context)		| 
+| lwip error, request error, timeout, <=-400		| CGI_Cancel(context)		| 
 
 # POST Handling
 
