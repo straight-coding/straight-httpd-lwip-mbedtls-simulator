@@ -151,6 +151,9 @@ cgi_ssdp.c processes SSDP requests. All information tags can be modified using A
 # Example for sign-in UI
 
 * `/auth/login.html` is the default page before authentication. The user must provide the username and password. All web pages are physically located in the folder defined by `LOCAL_WEBROOT`.
+```
+#define LOCAL_WEBROOT	"D:/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/"
+```
 * `cgi_auth.c` processes the user’s sign-in/sign-out. This module responds to all requests with the prefix `/auth/*`.
 * `/auth/session_check.cgi` checks if the current session has timed out.
 * `/auth/logout.cgi` signs out the user and frees the session context.
@@ -167,6 +170,9 @@ cgi_ssdp.c processes SSDP requests. All information tags can be modified using A
 # Example for uploading
 
 * `/app/upload.shtml` and `/app/plugin/fileTransfer/fileTransfer.js` provide a demo for uploading files. The destination folder is defined by `UPLOAD_TO_FOLDER`.
+```
+#define UPLOAD_TO_FOLDER "D:/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/app/cache/"
+```
 * `cgi_upload.c` responds to the request URL `/api/upload.cgi`.
 
   ![upload](/upload.png)
