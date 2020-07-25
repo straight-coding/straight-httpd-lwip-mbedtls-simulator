@@ -112,27 +112,27 @@ cgi_ssdp.c processes SSDP requests. All information tags can be modified using A
 
 #	Example for Login/Sign in UI
 
-/auth/login.html is the default page before authentication. The user must provide the username and password. All web pages are physically located in the folder defined by LOCAL_WEBROOT.
-cgi_auth.c processes the user’s sign-in/sign-out. This module responds to all requests with the prefix “/auth/*”.
-/auth/session_check.cgi checks if the current session has timed out.
-/auth/logout.cgi signs out the user and frees the session context.
+* `/auth/login.html` is the default page before authentication. The user must provide the username and password. All web pages are physically located in the folder defined by `LOCAL_WEBROOT`.
+* `cgi_auth.c` processes the user’s sign-in/sign-out. This module responds to all requests with the prefix `/auth/*`.
+* `/auth/session_check.cgi` checks if the current session has timed out.
+* `/auth/logout.cgi` signs out the user and frees the session context.
 
 #	Example for Status and Information
 
-/app/index.shtml is the home page after authentication.
-cgi_web.c responds to all requests with prefix “/app/*” after authentication.
+* `/app/index.shtml` is the home page after authentication.
+* `cgi_web.c` responds to all requests with prefix `/app/*` after authentication.
 
 #	Example for Uploading
 
-/app/upload.shtml and /app/plugin/fileTransfer/ fileTransfer.js provide a demo for uploading files. The destination folder is defined by UPLOAD_TO_FOLDER.
-cgi_upload.c responds to the request URL “/api/upload.cgi”.
+* `/app/upload.shtml` and `/app/plugin/fileTransfer/fileTransfer.js` provide a demo for uploading files. The destination folder is defined by `UPLOAD_TO_FOLDER`.
+* `cgi_upload.c` responds to the request URL `/api/upload.cgi`.
 
 #	Example for File Explorer
 
-/app/files.shtml and /app/plugin/fileList/ fileList.js provide a demo for file browsing. The directory is defined by FOLDER_TO_LIST.
-cgi_files.c responds to the request with URL “/api/files.cgi”
+* `/app/files.shtml` and `/app/plugin/fileList/fileList.js` provide a demo for file browsing. The directory is defined by `FOLDER_TO_LIST`.
+* `cgi_files.c` responds to the request with URL `/api/files.cgi`
 
 #	Example for Form
 
-/app/form.shtml is a demo for modifying parameters. All parameters are processed by cgi_ssi.c.
-cgi_form.c provides general processing for all forms. All parameters and types are defined in cgi_ssi.c.
+* `/app/form.shtml` is a demo for modifying parameters. All parameters are processed by `cgi_ssi.c`.
+* `cgi_form.c` provides general processing for all forms. All parameters and types are defined in `cgi_ssi.c`.
