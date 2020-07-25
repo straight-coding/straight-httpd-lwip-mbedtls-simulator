@@ -192,6 +192,9 @@ e.g. GetDeviceName(), GetVendor(), GetModel(), GetDeviceUUID().
 # Example for file explorer
 
 * `/app/files.shtml` and `/app/plugin/fileList/fileList.js` provide a demo for file browsing. The directory is defined by `FOLDER_TO_LIST`.
+```
+#define FOLDER_TO_LIST	"D:/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/app/cache/"
+```
 * `cgi_files.c` responds to the request with URL `/api/files.cgi`
 
   ![files](/files.png)
