@@ -53,11 +53,11 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
 | Device HTTP Events | CGI Adapter - Actions | Description |
 | ------------ |:-------------:| -------------:|
 | GET /app/index.shtml HTTP/1.1 |	CGI_SetCgiHandler(context)	| First request line |
-| Connection: keep-alive	| processed in http_core.c | Request headers  |
-| Cookie: SID=0123ABCD	| processed in http_core.c	| Request headers |
-| Range: bytes=0-	| processed in http_core.c	| Request headers |
-| If-Modified-Since: | processed in http_core.c	| Request headers |
-| X-Auth-Token: SID=0123ABCD	| processed in http_core.c	| Request headers |
+| Connection: keep-alive	| processed in http_core.c | Request header  |
+| Cookie: SID=0123ABCD	| processed in http_core.c	| Request header |
+| Range: bytes=0-	| processed in http_core.c	| Request header |
+| If-Modified-Since: | processed in http_core.c	| Request header |
+| X-Auth-Token: SID=0123ABCD	| processed in http_core.c	| Request header |
 | other headers	| CGI_HeaderReceived(context,line)		| Request headers |
 | all headers received	| Check session: GetSession CGI_HeadersReceived(context)	| End of the request headers	|
 | request completely received		| CGI_RequestReceived(context)		| Ready to response  |
@@ -72,15 +72,15 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
 | Device HTTP Events | CGI Adapter - Actions | Description |
 | ------------ |:-------------:| -------------:|
 | POST /auth/login.html HTTP/1.1	| CGI_SetCgiHandler(context)	| First request line	| 
-| Content-Type: application/x-form-urlencoded	| http_core.c	| Request headers	| 
-| Content-Length: 24	| http_core.c	| 	| 
-| Connection: keep-alive	| http_core.c	|	|  
-| other headers	| CGI_HeaderReceived(context,line)		| 	| 
+| Content-Type: application/x-form-urlencoded	| processed in http_core.c	| Request header	| 
+| Content-Length: 24	| processed in http_core.c	| Request header	| 
+| Connection: keep-alive	| processed in http_core.c	|	Request header |  
+| other headers	| CGI_HeaderReceived(context,line)		| Request header	| 
 | all headers received	| Check session: GetSessionCGI_HeadersReceived(context)	| End of the request headers	| 
 | request body	| CGI_ContentReceived(context, buffer, size)	| Request body	| 
-| post body received	| CGI_RequestReceived(context)	| 	| 	
+| post body received	| CGI_RequestReceived(context)	| Ready to response	| 	
 | send response headers	| CGI_SetResponseHeaders(context,codeInfo)	| Response headers	| 
 | response with content	| CGI_LoadContentToSend(context, caller)	| Response body	| 
-| Response completely sent out	| OnAllSent(context)		| 	| 
+| Response completely sent out	| OnAllSent(context)		| Response finished	| 
 | When connection disconnected or -500	| CGI_Finish(context)		| 	| 
 | lwip error, request error, timeout, <=-400	| CGI_Cancel(context)		| 	| 
