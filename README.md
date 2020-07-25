@@ -63,7 +63,7 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
 | request completely received		| CGI_RequestReceived(context)		| Ready to response  |
 | send response headers		| CGI_SetResponseHeaders(context,codeInfo)		| Response headers	| 
 | response with content		| CGI_LoadContentToSend(context, caller)		| Response body	| 
-| Response completely sent out		| OnAllSent(context)		| 	|  
+| Response completely sent out		| OnAllSent(context)		| Response finished	|  
 | When connection disconnected or -500		| CGI_Finish(context)		| 
 | lwip error, request error, timeout, <=-400		| CGI_Cancel(context)		| 
 
