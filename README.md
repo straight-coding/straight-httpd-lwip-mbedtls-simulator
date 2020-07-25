@@ -8,7 +8,9 @@ In a Windows environment, create a `Virtual Device (VD)` using `pcap`, `lwip` an
 
 ![stack](/stack.png)
 
-This project creates a `Virtual Device` on `Computer B`. Since the browser on `Computer B` cannot access this local `Virtual Device`, another `Computer A` should be used to access this device remotely. `Computer A` could be a `Windows`, `Linux`, or a `mobile` device, and `Computer B` MUST be a Windows device with `VS2017` or later installed.
+This project creates a `Virtual Device` on `Computer B`. Since the browser on `Computer B` cannot access this local `Virtual Device`, another `Computer A` should be used to access this device remotely. 
+* `Computer A` could be a `Windows`, `Linux`, or a `mobile` device.
+* `Computer B` MUST be a Windows device with `VS2017` or later installed.
 * `Computer B`: Use VS2017 to open the project `straight-httpd/straight-httpd.sln` and run it in debug.
 * `Computer A`: for Windows, open `File Explorer` and search for `network neighbors`. There should be a device named `Virtual Device`. Right click on it and select `Properties`, and you will see the device information, including its IP address and URL. Use default user `admin` and password `password` to sign into the device home page.
 
