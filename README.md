@@ -53,14 +53,14 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
 | Device HTTP Events | CGI Adapter - Actions |  |
 | ------------ |:-------------:| -------------:|
 | GET /app/index.shtml HTTP/1.1 |	CGI_SetCgiHandler(context)	| First request line |
-| Connection: keep-alive	| processed in http_core.c |  |
-| Cookie: SID=0123ABCD	| processed in http_core.c	|  |
-| Range: bytes=0-	| processed in http_core.c	|  |
-| If-Modified-Since: | processed in http_core.c	|  |
-| X-Auth-Token: SID=0123ABCD	| processed in http_core.c	|  |
-| other headers	| CGI_HeaderReceived(context,line)		| 
+| Connection: keep-alive	| processed in http_core.c | Request headers  |
+| Cookie: SID=0123ABCD	| processed in http_core.c	| Request headers |
+| Range: bytes=0-	| processed in http_core.c	| Request headers |
+| If-Modified-Since: | processed in http_core.c	| Request headers |
+| X-Auth-Token: SID=0123ABCD	| processed in http_core.c	| Request headers |
+| other headers	| CGI_HeaderReceived(context,line)		| Request headers |
 | all headers received	| Check session: GetSession CGI_HeadersReceived(context)	| End of the request headers	|
-| request completely received		| CGI_RequestReceived(context)		| 
+| request completely received		| CGI_RequestReceived(context)		| Ready to response  |
 | send response headers		| CGI_SetResponseHeaders(context,codeInfo)		| Response headers	| 
 | response with content		| CGI_LoadContentToSend(context, caller)		| Response body	| 
 | Response completely sent out		| OnAllSent(context)		| 	|  
