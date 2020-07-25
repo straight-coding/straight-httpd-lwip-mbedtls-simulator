@@ -50,7 +50,7 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
 
 # GET Handling
 
-| Device HTTP Events | CGI Adapter - Actions |  |
+| Device HTTP Events | CGI Adapter - Actions | Description |
 | ------------ |:-------------:| -------------:|
 | GET /app/index.shtml HTTP/1.1 |	CGI_SetCgiHandler(context)	| First request line |
 | Connection: keep-alive	| processed in http_core.c | Request headers  |
