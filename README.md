@@ -42,4 +42,4 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
 # Project folders
 
 * folder `lwip-port`: lwip porting files on Windows platform
-* folder `straight-httpd`: Microsoft Visual Studio 2017 project: `straight-httpd.sln`
+* folder `straight-httpd`: Microsoft Visual Studio 2017 project: `straight-httpd.sln`, and the project `straight-buildfs` can package all web pages and convert them into source code.
