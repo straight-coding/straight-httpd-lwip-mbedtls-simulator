@@ -56,7 +56,7 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
 | col 2 is      | centered      |   $12 |
 | zebra stripes | are neat      |    $1 |
 
-| Device HTTP Events | CGI Adapter - Actions | 
+| Device HTTP Events | CGI Adapter - Actions |  |
 | ------------ |:-------------:| -------------:|
 | GET /app/index.shtml HTTP/1.1 |	CGI_SetCgiHandler(context)	| First request line |
 | Connection: keep-alive	| http_core.c |  |
