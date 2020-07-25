@@ -6,7 +6,7 @@ Simple httpd demo for embedded systems based on lwip and mbedtls
 
 In a Windows environment, create a `Virtual Device (VD)` using `pcap`, `lwip` and `mbedtls`, and implement a simple but typical web server.
 
-![stack](/stack.png)
+  ![stack](/stack.png)
 
 This project creates a `Virtual Device` on `Computer B`. Since the browser on `Computer B` cannot access this local `Virtual Device`, another `Computer A` should be used to access this device remotely. 
 * `Computer B` MUST be a Windows device with `VS2017` or later installed. Use VS2017 to open the project `straight-httpd/straight-httpd.sln` and run it in debug.
@@ -70,7 +70,7 @@ const char *cert = "-----BEGIN CERTIFICATE-----\n"\
 ```
 # Task / Thread
 
-![tasks](/tasks.png)
+  ![tasks](/tasks.png)
 
 # Modifications
 
