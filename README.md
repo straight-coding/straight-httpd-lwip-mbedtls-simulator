@@ -5,6 +5,7 @@ Simple httpd for embedded systems based on lwip and mbedtls
 # Objective
 
 In a Windows environment, create a virtual device using pcap and lwip, and implement a simple but typical web server.
+![stack](/stack.png)
 
 # Features
 
