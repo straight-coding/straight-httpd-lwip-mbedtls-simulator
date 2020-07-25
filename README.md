@@ -146,8 +146,11 @@ struct member alignment 1 byte(/Zp1)
 
 # Example for SSDP response
 
-cgi_ssdp.c processes SSDP requests. All information tags can be modified using API functions, e.g. GetDeviceName(), GetVendor(), GetModel(), GetDeviceUUID(). All tags are defined and parsed by cgi_ssi.c.
-
+* cgi_ssdp.c processes SSDP requests. 
+* All information tags can be modified using API functions. All tags are defined and parsed by `cgi_ssi.c`.
+```
+e.g. GetDeviceName(), GetVendor(), GetModel(), GetDeviceUUID(). 
+```
 # Example for sign-in UI
 
 * `/auth/login.html` is the default page before authentication. The user must provide the username and password. All web pages are physically located in the folder defined by `LOCAL_WEBROOT`.
