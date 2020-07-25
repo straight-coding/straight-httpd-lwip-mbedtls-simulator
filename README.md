@@ -76,35 +76,35 @@ const char *cert = "-----BEGIN CERTIFICATE-----\n"\
 
 * `/src/include/lwip/priv/tcpip_priv.h`
 ```
-	     ETHNET_INPUT //2020-03-29 added by straight coder
+ETHNET_INPUT //2020-03-29 added by straight coder
 ```
 * `/src/include/lwip/arch.h`
 ```
-	#define LWIP_NO_STDINT_H 1	//2020-03-29 set to 1 by straight coder
+define LWIP_NO_STDINT_H 1	//2020-03-29 set to 1 by straight coder
 ```
 * `/src/core/tcp.c`
 ```
-	void tcp_kill_all(void)  //2020-03-29 new function by straight coder
+void tcp_kill_all(void)  //2020-03-29 new function by straight coder
 ```
 * `/src/core/ipv4/dhcp.c`
 ```
-	OnDhcpFinished();   //2020-03-29 notify when IP is ready by straight coder
+OnDhcpFinished();   //2020-03-29 notify when IP is ready by straight coder
 ```
 * `/src/api/tcpip.c`
 ```
-	sys_mbox_t tcpip_mbox; //2020-03-29 removed static by straight coder	
-	extern struct netif main_netif; //2020-03-29 added by straight coder
-	extern err_t ethernetif_input(struct netif *netif); //2020-03-29 added by straight coder
-	void tcpip_thread_handle_msg(struct tcpip_msg *msg); //2020-03-29 removed static by straight coder
+sys_mbox_t tcpip_mbox; //2020-03-29 removed static by straight coder	
+extern struct netif main_netif; //2020-03-29 added by straight coder
+extern err_t ethernetif_input(struct netif *netif); //2020-03-29 added by straight coder
+void tcpip_thread_handle_msg(struct tcpip_msg *msg); //2020-03-29 removed static by straight coder
 	
-		case ETHNET_INPUT: //2020-03-29 added by straight coder
-			ethernetif_input(&main_netif);
-			break;
+case ETHNET_INPUT: //2020-03-29 added by straight coder
+   ethernetif_input(&main_netif);
+   break;
 ```
 * for pcap
 ```
-	#define ETH_PAD_SIZE  0 
-	struct member alignment 1 byte(/Zp1)
+#define ETH_PAD_SIZE  0 
+struct member alignment 1 byte(/Zp1)
 ```
 
 # GET handling
@@ -148,7 +148,7 @@ const char *cert = "-----BEGIN CERTIFICATE-----\n"\
 
 cgi_ssdp.c processes SSDP requests. All information tags can be modified using API functions, e.g. GetDeviceName(), GetVendor(), GetModel(), GetDeviceUUID(). All tags are defined and parsed by cgi_ssi.c.
 
-#	Example for Login/Sign in UI
+# Example for Login/Sign in UI
 
 * `/auth/login.html` is the default page before authentication. The user must provide the username and password. All web pages are physically located in the folder defined by `LOCAL_WEBROOT`.
 * `cgi_auth.c` processes the user’s sign-in/sign-out. This module responds to all requests with the prefix `/auth/*`.
@@ -157,28 +157,28 @@ cgi_ssdp.c processes SSDP requests. All information tags can be modified using A
 
 ![signin](/signin.png)
 
-#	Example for status and information
+# Example for status and information
 
 * `/app/index.shtml` is the home page after authentication.
 * `cgi_web.c` responds to all requests with prefix `/app/*` after authentication.
 
 ![info](/info.png)
 
-#	Example for uploading
+# Example for uploading
 
 * `/app/upload.shtml` and `/app/plugin/fileTransfer/fileTransfer.js` provide a demo for uploading files. The destination folder is defined by `UPLOAD_TO_FOLDER`.
 * `cgi_upload.c` responds to the request URL `/api/upload.cgi`.
 
 ![upload](/upload.png)
 
-#	Example for file explorer
+# Example for file explorer
 
 * `/app/files.shtml` and `/app/plugin/fileList/fileList.js` provide a demo for file browsing. The directory is defined by `FOLDER_TO_LIST`.
 * `cgi_files.c` responds to the request with URL `/api/files.cgi`
 
 ![files](/files.png)
 
-#	Example for form
+# Example for form
 
 * `/app/form.shtml` is a demo for modifying parameters. All parameters are processed by `cgi_ssi.c`.
 * `cgi_form.c` provides general processing for all forms. All parameters and types are defined in `cgi_ssi.c`.
