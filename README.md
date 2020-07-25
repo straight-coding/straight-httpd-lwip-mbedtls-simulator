@@ -72,6 +72,41 @@ const char *cert = "-----BEGIN CERTIFICATE-----\n"\
 
 ![tasks](/tasks.png)
 
+# Modifications
+
+* `/src/include/lwip/priv/tcpip_priv.h`
+```
+	     ETHNET_INPUT //2020-03-29 added by straight coder
+```
+* `/src/include/lwip/arch.h`
+```
+	#define LWIP_NO_STDINT_H 1	//2020-03-29 set to 1 by straight coder
+```
+* `/src/core/tcp.c`
+```
+	void tcp_kill_all(void)  //2020-03-29 new function by straight coder
+```
+* `/src/core/ipv4/dhcp.c`
+```
+	OnDhcpFinished();   //2020-03-29 notify when IP is ready by straight coder
+```
+* `/src/api/tcpip.c`
+```
+	sys_mbox_t tcpip_mbox; //2020-03-29 removed static by straight coder	
+	extern struct netif main_netif; //2020-03-29 added by straight coder
+	extern err_t ethernetif_input(struct netif *netif); //2020-03-29 added by straight coder
+	void tcpip_thread_handle_msg(struct tcpip_msg *msg); //2020-03-29 removed static by straight coder
+	
+		case ETHNET_INPUT: //2020-03-29 added by straight coder
+			ethernetif_input(&main_netif);
+			break;
+```
+* for pcap
+```
+	#define ETH_PAD_SIZE  0 
+	struct member alignment 1 byte(/Zp1)
+```
+
 # GET handling
 
 | Device HTTP Events | CGI Adapter - Actions | Description |
