@@ -27,6 +27,11 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
   * **Files** page: you can browse all the files in the specified device directory, enter subdirectories or return to the parent directory.
   * **Form** page: demonstrates parameter modification and saving.
 
+#	Prerequisites
+
+* `Computer A`: only need a browser installed.
+* `Computer B`: need to install wpcap driver, or simply install Wireshark that includes wpcap driver.
+
 # Dependencies
 
 * folder `pcap`: copied from the original location: [pcap](https://nmap.org/npcap/dist/npcap-sdk-1.04.zip)
