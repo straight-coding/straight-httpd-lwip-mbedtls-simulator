@@ -196,7 +196,7 @@ e.g. GetDeviceName(), GetVendor(), GetModel(), GetDeviceUUID().
 
   ![files](/files.png)
 
-# Example for form
+# Example for configuration form
 
 * `/app/form.shtml` is a demo for modifying parameters. All parameters are processed by `cgi_ssi.c`.
 * `cgi_form.c` provides general processing for all forms. All parameters and types are defined in `cgi_ssi.c`.
