@@ -6,18 +6,20 @@
 
 #include "http_fs.h"
 
-#include "fs_data.c" //this file can be created using straight-buildfs.exe
-
 #define USE_FILE_IO		1
 #if (USE_FILE_IO > 0)
 #define LOCAL_WEBROOT	"D:/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/"
+#else
+#include "fs_data.c" //this file can be created using straight-buildfs.exe
+static http_file_info* g_WebPages = (http_file_info*)g_szWebRoot; //web pages in ROM
 #endif
 
-static http_file_info* g_WebPages = (http_file_info*)g_szWebRoot; //web pages in ROM
 static unsigned long g_FilePosition[MAX_FILES]; //read pointers in RAM
 
 void WEB_fs_init(void)
 {
+#if (USE_FILE_IO > 0)
+#else
 	int nCount = 0;
 	http_file_info* pWebFile = (http_file_info*)g_szWebRoot;
 	while (pWebFile->tLastModified != 0)
@@ -30,6 +32,7 @@ void WEB_fs_init(void)
 
 	if (nCount > MAX_FILES)
 		printf("MAX_FILES should be greater than %d\r\n", nCount);
+#endif
 }
 
 void* WEB_fopen(const char* szFile, const char* mode)
