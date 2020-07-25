@@ -48,7 +48,7 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
 
 * folder `straight-httpd`: Microsoft Visual Studio 2017 project: `straight-httpd.sln`, and the project `straight-buildfs` can package all web pages and convert them into source code.
 
-# GET Handling
+# GET handling
 
 | Device HTTP Events | CGI Adapter - Actions | Description |
 | ------------ |:-------------:| -------------:|
@@ -67,5 +67,20 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
 | When connection disconnected or -500		| CGI_Finish(context)		| 
 | lwip error, request error, timeout, <=-400		| CGI_Cancel(context)		| 
 
-# POST Handling
+# POST handling
 
+| Device HTTP Events | CGI Adapter - Actions | Description |
+| ------------ |:-------------:| -------------:|
+| POST /auth/login.html HTTP/1.1	| CGI_SetCgiHandler(context)	| First request line	| 
+| Content-Type: application/x-form-urlencoded	| http_core.c	| Request headers	| 
+| Content-Length: 24	| http_core.c	| 	| 
+| Connection: keep-alive	| http_core.c	|	|  
+| other headers	| CGI_HeaderReceived(context,line)		| 	| 
+| all headers received	| Check session: GetSessionCGI_HeadersReceived(context)	| End of the request headers	| 
+| request body	| CGI_ContentReceived(context, buffer, size)	| Request body	| 
+| post body received	| CGI_RequestReceived(context)	| 	| 	
+| send response headers	| CGI_SetResponseHeaders(context,codeInfo)	| Response headers	| 
+| response with content	| CGI_LoadContentToSend(context, caller)	| Response body	| 
+| Response completely sent out	| OnAllSent(context)		| 	| 
+| When connection disconnected or -500	| CGI_Finish(context)		| 	| 
+| lwip error, request error, timeout, <=-400	| CGI_Cancel(context)		| 	| 
