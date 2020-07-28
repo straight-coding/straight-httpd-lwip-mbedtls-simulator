@@ -137,7 +137,7 @@ struct member alignment 1 byte(/Zp1)
 | ------------ |:-------------:| -------------:|
 | POST /auth/login.html HTTP/1.1	| CGI_SetCgiHandler(context)	| First request line	| 
 | Content-Type: application/x-form-urlencoded<br>Content-Length: xxx<br>Connection: keep-alive	| processed in http_core.c	| Request headers	| 
-| other headers	| CGI_HeaderReceived(context,line)		| Request header	| 
+| other headers	| CGI_HeaderReceived(context,line)		| Request headers	| 
 | all headers received	| Check session: GetSession()<br>CGI_HeadersReceived(context)	| End of the request headers	| 
 | request body	| CGI_ContentReceived(context, buffer, size)	| Request body	| 
 | post body received	| CGI_RequestReceived(context)	| Ready to response	| 	
