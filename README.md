@@ -121,11 +121,7 @@ struct member alignment 1 byte(/Zp1)
 | Device HTTP Events | CGI Adapter - Actions | Description |
 | ------------ |:-------------:| -------------:|
 | GET /app/index.shtml HTTP/1.1 |	CGI_SetCgiHandler(context)	| First request line |
-| Connection: keep-alive	| processed in http_core.c | Request header  |
-| Cookie: SID=0123ABCD	| processed in http_core.c	| Request header |
-| Range: bytes=0-	| processed in http_core.c	| Request header |
-| If-Modified-Since: | processed in http_core.c	| Request header |
-| X-Auth-Token: SID=0123ABCD	| processed in http_core.c	| Request header |
+| Connection: keep-alive<br>Cookie: SID=0123ABCD<br>Range: bytes=0-<br>If-Modified-Since:<br>X-Auth-Token: SID=0123ABCD	| processed in http_core.c | Request headers  |
 | other headers	| CGI_HeaderReceived(context,line)		| Request headers |
 | all headers received	| Check session: GetSession()<br>CGI_HeadersReceived(context)	| End of the request headers	|
 | request completely received		| CGI_RequestReceived(context)		| Ready to response  |
