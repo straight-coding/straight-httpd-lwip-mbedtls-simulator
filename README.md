@@ -136,9 +136,7 @@ struct member alignment 1 byte(/Zp1)
 | Device HTTP Events | CGI Adapter - Actions | Description |
 | ------------ |:-------------:| -------------:|
 | POST /auth/login.html HTTP/1.1	| CGI_SetCgiHandler(context)	| First request line	| 
-| Content-Type: application/x-form-urlencoded	| processed in http_core.c	| Request header	| 
-| Content-Length: 24	| processed in http_core.c	| Request header	| 
-| Connection: keep-alive	| processed in http_core.c	|	Request header |  
+| Content-Type: application/x-form-urlencoded<br>Content-Length: xxx<br><br>Connection: keep-alive	| processed in http_core.c	| Request headers	| 
 | other headers	| CGI_HeaderReceived(context,line)		| Request header	| 
 | all headers received	| Check session: GetSession()<br>CGI_HeadersReceived(context)	| End of the request headers	| 
 | request body	| CGI_ContentReceived(context, buffer, size)	| Request body	| 
