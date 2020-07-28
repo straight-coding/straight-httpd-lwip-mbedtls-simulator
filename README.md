@@ -144,7 +144,7 @@ struct member alignment 1 byte(/Zp1)
 | Content-Length: 24	| processed in http_core.c	| Request header	| 
 | Connection: keep-alive	| processed in http_core.c	|	Request header |  
 | other headers	| CGI_HeaderReceived(context,line)		| Request header	| 
-| all headers received	| Check session: GetSession() CGI_HeadersReceived(context)	| End of the request headers	| 
+| all headers received	| Check session: GetSession()<br>CGI_HeadersReceived(context)	| End of the request headers	| 
 | request body	| CGI_ContentReceived(context, buffer, size)	| Request body	| 
 | post body received	| CGI_RequestReceived(context)	| Ready to response	| 	
 | send response headers	| CGI_SetResponseHeaders(context,codeInfo)	| Response headers	| 
