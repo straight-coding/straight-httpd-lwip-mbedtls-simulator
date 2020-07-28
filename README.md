@@ -163,6 +163,7 @@ e.g. GetDeviceName(), GetVendor(), GetModel(), GetDeviceUUID().
 * `cgi_auth.c` processes the user’s sign-in/sign-out. This module responds to all requests with the prefix `/auth/*`.
 * `/auth/session_check.cgi` checks if the current session has timed out.
 * `/auth/logout.cgi` signs out the user and frees the session context.
+* Default user: `admin`, password: `password`
 
   ![signin](/signin.png)
 
