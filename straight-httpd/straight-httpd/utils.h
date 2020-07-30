@@ -27,5 +27,6 @@ int URLDecode(char* url);
 void MakeDeepPath(char* szPath);
 
 char* GetContentType(const char* extension);
+unsigned long GetIpAddress(char* addr);
 
 #endif

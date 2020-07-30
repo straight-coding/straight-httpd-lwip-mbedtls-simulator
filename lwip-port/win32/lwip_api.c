@@ -329,9 +329,9 @@ void LwipLinkUp(void)
 
 void OnDhcpFinished(void)
 {
-	SetMyIP(PP_HTONL(main_netif.ip_addr.addr));
-	SetGateway(PP_HTONL(main_netif.gw.addr));
-	SetSubnet(PP_HTONL(main_netif.netmask.addr));
+	SetMyIPLong(PP_HTONL(main_netif.ip_addr.addr));
+	SetGatewayLong(PP_HTONL(main_netif.gw.addr));
+	SetSubnetLong(PP_HTONL(main_netif.netmask.addr));
 
 	netif_set_flags(&main_netif, NETIF_FLAG_IGMP);
 

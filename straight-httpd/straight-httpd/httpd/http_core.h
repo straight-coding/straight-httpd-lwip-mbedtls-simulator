@@ -16,7 +16,8 @@
 #include "http_session.h"
 #include "http_fs.h"
 
-#define LOG_DEBUG_ONLY		0 //max level of debug output
+#define ALWAYS_REDIRECT_HTTPS	0
+#define LOG_DEBUG_ONLY			0 //max level of debug output
 
 #define METHOD_GET			1 //request method GET
 #define METHOD_POST			2 //request method POST

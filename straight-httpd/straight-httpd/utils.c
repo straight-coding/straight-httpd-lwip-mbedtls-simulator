@@ -368,3 +368,28 @@ char* GetContentType(const char* extension)
 		i++;
 	}
 }
+
+unsigned long GetIpAddress(char* addr)
+{
+	unsigned char* p = addr;
+	unsigned long ip = (unsigned char)ston(p);
+
+	p = strchr(p, '.');
+	if (p != NULL)
+	{
+		p ++; ip <<= 8; ip += ston(p);
+
+		p = strchr(p, '.');
+		if (p != NULL)
+		{
+			p ++; ip <<= 8; ip += ston(p);
+
+			p = strchr(p, '.');
+			if (p != NULL)
+			{
+				p++; ip <<= 8; ip += ston(p);
+			}
+		}
+	}
+	return ip;
+}

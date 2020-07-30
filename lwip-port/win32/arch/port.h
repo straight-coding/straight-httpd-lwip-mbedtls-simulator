@@ -19,6 +19,22 @@ struct packet_wrapper
 	void* next;				/* next packet */
 };
 
+typedef struct _DeviceConfig
+{
+	unsigned long nDhcpEnabled;// = 1;// 0 or 1;
+	unsigned long dwIP;// = 0;		// 0xC0A80563;
+	unsigned long dwSubnet;// = 0;	// 0xFFFFFF00;
+	unsigned long dwGateway;// = 0;	// 0xC0A80501;
+
+	long nLog;// = 0;
+	long nSessionTimeout;// = 3 * 60 * 1000;
+
+	char szColor[16];// = { 0 };
+	char szDate[16];// = { 0 };
+	char szFont[16];// = { 0 };
+	char szLocation[16];// = { 0 };
+}DeviceConfig;
+
 void LwipInit(int reboot);
 extern int tcpip_inloop(void);
 void InitDevInfo(void);
@@ -34,20 +50,26 @@ void NotifyFromEthISR();
 // Network
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+void LoadConfig4Edit();
+void AppyConfig();
+
 unsigned char* GetMyMAC(void);
 int FillMAC(void* context, char* buffer, int maxSize);
 
 unsigned long GetMyIP(void);
 int FillIP(void* context, char* buffer, int maxSize);
-void SetMyIP(unsigned long addr);
+void SetMyIPLong(unsigned long addr);
+void SetMyIP(char* addr);
 
 unsigned long GetGateway(void);
 int FillGateway(void* context, char* buffer, int maxSize);
-void SetGateway(unsigned long addr);
+void SetGatewayLong(unsigned long addr);
+void SetGateway(char* addr);
 
 unsigned long GetSubnet(void);
 int FillSubnet(void* context, char* buffer, int maxSize);
-void SetSubnet(unsigned long addr);
+void SetSubnetLong(unsigned long addr);
+void SetSubnet(char* addr);
 
 unsigned long IsDhcpEnabled();
 int FillDhcp(void* context, char* buffer, int maxSize);

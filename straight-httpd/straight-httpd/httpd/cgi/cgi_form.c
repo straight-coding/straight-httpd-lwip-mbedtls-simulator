@@ -10,9 +10,12 @@
 
 extern void LogPrint(int level, char* format, ... );
 extern void TAG_Setter(char* name, char* value);
+extern void LoadConfig4Edit();
+extern void AppyConfig();
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void Form_OnHeadersReceived(REQUEST_CONTEXT* context);
 static void Form_OnRequestReceived(REQUEST_CONTEXT* context);
 static void Form_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo);
 
@@ -23,7 +26,7 @@ struct CGI_Mapping g_cgiForm = {
 	NULL, //void (*OnCancel)(REQUEST_CONTEXT* context);
 
 	NULL, //int (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line);
-	WEB_OnFormHeaders, //void (*OnHeadersReceived)(REQUEST_CONTEXT* context);
+	Form_OnHeadersReceived, //void (*OnHeadersReceived)(REQUEST_CONTEXT* context);
 	WEB_OnFormReceived, //int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size);
 	Form_OnRequestReceived, //void (*OnRequestReceived)(REQUEST_CONTEXT* context);
 
@@ -35,12 +38,21 @@ struct CGI_Mapping g_cgiForm = {
 	NULL //struct CGI_Mapping* next;
 };
 
+static void Form_OnHeadersReceived(REQUEST_CONTEXT* context)
+{
+	LoadConfig4Edit();
+
+	WEB_OnFormHeaders(context);
+}
+
 static void Form_OnRequestReceived(REQUEST_CONTEXT* context)
 {
 	WEB_RequestReceived(context);
 
 	memset(context->ctxResponse._sendBuffer, 0, sizeof(context->ctxResponse._sendBuffer));
 	context->ctxResponse._bytesLeft = 0;
+
+	AppyConfig();
 }
 
 static void Form_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)

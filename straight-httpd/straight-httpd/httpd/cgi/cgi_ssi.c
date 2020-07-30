@@ -64,12 +64,15 @@ static SSI_Tag g_Getters[] = {
 
 static SSI_Tag g_Setters[] = {
 	{ "DEV_DHCP",		TAG_SETTER, SetDhcpEnabled },
+	{ "VAR_SESSION_TIMEOUT", TAG_SETTER, SetSessionTimeout },
+	{ "DEV_IP",			TAG_SETTER, SetMyIP },
+	{ "DEV_GATEWAY",	TAG_SETTER, SetGateway },
+	{ "DEV_SUBNET",		TAG_SETTER, SetSubnet },
 	{ "VAR_LOCATION",	TAG_SETTER, SetLocation },
 	{ "VAR_COLOR",		TAG_SETTER, SetColor },
 	{ "VAR_DATE",		TAG_SETTER, SetDate },
 	{ "VAR_FONT",		TAG_SETTER, SetFont },
 	{ "VAR_LOG",		TAG_SETTER, SetLog },
-	{ "VAR_SESSION_TIMEOUT", TAG_SETTER, SetSessionTimeout },
 	{NULL, NULL, NULL}
 };
 
