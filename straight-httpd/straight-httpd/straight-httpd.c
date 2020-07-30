@@ -187,6 +187,10 @@ int main()
 
 		if (strstr(dev->description, "NdisWan") != NULL)
 			continue;
+		if (strstr(dev->description, "VMware") != NULL)
+			continue;
+		if (strstr(dev->description, "Oracle") != NULL)
+			continue;
 
 		for (dev_addr = dev->addresses; dev_addr != NULL; dev_addr = dev_addr->next) 
 		{
@@ -229,7 +233,6 @@ int main()
 		printf("Selected Host: %s\n", szHostName);
 		printf("     IP address: %s, %08lX\n", szHostIP, ip);
 		printf("    Subnet Mask: %s\n", szHostSubnet);
-
 		break;
 	}
 	pcap_freealldevs(allDevices);
