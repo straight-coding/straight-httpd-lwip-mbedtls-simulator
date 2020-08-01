@@ -1379,7 +1379,10 @@ static signed char sendBuffered(REQUEST_CONTEXT* context)
 		//if (size2Send > TCP_MSS)
 			//size2Send = TCP_MSS;
 		if (size2Send <= 0)
+		{
+			LogPrint(0, "Send nothing, (tosend/total)=%d/%d, @%d", size2Send, context->ctxResponse._bytesLeft, context->_sid);
 			break;
+		}
 
 		err = altcp_write(context->_pcb, context->ctxResponse._sendBuffer, size2Send, TCP_WRITE_FLAG_COPY);
 		if (err == ERR_OK)
@@ -1508,14 +1511,14 @@ static signed char HttpResponseProc(REQUEST_CONTEXT* context, int caller) //alwa
 			err = sendBuffered(context);
 			if (err == ERR_OK)
 			{
-				LogPrint(LOG_DEBUG_ONLY, "Sending response body @%d", context->_sid);
+				LogPrint(LOG_DEBUG_ONLY, "Sending response body, remaining=%d, @%d", context->ctxResponse._bytesLeft, context->_sid);
 				context->ctxResponse._sending = 1;
 			}
 			else
 			{ //failed to send body
 				context->_state = HTTP_STATE_REQUEST_END;
 				context->_result = -500;
-				LogPrint(0, "Failed to send response body, error=%d @%d", context->_result, context->_sid);
+				LogPrint(0, "Failed when sending response body, error=%d @%d", context->_result, context->_sid);
 			}
 		}
 		else if (hasData2Send < 0)

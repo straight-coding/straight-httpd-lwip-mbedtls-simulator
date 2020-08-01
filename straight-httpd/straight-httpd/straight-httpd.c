@@ -129,7 +129,13 @@ long NIC_Send(unsigned char *buf, int size)
 	//LogPrint(0, "NIC_Send...\r\n");
 
 	if ((g_hPcap != NULL) && (buf != NULL))
+	{
 		nSent = pcap_sendpacket(g_hPcap, buf, size);
+		if (nSent == PCAP_ERROR)
+		{
+			LogPrint(0, "pcap_sendpacket failed: %s, len=%d\r\n", pcap_geterr(g_hPcap), size);
+		}
+	}
 
 	if (buf != NULL)
 		free(buf);
@@ -196,9 +202,10 @@ int main()
 		{
 			if (dev_addr->addr->sa_family == AF_INET && dev_addr->addr && dev_addr->netmask) 
 			{
-				printf("    Found a device %s on address %s with netmask %s\n", dev->name, 
-					inet_ntoa(((struct sockaddr_in *)dev_addr->addr)->sin_addr), 
-					inet_ntoa(((struct sockaddr_in *)dev_addr->netmask)->sin_addr));
+				printf("    Found a device %s on address %s with netmask %s, broadaddr %s\n", dev->name, 
+					inet_ntoa(((struct sockaddr_in *)dev_addr->addr)->sin_addr),
+					inet_ntoa(((struct sockaddr_in *)dev_addr->netmask)->sin_addr),
+					inet_ntoa(((struct sockaddr_in *)dev_addr->broadaddr)->sin_addr));
 				continue;
 			}
 		}
@@ -230,9 +237,9 @@ int main()
 
 		strcpy(szHostName, dev->name);
 
-		printf("Selected Host: %s\n", szHostName);
-		printf("     IP address: %s, %08lX\n", szHostIP, ip);
-		printf("    Subnet Mask: %s\n", szHostSubnet);
+		printf("    Selected Host: %s\n", szHostName);
+		printf("       IP address: %s, %08lX\n", szHostIP, ip);
+		printf("      Subnet Mask: %s\n", szHostSubnet);
 		break;
 	}
 	pcap_freealldevs(allDevices);

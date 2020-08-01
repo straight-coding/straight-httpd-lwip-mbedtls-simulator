@@ -282,7 +282,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>D:\straight\straight-httpd\lwip\src\include;D:\straight\straight-httpd\pcap\Include;D:\straight\straight-httpd\lwip-port\win32;D:\straight\straight-httpd\mbedtls\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <StructMemberAlignment>Default</StructMemberAlignment>
+      <StructMemberAlignment>1Byte</StructMemberAlignment>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
