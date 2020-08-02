@@ -237,7 +237,7 @@ struct member alignment 1 byte(/Zp1)
    static void Files_SetResponseHeader(REQUEST_CONTEXT* context, char* HttpCodeInfo);
 ```
 * Generates one small `chunk` on each call. 
-   * static int Files_ReadOneFileInfo(REQUEST_CONTEXT* context, char* buffer, int maxSize);
+   * `static int Files_ReadOneFileInfo(REQUEST_CONTEXT* context, char* buffer, int maxSize);`
    * This function is a callback from lwip stack when it is ready to send the next `chunk`.
    * There are two variables in the context that could be used for the progress control.
      * `context->ctxResponse._dwOperStage`: It is the first level progress (0-based), and `STAGE_END` stands for the last `chunk`.
