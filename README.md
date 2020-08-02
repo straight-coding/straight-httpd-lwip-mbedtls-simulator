@@ -244,17 +244,34 @@ e.g. GetDeviceName(), GetVendor(), GetModel(), GetDeviceUUID().
 ```
 request:
   http://192.168.5.58/api/files.cgi?path=/
-response with JSON:
+response with JSON including 9 chunks:
+```
   {
     "result":1, 
     "data":[
+```
+```
       {"folder":1,"name":"..","size":0,"date":1593903275},
+```
+```
       {"folder":0,"name":"00108.MTS","size":147062784,"date":1596318548},
+```
+```
       {"folder":0,"name":"Building a 3d Printer From Cd Drives -- Only $45.mp4","size":90868943,"date":1595116269},
+```
+```
       {"folder":1,"name":"cfg","size":0,"date":1593903275},
+```
+```
       {"folder":1,"name":"include","size":0,"date":1593903276},
+```
+```
       {"folder":1,"name":"lib","size":0,"date":1593903276},
+```
+```
       {"folder":0,"name":"videoplayback.mp4","size":25542302,"date":1593903614}
+```
+```
     ]
   }
 ```
