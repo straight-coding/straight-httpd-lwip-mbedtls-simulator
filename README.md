@@ -164,7 +164,9 @@ e.g. GetDeviceName(), GetVendor(), GetModel(), GetDeviceUUID().
 * `/auth/session_check.cgi` checks if the current session has timed out.
 * `/auth/logout.cgi` signs out the user and frees the session context.
 * Default user: `admin`, password: `password`
-
+```
+    int CheckUser(char* u, char* p);
+```
   ![signin](/signin.png)
 
 # Example for status and information
@@ -182,10 +184,10 @@ e.g. GetDeviceName(), GetVendor(), GetModel(), GetDeviceUUID().
 ```
 * `cgi_upload.c` responds to the request URL `/api/upload.cgi`.
 ```
-  long Upload_Start(void* context, char* szFileName, long nFileSize);
-  long Upload_GetFreeSize(unsigned long askForSize);
-  long Upload_Received(REQUEST_CONTEXT* context, unsigned char* pData, unsigned long dwLen);
-  void Upload_AllReceived(REQUEST_CONTEXT* context);
+    long Upload_Start(void* context, char* szFileName, long nFileSize);
+    long Upload_GetFreeSize(unsigned long askForSize);
+    long Upload_Received(REQUEST_CONTEXT* context, unsigned char* pData, unsigned long dwLen);
+    void Upload_AllReceived(REQUEST_CONTEXT* context);
 ```
   ![upload](/upload.png)
 
