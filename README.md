@@ -181,7 +181,12 @@ e.g. GetDeviceName(), GetVendor(), GetModel(), GetDeviceUUID().
 #define UPLOAD_TO_FOLDER "D:/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/app/cache/"
 ```
 * `cgi_upload.c` responds to the request URL `/api/upload.cgi`.
-
+```
+  long Upload_Start(void* context, char* szFileName, long nFileSize)
+  long Upload_GetFreeSize(unsigned long askForSize)
+  long Upload_Received(REQUEST_CONTEXT* context, unsigned char* pData, unsigned long dwLen)
+  Upload_AllReceived(REQUEST_CONTEXT* context)
+```
   ![upload](/upload.png)
 
 # Example for file explorer
