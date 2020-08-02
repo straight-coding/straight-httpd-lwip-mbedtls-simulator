@@ -236,10 +236,10 @@ e.g. GetDeviceName(), GetVendor(), GetModel(), GetDeviceUUID().
 * Generates one small `chunk` on each call. 
   * This function is a callback from lwip stack when it is ready to send the next `chunk`.
   * There are two variables in the context that could be used for the progress control.
-    * context->ctxResponse._dwOperStage: It is the first level progress (0-based), `STAGE_END` stands for the last `chunk`
-    * context->ctxResponse._dwOperIndex: Optional, it is the second level progress (0-based), and the max value is context->ctxResponse._dwTotal
+    * `context->ctxResponse._dwOperStage`: It is the first level progress (0-based), and `STAGE_END` stands for the last `chunk`.
+    * `context->ctxResponse._dwOperIndex`: Optional, it is the second level progress (0-based), and the max value is `context->ctxResponse._dwTotal`.
 ```
-   static int  Files_ReadOneFileInfo(REQUEST_CONTEXT* context, char* buffer, int maxSize);
+   static int Files_ReadOneFileInfo(REQUEST_CONTEXT* context, char* buffer, int maxSize);
 ```
 ```
 request:
