@@ -198,7 +198,24 @@ e.g. GetDeviceName(), GetVendor(), GetModel(), GetDeviceUUID().
 #define FOLDER_TO_LIST	"D:/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/app/cache/"
 ```
 * `cgi_files.c` responds to the request with URL `/api/files.cgi`
-
+```
+request:
+http://192.168.5.58/api/files.cgi?path=/
+response with JSON
+{
+  "result":1, 
+  "data":[
+    {"folder":0,"name":"00108.MTS","size":147062784,"date":1596318548},
+    {"folder":0,"name":"00114.MTS","size":61833216,"date":1596318690},
+    {"folder":0,"name":"00116.MTS","size":144801792,"date":1596318758},
+    {"folder":0,"name":"Building a 3d Printer From Cd Drives -- Only $45.mp4","size":90868943,"date":1595116269},
+    {"folder":1,"name":"cfg","size":0,"date":1593903275},
+    {"folder":1,"name":"include","size":0,"date":1593903276},
+    {"folder":1,"name":"lib","size":0,"date":1593903276},
+    {"folder":0,"name":"videoplayback.mp4","size":25542302,"date":1593903614}
+  ]
+}
+```
   ![files](/files.png)
 
 # Example for configuration form
