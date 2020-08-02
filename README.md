@@ -178,7 +178,7 @@ struct member alignment 1 byte(/Zp1)
     //  there are two-level progresses initialized as 0: 
     // 	  context->ctxResponse._dwOperStage = 0; //major progress, set _dwOperStage=STAGE_END if it is the last data chunk
     //	  context->ctxResponse._dwOperIndex = 0; //sub-progress for each stage, for app layer internal use
-    //    caller: called from **HTTP_PROC_CALLER_RECV (event)** / **HTTP_PROC_CALLER_POLL (timer)** / **HTTP_PROC_CALLER_SENT (event)**
+    //    caller: called from HTTP_PROC_CALLER_RECV (event) / HTTP_PROC_CALLER_POLL (timer) / HTTP_PROC_CALLER_SENT (event)
     //  return 1 if data is ready to send
     //	  data MUST be put in context->ctxResponse._sendBuffer, 
     //         and the buffer size set to context->ctxResponse._bytesLeft before return
