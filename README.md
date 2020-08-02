@@ -154,7 +154,7 @@ struct member alignment 1 byte(/Zp1)
 ```
     e.g. GetDeviceName(), GetVendor(), GetModel(), GetDeviceUUID(). 
 ```
-    ![discover](/discover.png)  ![discover-prop](/discover-prop.png)
+  ![discover](/discover.png)  ![discover-prop](/discover-prop.png)
 
 # Example for sign-in UI
 
