@@ -35,7 +35,9 @@ typedef struct _DeviceConfig
 	char szLocation[16];// = { 0 };
 }DeviceConfig;
 
-void LwipInit(int reboot);
+void LwipInit(void);
+void LwipStop(void);
+
 extern int tcpip_inloop(void);
 void InitDevInfo(void);
 

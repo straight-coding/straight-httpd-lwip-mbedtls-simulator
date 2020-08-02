@@ -201,18 +201,18 @@ struct altcp_tls_config* getTlsConfig(void)
 	return conf;
 }
 
-void LwipInit(int reboot)
+void LwipInit(void)
 {
 	struct netif* nif;
 
 	lwip_init();
 
-	if (sys_mbox_new(&tcpip_mbox, TCPIP_MBOX_SIZE) != ERR_OK) 
+	if (sys_mbox_new(&tcpip_mbox, TCPIP_MBOX_SIZE) != ERR_OK)
 	{
 		LWIP_ASSERT("failed to create tcpip_thread mbox", 0);
 	}
-	
-	if (sys_mutex_new(&lock_tcpip_core) != ERR_OK) 
+
+	if (sys_mutex_new(&lock_tcpip_core) != ERR_OK)
 	{
 		LWIP_ASSERT("failed to create lock_tcpip_core", 0);
 
@@ -239,6 +239,10 @@ void LwipInit(int reboot)
 
 void LwipStop(void)
 {
+	LwipLinkDown();
+
+	sys_mbox_free(&tcpip_mbox);
+	sys_mutex_free(&lock_tcpip_core);
 }
 
 extern void tcpip_thread_handle_msg(struct tcpip_msg *msg);
@@ -321,10 +325,14 @@ void LwipLinkUp(void)
 	netif_set_netmask(&main_netif, &main_netif_netmask);
 	netif_set_gw(&main_netif, &main_netif_gw);
 	
-	if (dhcp_start(&main_netif) != ERR_OK) 
+	if (IsDhcpEnabled() && dhcp_start(&main_netif) != ERR_OK)
 	{
          LWIP_DEBUGF(LWIP_DBG_ON, ("DHCP failed"));
-	}  
+	}
+	else
+	{
+		OnDhcpFinished();
+	}
 }
 
 void OnDhcpFinished(void)

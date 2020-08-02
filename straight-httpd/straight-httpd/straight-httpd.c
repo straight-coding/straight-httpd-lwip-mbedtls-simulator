@@ -152,6 +152,7 @@ int main()
 	bpf_u_int32 ip;
 	bpf_u_int32 subnet_mask;
 	struct in_addr address;
+	DWORD exitCode = 0;
 
 	struct bpf_program filterCompile;
 	char szError[PCAP_ERRBUF_SIZE];
@@ -298,6 +299,10 @@ int main()
 				}
 			}
 		}
+		if (!GetExitCodeThread(g_appThread, &exitCode))
+			break;
+		if ((exitCode & STILL_ACTIVE) == 0)
+			break;
 	}
 	pcap_close(g_hPcap);
 
@@ -324,17 +329,17 @@ extern void tcp_kill_all(void);
 
 DWORD WINAPI AppThread(void* data)
 {
-	InitDevInfo();
+	InitDevInfo(); //initiate device settings
 
-	WEB_fs_init();
+	WEB_fs_init();	//initiate file system in memory
 
-	SetupHttpContext();
+	SetupHttpContext(); //initiate http receiving context
 
-	LwipInit(0); //initialize lwip stack and start dhcp
+	LwipInit(); //initiate lwip stack and start dhcp
 
 	while (g_nKeepRunning)
 	{
-		SessionClearAll(); //lock used inside
+		SessionClearAll();	//clear http session context
 
 		while (g_ipIsReady == 0)
 		{
@@ -379,9 +384,14 @@ DWORD WINAPI AppThread(void* data)
 		ssdpDown();
 		netbiosns_stop();
 
+		PrintLwipStatus();
+
 		tcp_kill_all();
 
-		PrintLwipStatus();
+		if (g_ipIsReady == 0)
+			break;
 	}
+
+	LwipStop();
 	return 0;
 }
