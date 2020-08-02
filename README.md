@@ -156,7 +156,7 @@ struct member alignment 1 byte(/Zp1)
     //called by FreeHttpContext()
     void CGI_Finish(REQUEST_CONTEXT* context);
 
-    //called when the first HTTP request line is completely received
+    //called when the first line of the HTTP request is completely received
     void CGI_SetCgiHandler(REQUEST_CONTEXT* context);
 
     //called when every single HTTP request header/line is received
