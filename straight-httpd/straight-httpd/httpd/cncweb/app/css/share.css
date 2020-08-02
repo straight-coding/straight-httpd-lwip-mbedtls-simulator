@@ -51,6 +51,10 @@ body
 	-webkit-flex-flow: row nowrap; 
 	-ms-flex-flow: row nowrap; 
 	flex-flow: row nowrap;
+	
+	-webkit-align-items: center; 
+	-ms-align-items: center; 
+	align-items: center; 
 }
 .columns
 { 

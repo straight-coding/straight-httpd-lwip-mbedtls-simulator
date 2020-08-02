@@ -19,47 +19,49 @@
     </div>
 
     <form class='base columns stretch-item main-stretch' style="width: 345px; overflow-x: hidden; overflow-y: auto;" action="/app/form.shtml" method="post">
-      <div class='base rows between-content margin-t24'>
+      <div class='base row between-content margin-t24'>
         <div class='form-key'>Location</div>
         <input class='form-value' type="text" name="VAR_LOCATION" value="<!--#VAR_LOCATION-->"/>
       </div>
-      <div class='base rows between-content margin-t8'>
+      <div class='base row between-content margin-t8'>
         <div class='form-key'>Date</div>
         <input class='form-value' type="date" name="VAR_DATE" value="<!--#VAR_DATE-->"/>
       </div>
-      <div class='base rows between-content margin-t8'>
+      <div class='base row between-content margin-t8'>
         <div class='form-key'>Timeout (min)</div>
         <input class='form-value' type="number" name="VAR_SESSION_TIMEOUT" min="0" value="<!--#VAR_SESSION_TIMEOUT-->"/>
       </div>
-      <div class='base rows between-content margin-t8'>
+      <div class='base row between-content margin-t8'>
         <div class='form-key'>Font</div>
-        <div class='base rows'>
+        <div class='base row'>
           <input type="radio" id="font_small"  name="VAR_FONT" value="small"><label for="font_small">Small</label>&nbsp;&nbsp;
           <input type="radio" id="font_middle" name="VAR_FONT" value="middle"><label for="font_middle">Middle</label>&nbsp;&nbsp;
           <input type="radio" id="font_large"  name="VAR_FONT" value="large"><label for="font_large">Large</label>
         </div>
       </div>
-      <div class='base rows between-content margin-t8'>
+      <div class='base row between-content margin-t8'>
         <label for="check_log">Log</label>
-        <input class='form-value' type="checkbox" id="check_log" name="VAR_LOG"/>
+        <input class='form-value' type="hidden" name="VAR_LOG"/>
+        <input class='form-value' type="checkbox" id="check_log"/>
       </div>
-      <div class='base rows between-content margin-t8'>
+      <div class='base row between-content margin-t8'>
         <label for="check_dhcp">DHCP</label>
-        <input class='form-value' type="checkbox" id="check_dhcp" name="DEV_DHCP"/>
+        <input class='form-value' type="hidden" name="DEV_DHCP"/>
+        <input class='form-value' type="checkbox" id="check_dhcp"/>
       </div>
-      <div class='base rows between-content margin-t8'>
+      <div class='base row between-content margin-t8'>
         <div class='form-key'>IP Address</div>
         <input class='form-value' type="text" name="DEV_IP" id="DEV_IP" value="<!--#DEV_IP-->"/>
       </div>
-      <div class='base rows between-content margin-t8'>
+      <div class='base row between-content margin-t8'>
         <div class='form-key'>Gateway</div>
         <input class='form-value' type="text" name="DEV_GATEWAY" id="DEV_GATEWAY" value="<!--#DEV_GATEWAY-->"/>
       </div>
-      <div class='base rows between-content margin-t8'>
+      <div class='base row between-content margin-t8'>
         <div class='form-key'>Subnet</div>
         <input class='form-value' type="text" name="DEV_SUBNET" id="DEV_SUBNET" value="<!--#DEV_SUBNET-->"/>
       </div>
-      <div class='base rows between-content margin-t24'>
+      <div class='base row between-content margin-t24'>
         <div class='form-key'></div>
         <button class='tab margin-l2' type="submit" id='save'>Save</button>
       </div>
@@ -81,21 +83,31 @@
     document.getElementById("check_dhcp").checked = ('<!--#DEV_DHCP-->' > 0);
     document.getElementById("check_log").checked = ('<!--#VAR_LOG-->' > 0);
 
-    goDhcp();
-
-    document.getElementById('check_dhcp').addEventListener('change', goDhcp);
-    function goDhcp() 
-    { 
-      dhcp = document.getElementById("check_dhcp").checked;
-      document.getElementById("DEV_IP").disabled = dhcp;
-      document.getElementById("DEV_GATEWAY").disabled = dhcp;
-      document.getElementById("DEV_SUBNET").disabled = dhcp;
-    }
-
     var font = '<!--#VAR_FONT-->';
     document.getElementById("font_small").checked = (font == 'small');
     document.getElementById("font_middle").checked = (font == 'middle');
     document.getElementById("font_large").checked = (font == 'large');
+
+    goModified();
+
+    document.getElementById('check_log').addEventListener('change', goModified);
+    document.getElementById('check_dhcp').addEventListener('change', goModified);
+    function goModified() 
+    { 
+      var log = document.getElementById("check_log").checked;
+      var logCheck = document.getElementsByName("VAR_LOG")[0];
+        logCheck.checked = log;
+        logCheck.value = log ? '1' : '0';
+
+      var dhcp = document.getElementById("check_dhcp").checked;
+      var dhcpCheck = document.getElementsByName("DEV_DHCP")[0];
+        dhcpCheck.checked = dhcp;
+        dhcpCheck.value = dhcp ? '1' : '0';
+
+      document.getElementById("DEV_IP").disabled = dhcp;
+      document.getElementById("DEV_GATEWAY").disabled = dhcp;
+      document.getElementById("DEV_SUBNET").disabled = dhcp;
+    }
 
     document.getElementById('home').addEventListener('click', goHome);
     function goHome() { location.href = '/app/index.shtml'; }

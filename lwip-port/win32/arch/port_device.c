@@ -11,6 +11,8 @@
 
 #include "port.h"
 
+extern void LogPrint(int level, char* format, ...);
+
 //////////////////////////////////////////////////////////////////////////////////////
 // Constant global variables
 
@@ -252,20 +254,30 @@ void LoadConfig4Edit()
 	lockDevInfo();
 		g_TempConfig = g_WorkConfig;
 	unlockDevInfo();
+
+	LogPrint(0, "Load configurations\r\n");
 }
+
+extern long g_ipIsReady;
+extern void LwipLinkUp(void);
+extern void LwipLinkDown(void);
 
 void AppyConfig()
 {
 	int dhcpChanged = 0;
 	lockDevInfo();
 		if (g_WorkConfig.nDhcpEnabled != g_TempConfig.nDhcpEnabled)
+		{
+			LogPrint(0, "DHCP changed from %d to %d\r\n", g_WorkConfig.nDhcpEnabled, g_TempConfig.nDhcpEnabled);
 			dhcpChanged = 1;
-
+		}
 		g_WorkConfig = g_TempConfig;
 	unlockDevInfo();
 
 	if (dhcpChanged > 0)
 	{ //need restart lwip stack
+		LogPrint(0, "lwip stack will restart\r\n");
+		g_ipIsReady = 0;
 	}
 }
 
