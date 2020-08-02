@@ -217,11 +217,12 @@ e.g. GetDeviceName(), GetVendor(), GetModel(), GetDeviceUUID().
 
 # Example for file explorer
 
+* This is a good example for `RESTful API` using `chunked` header.
 * `/app/files.shtml` and `/app/plugin/fileList/fileList.js` provide a demo for file browsing. The directory is defined by `FOLDER_TO_LIST`.
 ```
 #define FOLDER_TO_LIST	"D:/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/app/cache/"
 ```
-* `cgi_files.c` responds to the request with URL `/api/files.cgi`. This is a good example for `RESTful API` using `chunked` header.
+* `cgi_files.c` responds to the request with URL `/api/files.cgi`. 
 ```
     context->_options |= CGI_OPT_CHUNK_ENABLED;
 ```
