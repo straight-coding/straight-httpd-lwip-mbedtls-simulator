@@ -173,7 +173,7 @@ e.g. GetDeviceName(), GetVendor(), GetModel(), GetDeviceUUID().
 
 * `/app/index.shtml` is the home page after authentication.
 * `cgi_web.c` responds to all requests with prefix `/app/*` after authentication.
-* `cgi_ssi.c` includes all infomation providers
+* `cgi_ssi.c` includes all infomation getters.
 ```
     char* GetVendor(void);
     char* GetVendorURL(void);
@@ -195,7 +195,7 @@ e.g. GetDeviceName(), GetVendor(), GetModel(), GetDeviceUUID().
 	{ "DEV_SN",		TAG_GETTER, GetDeviceSN },
 	{ "DEV_UUID",		TAG_GETTER, GetDeviceUUID },
 	{ "DEV_VERSION",	TAG_GETTER, GetDeviceVersion },
-	{NULL, NULL, NULL}
+	{ NULL, NULL, NULL }
     };
 ```
   ![info](/info.png)
@@ -245,7 +245,36 @@ response with JSON:
 
 * `/app/form.shtml` is a demo for modifying parameters. All parameters are processed by `cgi_ssi.c`.
 * `cgi_form.c` provides general processing for all forms. All parameters and types are defined in `cgi_ssi.c`.
+* `cgi_ssi.c` includes all infomation getters and setters.
 ```
+    static SSI_Tag g_Getters[] = {
+	{ "DEV_DHCP",		TAG_PROVIDER, FillDhcp },
+	{ "DEV_IP",		TAG_PROVIDER, FillIP },
+	{ "DEV_GATEWAY",	TAG_PROVIDER, FillGateway },
+	{ "DEV_SUBNET",		TAG_PROVIDER, FillSubnet },
+	{ "VAR_SESSION_TIMEOUT",TAG_PROVIDER, FillSessionTimeout },
+	{ "VAR_LOCATION",	TAG_GETTER, GetLocation },
+	{ "VAR_COLOR",		TAG_GETTER, GetColor },
+	{ "VAR_DATE",		TAG_GETTER, GetDate },
+	{ "VAR_FONT",		TAG_GETTER, GetFont },
+	{ "VAR_LOG",		TAG_PROVIDER, FillLog },
+	{ NULL, NULL, NULL }
+    };
+
+    static SSI_Tag g_Setters[] = {
+	{ "DEV_DHCP",		TAG_SETTER, SetDhcpEnabled },
+	{ "DEV_IP",		TAG_SETTER, SetMyIP },
+	{ "DEV_GATEWAY",	TAG_SETTER, SetGateway },
+	{ "DEV_SUBNET",		TAG_SETTER, SetSubnet },
+	{ "VAR_SESSION_TIMEOUT",TAG_SETTER, SetSessionTimeout },
+	{ "VAR_LOCATION",	TAG_SETTER, SetLocation },
+	{ "VAR_COLOR",		TAG_SETTER, SetColor },
+	{ "VAR_DATE",		TAG_SETTER, SetDate },
+	{ "VAR_FONT",		TAG_SETTER, SetFont },
+	{ "VAR_LOG",		TAG_SETTER, SetLog },
+	{ NULL, NULL, NULL }
+    };
+
     void LoadConfig4Edit();
     void AppyConfig();
 ```
