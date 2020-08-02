@@ -152,9 +152,9 @@ struct member alignment 1 byte(/Zp1)
 * cgi_ssdp.c processes SSDP requests. 
 * All information tags can be modified using API functions. All tags are defined and parsed by `cgi_ssi.c`.
 ```
-e.g. GetDeviceName(), GetVendor(), GetModel(), GetDeviceUUID(). 
+    e.g. GetDeviceName(), GetVendor(), GetModel(), GetDeviceUUID(). 
 ```
-![discover](/discover.png)  ![discover-prop](/discover-prop.png)
+    ![discover](/discover.png)  ![discover-prop](/discover-prop.png)
 
 # Example for sign-in UI
 
