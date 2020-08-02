@@ -36,6 +36,7 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
 
 * `Computer A`: only need a browser installed.
 * `Computer B`: need to install [`wpcap driver`](https://nmap.org/npcap/dist/npcap-0.9995.exe), or simply install [`Wireshark`](https://www.wireshark.org/) that includes wpcap driver.
+* Using the latest npcap driver (v0.9995), the browser on `Computer B` can access the `Virtual Device` right now, so `Computer A` may not be needed.
 
 # Dependencies
 
