@@ -173,7 +173,31 @@ e.g. GetDeviceName(), GetVendor(), GetModel(), GetDeviceUUID().
 
 * `/app/index.shtml` is the home page after authentication.
 * `cgi_web.c` responds to all requests with prefix `/app/*` after authentication.
-
+* `cgi_ssi.c` includes all infomation providers
+```
+    char* GetVendor(void);
+    char* GetVendorURL(void);
+    char* GetModel(void);
+    char* GetModelURL(void);
+    char* GetDeviceName(void);
+    char* GetDeviceSN(void);
+    char* GetDeviceUUID(void);
+    char* GetDeviceVersion(void);
+    int FillMAC(void* context, char* buffer, int maxSize);
+    
+    static SSI_Tag g_Getters[] = {
+	{ "DEV_VENDOR",		TAG_GETTER, GetVendor },
+	{ "DEV_VENDOR_URL",	TAG_GETTER, GetVendorURL },
+	{ "DEV_MODEL",		TAG_GETTER, GetModel },
+	{ "DEV_MODEL_URL",	TAG_GETTER, GetModelURL },
+	{ "DEV_MAC",		TAG_PROVIDER, FillMAC },
+	{ "DEV_NAME",		TAG_GETTER, GetDeviceName },
+	{ "DEV_SN",		TAG_GETTER, GetDeviceSN },
+	{ "DEV_UUID",		TAG_GETTER, GetDeviceUUID },
+	{ "DEV_VERSION",	TAG_GETTER, GetDeviceVersion },
+	{NULL, NULL, NULL}
+    };
+```
   ![info](/info.png)
 
 # Example for uploading
