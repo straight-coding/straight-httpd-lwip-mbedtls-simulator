@@ -116,6 +116,75 @@ case ETHNET_INPUT: //2020-03-29 added by straight coder
 struct member alignment 1 byte(/Zp1)
 ```
 
+# Structure for CGI mapping
+
+```
+    struct CGI_Mapping
+    {
+	char path[MAX_CGI_PATH];	//string, request full path
+	unsigned long optionsAllowed;	//defined by CGI_OPT_xxxxxx
+
+        //cancel notification to app layer because of any HTTP fatal errors
+        //  including timeout, format errors, sending failures, and stack keneral errors
+	void (*OnCancel)(REQUEST_CONTEXT* context);
+
+	int  (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line); //return 1 if eaten
+	void (*OnHeadersReceived)(REQUEST_CONTEXT* context);
+	int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size);
+	void (*OnRequestReceived)(REQUEST_CONTEXT* context);
+	
+	void (*SetResponseHeaders)(REQUEST_CONTEXT* context, char* HttpCode);
+	int  (*ReadContent)(REQUEST_CONTEXT* context, char* buffer, int maxSize);
+	
+	void (*OnAllSent)(REQUEST_CONTEXT* context);
+	
+	//called by FreeHttpContext()
+	void (*OnFinished)(REQUEST_CONTEXT* context);
+	
+	struct CGI_Mapping* next;
+    };
+```
+ * Functions for CGI processing
+``` 
+    //setup mapping when initializing httpd context
+    void CGI_SetupMapping(void); 
+   
+    //cancel notification to app layer because of any HTTP fatal errors
+    //  including timeout, format errors, sending failures, and stack keneral errors
+    void CGI_Cancel(REQUEST_CONTEXT* context);
+
+    //called by FreeHttpContext()
+    void CGI_Finish(REQUEST_CONTEXT* context);
+
+    //called when the first HTTP request line is completely received
+    void CGI_SetCgiHandler(REQUEST_CONTEXT* context);
+
+    //called when every single HTTP request header/line is received
+    int CGI_HeaderReceived(REQUEST_CONTEXT* context, char* header_line);
+
+    //called when all HTTP request headers/lines are received
+    void CGI_HeadersReceived(REQUEST_CONTEXT* context);
+
+    //called when any bytes of the HTTP request body are received (may be partial)
+    int CGI_ContentReceived(REQUEST_CONTEXT* context, char* buffer, int size);
+
+    //called when the HTTP request body is completely received
+    void CGI_RequestReceived(REQUEST_CONTEXT* context);
+
+    //set response headers: content-type, content-length, connection, and http code and status info
+    void CGI_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo);
+
+    //load response body chunk by chunk
+    //  there are two-level progresses initialized as 0: 
+    // 	  context->ctxResponse._dwOperStage = 0; //major progress, set _dwOperStage=STAGE_END if it is the last data block
+    //	  context->ctxResponse._dwOperIndex = 0; //sub-progress for each stage, for app layer internal use
+    //    caller: called from HTTP_PROC_CALLER_RECV (event) / HTTP_PROC_CALLER_POLL (timer) / HTTP_PROC_CALLER_SENT (event)
+    //  return 1 if data is ready to send
+    //	  data MUST be put in context->ctxResponse._sendBuffer, 
+    //         and the buffer size set to context->ctxResponse._bytesLeft in advance
+    int CGI_LoadContentToSend(REQUEST_CONTEXT* context, int caller);
+```
+
 # GET handling
 
 | Device HTTP Events | CGI Adapter - Actions | Description |
