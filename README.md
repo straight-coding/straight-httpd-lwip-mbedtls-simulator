@@ -221,5 +221,8 @@ response with JSON:
 
 * `/app/form.shtml` is a demo for modifying parameters. All parameters are processed by `cgi_ssi.c`.
 * `cgi_form.c` provides general processing for all forms. All parameters and types are defined in `cgi_ssi.c`.
-
+```
+    void LoadConfig4Edit();
+    void AppyConfig();
+```
   ![form](/form.png)
