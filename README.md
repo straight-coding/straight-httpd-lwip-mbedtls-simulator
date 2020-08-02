@@ -159,13 +159,13 @@ struct member alignment 1 byte(/Zp1)
     //called when the first line of the HTTP request is completely received
     void CGI_SetCgiHandler(REQUEST_CONTEXT* context);
 
-    //called when every single HTTP request header/line is received
+    //if any HTTP request header/line is skipped by http-core.c, the following function will be called, return 1 if accepted
     int CGI_HeaderReceived(REQUEST_CONTEXT* context, char* header_line);
 
     //called when all HTTP request headers/lines are received
     void CGI_HeadersReceived(REQUEST_CONTEXT* context);
 
-    //called when any bytes of the HTTP request body are received (may be partial)
+    //called when any bytes of the HTTP request body are received (may be partial), and return the accepted count.
     int CGI_ContentReceived(REQUEST_CONTEXT* context, char* buffer, int size);
 
     //called when the HTTP request body is completely received
@@ -176,12 +176,12 @@ struct member alignment 1 byte(/Zp1)
 
     //load response body chunk by chunk
     //  there are two-level progresses initialized as 0: 
-    // 	  context->ctxResponse._dwOperStage = 0; //major progress, set _dwOperStage=STAGE_END if it is the last data block
+    // 	  context->ctxResponse._dwOperStage = 0; //major progress, set _dwOperStage=STAGE_END if it is the last data chunk
     //	  context->ctxResponse._dwOperIndex = 0; //sub-progress for each stage, for app layer internal use
-    //    caller: called from HTTP_PROC_CALLER_RECV (event) / HTTP_PROC_CALLER_POLL (timer) / HTTP_PROC_CALLER_SENT (event)
+    //    caller: called from **HTTP_PROC_CALLER_RECV (event)** / **HTTP_PROC_CALLER_POLL (timer)** / **HTTP_PROC_CALLER_SENT (event)**
     //  return 1 if data is ready to send
     //	  data MUST be put in context->ctxResponse._sendBuffer, 
-    //         and the buffer size set to context->ctxResponse._bytesLeft in advance
+    //         and the buffer size set to context->ctxResponse._bytesLeft before return
     int CGI_LoadContentToSend(REQUEST_CONTEXT* context, int caller);
 ```
 
