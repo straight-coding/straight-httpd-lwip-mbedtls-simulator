@@ -154,6 +154,8 @@ struct member alignment 1 byte(/Zp1)
 ```
 e.g. GetDeviceName(), GetVendor(), GetModel(), GetDeviceUUID(). 
 ```
+![discover](/discover.png)  ![discover-prop](/discover-prop.png)
+
 # Example for sign-in UI
 
 * `/auth/login.html` is the default page before authentication. The user must provide the username and password. All web pages are physically located in the folder defined by `LOCAL_WEBROOT`.
