@@ -221,7 +221,26 @@ e.g. GetDeviceName(), GetVendor(), GetModel(), GetDeviceUUID().
 ```
 #define FOLDER_TO_LIST	"D:/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/app/cache/"
 ```
-* `cgi_files.c` responds to the request with URL `/api/files.cgi`
+* `cgi_files.c` responds to the request with URL `/api/files.cgi`. This is a good example for `RESTful API` using `chunked` header.
+```
+    context->_options |= CGI_OPT_CHUNK_ENABLED;
+```
+* Makes preparations before response.
+```
+   static void Files_OnRequestReceived(REQUEST_CONTEXT* context);
+```
+* Generates response header with `chunked` header.
+```
+   static void Files_SetResponseHeader(REQUEST_CONTEXT* context, char* HttpCodeInfo);
+```
+* Generates one small `chunked` on each call. 
+  * This function is a callback from lwip stack when it is ready to send the next chunk.
+  * There are two variables in the context that could be used for the progress control.
+    * context->ctxResponse._dwOperStage: It is the first level progress (0-based), `STAGE_END` stands for the last chunk
+    * context->ctxResponse._dwOperIndex: Optional, it is the second level progress (0-based), its maximun value is context->ctxResponse._dwTotal
+```
+   static int  Files_ReadOneFileInfo(REQUEST_CONTEXT* context, char* buffer, int maxSize);
+```
 ```
 request:
   http://192.168.5.58/api/files.cgi?path=/
