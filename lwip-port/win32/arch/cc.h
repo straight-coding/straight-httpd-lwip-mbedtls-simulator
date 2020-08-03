@@ -65,6 +65,47 @@ typedef signed     long		mem_ptr_t; /* Unsigned 32 bit quantity        */
 #define S32_F "8ld"
 #define X32_F "8lx"
 
+#define PRIx8   "hhx"
+#define PRIx16  "hx"
+#define PRIx32  "x"
+#define PRIx64  "llx"
+
+#define PRIu8   "hhu"
+#define PRIu16  "hu"
+#define PRIu32  "u"
+#define PRIu64  "llu"
+
+#ifdef _WIN64
+ #define PRIuPTR  PRIu64
+#else
+ #define PRIuPTR  PRIu32
+#endif
+
+#ifndef X8_F
+#define X8_F  "02" PRIx8
+#endif
+#ifndef U16_F
+#define U16_F PRIu16
+#endif
+#ifndef S16_F
+#define S16_F PRId16
+#endif
+#ifndef X16_F
+#define X16_F PRIx16
+#endif
+#ifndef U32_F
+#define U32_F PRIu32
+#endif
+#ifndef S32_F
+#define S32_F PRId32
+#endif
+#ifndef X32_F
+#define X32_F PRIx32
+#endif
+#ifndef SZT_F
+#define SZT_F PRIuPTR
+#endif
+
 /*--------------macros--------------------------------------------------------*/
 #ifndef LWIP_PLATFORM_ASSERT
 //#define LWIP_PLATFORM_ASSERT(x) //do {LwipLogPrint x;} while(0)

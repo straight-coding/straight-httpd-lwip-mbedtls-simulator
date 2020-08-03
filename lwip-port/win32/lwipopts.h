@@ -265,6 +265,7 @@ a lot of data that needs to be copied, this should be set high. */
 #define HTTPD_SERVER_AGENT 				"Straight httpd/1.1"
 
 #define PACK_STRUCT_USE_INCLUDES		1
+#define LWIP_NO_INTTYPES_H				1
 
 #define ALTCP_MBEDTLS_RNG_FN			mbedtls_entropy_func 
 /*##############################################################################################*/
