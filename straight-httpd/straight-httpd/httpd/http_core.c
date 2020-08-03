@@ -1365,6 +1365,7 @@ static signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //alway
 
 static signed char sendBuffered(REQUEST_CONTEXT* context)
 {
+	int firstPart = 1;
 	int size2Send;
 	int maxbuf; //tcp_sndbuf()
 	signed char err = ERR_OK;
@@ -1372,17 +1373,26 @@ static signed char sendBuffered(REQUEST_CONTEXT* context)
 	while(context->ctxResponse._bytesLeft > 0)
 	{
 		size2Send = context->ctxResponse._bytesLeft;
+		if (size2Send <= 0)
+		{
+			//LogPrint(0, "Nothing to send @%d", context->_sid);
+			break;
+		}
+
 		maxbuf = altcp_sndbuf(context->_pcb); //tcp_sndbuf()
+		if (maxbuf <= 0)
+		{
+			if (firstPart > 0)
+				;// LogPrint(0, "tcp_sndbuf() is full, send nothing, (tosend/total)=%d/%d, @%d", size2Send, context->ctxResponse._bytesLeft, context->_sid);
+			else
+				;// LogPrint(0, "tcp_sndbuf() is full, remaining: %d, @%d", context->ctxResponse._bytesLeft, context->_sid);
+			break;
+		}
 
 		if (size2Send > maxbuf)
 			size2Send = maxbuf;
 		//if (size2Send > TCP_MSS)
 			//size2Send = TCP_MSS;
-		if (size2Send <= 0)
-		{
-			LogPrint(0, "Send nothing, (tosend/total)=%d/%d, @%d", size2Send, context->ctxResponse._bytesLeft, context->_sid);
-			break;
-		}
 
 		err = altcp_write(context->_pcb, context->ctxResponse._sendBuffer, size2Send, TCP_WRITE_FLAG_COPY);
 		if (err == ERR_OK)
@@ -1403,6 +1413,7 @@ static signed char sendBuffered(REQUEST_CONTEXT* context)
 			LogPrint(0, "[altcp_write] %d bytes, err=%d, @%d", size2Send, err, context->_sid);
 			return err;
 		}
+		firstPart = 0;
 	}
 	return ERR_OK;
 }
@@ -1417,7 +1428,8 @@ static signed char HttpResponseProc(REQUEST_CONTEXT* context, int caller) //alwa
 		return err;
 
 	//send the remaining
-	if (context->ctxResponse._bytesLeft > 0)
+	if ((context->ctxResponse._bytesLeft > 0) && 
+		((context->ctxResponse._dwOperStage == STAGE_END) || (context->ctxResponse._bytesLeft >= altcp_sndbuf(context->_pcb)))) //tcp_sndbuf()
 	{
 		LogPrint(LOG_DEBUG_ONLY, "Sending remaining: %d @%d", context->ctxResponse._bytesLeft, context->_sid);
 		
@@ -1490,7 +1502,7 @@ static signed char HttpResponseProc(REQUEST_CONTEXT* context, int caller) //alwa
 	{ //
 		if (caller == HTTP_PROC_CALLER_SENT)
 		{
-			LogPrint(LOG_DEBUG_ONLY, "Response header was sent @%d", context->_sid);
+			LogPrint(LOG_DEBUG_ONLY, "Event: response header was sent @%d", context->_sid);
 			if (context->_result < 0)
 			{
 				context->_state = HTTP_STATE_REQUEST_END;

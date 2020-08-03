@@ -50,7 +50,7 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* PBUF_POOL_BUFSIZE: the size of each pbuf in the pbuf pool. */
 #undef PBUF_POOL_BUFSIZE
-#define PBUF_POOL_BUFSIZE       1500 /* LWIP_MEM_ALIGN_SIZE(TCP_MSS+40+PBUF_LINK_HLEN) */
+#define PBUF_POOL_BUFSIZE       1460 /* LWIP_MEM_ALIGN_SIZE(TCP_MSS+40+PBUF_LINK_HLEN) */
 
 /* ETH_PAD_SIZE: number of bytes added before the ethernet header to ensure
  * alignment of payload after that header. Since the header is 14 bytes long,

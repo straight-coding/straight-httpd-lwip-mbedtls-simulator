@@ -61,7 +61,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define MAX_CONNECTIONS 				5		//max concurrent socket connections
-#define MAX_REQ_BUF_SIZE				1024	//length of the request header is up to MAX_REQ_BUF_SIZE bytes
+#define MAX_REQ_BUF_SIZE				TCP_MSS	//length of the request header is up to MAX_REQ_BUF_SIZE bytes
 #define MAX_APP_CONTEXT_SIZE			512		//reserved buffer for app/cgi layer, such as SSI_Context peocessing
 
 #define TO_RECV							60*1000

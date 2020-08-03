@@ -321,16 +321,20 @@ int CGI_LoadContentToSend(REQUEST_CONTEXT* context, int caller)
 		if (context->handler->ReadContent != NULL)
 		{
 			int size = 0;
+
+			char* pReadTo = context->ctxResponse._sendBuffer + context->ctxResponse._bytesLeft;
+			int nFreeSize = context->ctxResponse._sendMaxBlock - context->ctxResponse._bytesLeft - 2;
+
 			if (context->ctxResponse._dwOperStage >= STAGE_END)
 				return 0; //call type: HTTP_PROC_CALLER_POLL
 
 			if ((context->_options & CGI_OPT_CHUNK_ENABLED) == 0)
 			{
-				size = context->handler->ReadContent(context, context->ctxResponse._sendBuffer, context->ctxResponse._sendMaxBlock - 2);
+				size = context->handler->ReadContent(context, pReadTo, nFreeSize);
 				if (size < 0)
 					context->ctxResponse._dwOperStage = STAGE_END;
 				else
-					context->ctxResponse._bytesLeft = size;
+					context->ctxResponse._bytesLeft += size;
 			}
 			else
 			{
@@ -348,23 +352,23 @@ int CGI_LoadContentToSend(REQUEST_CONTEXT* context, int caller)
 					strcpy(szCRLF, CRLF);
 				}
 
-				size = context->handler->ReadContent(context, context->ctxResponse._sendBuffer + 10, context->ctxResponse._sendMaxBlock-20);// sizeof(context->ctxResponse._sendBuffer) - 20);
+				size = context->handler->ReadContent(context, pReadTo + 10, nFreeSize - 10);// sizeof(context->ctxResponse._sendBuffer) - 20);
 				if (size > 0)
 				{
 					LWIP_sprintf(szSize, "%s%X\r\n", szCRLF, size); //chunk size
 					prefixLen = strlen(szSize);
-					memcpy(context->ctxResponse._sendBuffer + 10 - prefixLen, szSize, prefixLen); //copy to the head
+					memcpy(pReadTo + 10 - prefixLen, szSize, prefixLen); //copy to the head
 					size += prefixLen;
 
 					if (context->ctxResponse._dwOperStage == STAGE_END)
 					{
 						strcpy(szSize, "\r\n0\r\n\r\n");
-						memcpy(context->ctxResponse._sendBuffer + 10 - prefixLen + size, szSize, 7); //copy to the tail
+						memcpy(pReadTo + 10 - prefixLen + size, szSize, 7); //copy to the tail
 						size += 7;
 					}
-					memmove(context->ctxResponse._sendBuffer, context->ctxResponse._sendBuffer + 10 - prefixLen, size); //move to the head
+					memmove(pReadTo, pReadTo + 10 - prefixLen, size); //move to the head
 
-					context->ctxResponse._bytesLeft = size;
+					context->ctxResponse._bytesLeft += size;
 				}
 			}
 
