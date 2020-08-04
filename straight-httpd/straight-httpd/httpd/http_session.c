@@ -28,11 +28,12 @@ void SetupSession(void)
 
 SESSION* SessionCreate(char* outCookie, unsigned long remoteIP)
 {
+	int i;
 	SESSION* session = NULL;
 	*outCookie = 0;
 
 	sys_mutex_lock(&g_sessionMutex);
-	for (int i = 0; i < MAX_SESSIONS; i++)
+	for (i = 0; i < MAX_SESSIONS; i++)
 	{
 		if (g_httpSessions[i]._token[0] != 0)
 			continue;
@@ -111,9 +112,10 @@ int SessionTypes(char* extension)
 
 SESSION* GetSession(char* token)
 {
+	int i;
 	if ((token != NULL) && (token[0] != 0))
 	{
-		for (int i = 0; i < MAX_SESSIONS; i++)
+		for (i = 0; i < MAX_SESSIONS; i++)
 		{
 			if (g_httpSessions[i]._token[0] == 0)
 				continue;
@@ -127,12 +129,13 @@ SESSION* GetSession(char* token)
 
 void SessionCheck(void) //called when header 'X-Auth-Token' or 'Cookie' received, also called after all headers received
 {
+	int i;
 	sys_mutex_lock(&g_sessionMutex);
 	{
 		unsigned long recvElapsed;
 		unsigned long sendElapsed;
 
-		for (int i = 0; i < MAX_SESSIONS; i++)
+		for (i = 0; i < MAX_SESSIONS; i++)
 		{
 			if (g_httpSessions[i]._token[0] == 0)
 				continue;

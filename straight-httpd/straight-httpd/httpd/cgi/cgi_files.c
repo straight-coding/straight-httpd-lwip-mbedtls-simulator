@@ -39,6 +39,7 @@ struct CGI_Mapping g_cgiFiles = {
 static void Files_OnRequestReceived(REQUEST_CONTEXT* context)
 {
 	char* p = NULL;
+	SSI_Context* ctxSSI;
 	if (context->_posQuestion >= 0)
 	{
 		LogPrint(LOG_DEBUG_ONLY, "Request file list of %s @%d",
@@ -47,8 +48,7 @@ static void Files_OnRequestReceived(REQUEST_CONTEXT* context)
 		if (p != NULL)
 			p += 5;
 	}
-
-	SSI_Context* ctxSSI = (SSI_Context*)context->ctxResponse._appContext;
+	ctxSSI = (SSI_Context*)context->ctxResponse._appContext;
 	if (sizeof(context->ctxResponse._appContext) < sizeof(SSI_Context))
 	{
 		ctxSSI->_valid = 0;

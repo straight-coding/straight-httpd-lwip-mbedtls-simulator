@@ -327,7 +327,7 @@ void LogPrint(int level, char* format, ...)
 	memset(sMsg, 0, sizeof(sMsg));
 	if ((format[0] == '%') && (format[1] == 'T'))
 	{
-		snprintf(sMsg, 14, "%02d:%02d:%02d.%03d ", lt.wHour, lt.wMinute, lt.wSecond, lt.wMilliseconds);
+		sprintf_s(sMsg, 14, "%02d:%02d:%02d.%03d ", lt.wHour, lt.wMinute, lt.wSecond, lt.wMilliseconds);
 		vsnprintf(sMsg + 13, sizeof(sMsg) - 16, format + 2, ap);
 	}
 	else if ((format[0] == '\r') && (format[1] == '\n'))
@@ -340,7 +340,7 @@ void LogPrint(int level, char* format, ...)
 	}
 	else
 	{
-		snprintf(sMsg, 14, "%02d:%02d:%02d.%03d ", lt.wHour, lt.wMinute, lt.wSecond, lt.wMilliseconds);
+		sprintf_s(sMsg, 14, "%02d:%02d:%02d.%03d ", lt.wHour, lt.wMinute, lt.wSecond, lt.wMilliseconds);
 		vsnprintf(sMsg + 13, sizeof(sMsg) - 16, format, ap);
 	}
 	va_end(ap);
@@ -356,15 +356,15 @@ void LwipLogPrint(char* format, ...)
 {
 	unsigned long len;
 	char szMsg[2048];
+	va_list ap;
 
 	SYSTEMTIME st, lt;
 	GetSystemTime(&st);
 	GetLocalTime(&lt);
 
-	va_list ap;
 	va_start(ap, format);
 	{
-		snprintf(szMsg, 14, "%02d:%02d:%02d.%03d ", lt.wHour, lt.wMinute, lt.wSecond, lt.wMilliseconds);
+		sprintf_s(szMsg, 14, "%02d:%02d:%02d.%03d ", lt.wHour, lt.wMinute, lt.wSecond, lt.wMilliseconds);
 		vsnprintf(szMsg + 13, sizeof(szMsg) - 16, format, ap);
 	}
 	va_end(ap);

@@ -142,8 +142,8 @@ void WEB_RequestReceived(REQUEST_CONTEXT* context)
 
 	if ((context->_responsePath[0] == '/') && (context->_responsePath[1] == 0))
 	{ //default path
-		strcpy(context->_responsePath, WEB_DEFAULT_PAGE);
 		char* ext = strstr(WEB_DEFAULT_PAGE, ".");
+		strcpy(context->_responsePath, WEB_DEFAULT_PAGE);
 		if (ext != NULL)
 			strcpy(context->_extension, ext+1);
 	}
