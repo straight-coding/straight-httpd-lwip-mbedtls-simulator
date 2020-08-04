@@ -292,7 +292,7 @@ int main(int argc, char* argv[])
 		szError);
 	if (g_hPcap == NULL)
 	{
-		fprintf(stderr, "\nUnable to open the adapter.\n");
+		fprintf(stderr, "\nUnable to open the adapter. \r\nYou may need to install the npcap driver from https://nmap.org/npcap/dist/npcap-0.9995.exe\r\n");
 		{
 			int key = 0;
 			printf("Please press any key to quit\n ");
