@@ -37,7 +37,7 @@ void DMA_push(const struct pcap_pkthdr* packet_header, const u_char* packet)
 	struct packet_wrapper* newPacket = (struct packet_wrapper*)malloc(sizeof(struct packet_wrapper));
 	if (newPacket == NULL)
 		return;
-	newPacket->packet = malloc(packet_header->caplen);
+	newPacket->packet = (unsigned char*)malloc(packet_header->caplen);
 	if (newPacket->packet == NULL)
 	{
 		free(newPacket);
@@ -62,7 +62,7 @@ void DMA_push(const struct pcap_pkthdr* packet_header, const u_char* packet)
 		{
 			struct packet_wrapper* prev = g_dmaQueue;
 			while (prev->next != NULL)
-				prev = prev->next;
+				prev = (struct packet_wrapper*)prev->next;
 			prev->next = newPacket;
 		}
 	}
@@ -87,7 +87,7 @@ struct packet_wrapper* DMA_pop()
 	if (g_dmaQueue != NULL)
 	{
 		pkt = g_dmaQueue;
-		g_dmaQueue = g_dmaQueue->next;
+		g_dmaQueue = (struct packet_wrapper*)g_dmaQueue->next;
 		pkt->next = NULL; //just the first packet
 
 		g_qLength--;
@@ -105,7 +105,7 @@ void DMA_free(struct packet_wrapper* pkt)
 	struct packet_wrapper* prev = pkt;
 	while(prev != NULL)
 	{
-		struct packet_wrapper* next = prev->next;
+		struct packet_wrapper* next = (struct packet_wrapper*)prev->next;
 
 		if (prev->packet != NULL)
 			free(prev->packet);
@@ -117,7 +117,7 @@ void DMA_free(struct packet_wrapper* pkt)
 
 unsigned char* NIC_GetBuffer(int size)
 {
-	unsigned char* buf = malloc(size);
+	unsigned char* buf = (unsigned char*)malloc(size);
 	//LogPrint(0, "NIC_GetBuffer...\r\n");
 	return buf;
 }
@@ -145,7 +145,7 @@ long NIC_Send(unsigned char *buf, int size)
 	return nSent;
 }
 
-int main()
+int main(int argc, char* argv[])
 {
 	int i = 0;
 
@@ -165,16 +165,55 @@ int main()
 
 	char szFilter[512];
 
+	if (argc > 0)
+	{ //D:\straight\straight-httpd\straight-httpd\Debug\straight-httpd.exe
+		char drive[_MAX_DRIVE];
+		char dir[_MAX_DIR];
+		char fname[_MAX_FNAME];
+		char ext[_MAX_EXT];
+
+		char path[_MAX_PATH];
+
+		_splitpath(argv[0], drive, dir, fname, ext );
+		if (dir[strlen(dir)-1] == '\\')
+			dir[strlen(dir)-1] = 0;
+		sprintf(path, "%s%s", drive, dir);
+		_splitpath(path, drive, dir, fname, ext );
+		sprintf(path, "%s%s", drive, dir);
+
+		for(i = 0; i < strlen(path); i ++)
+		{
+			if (path[i] == '\\')
+				path[i] = '/'; //D:/straight/straight-httpd/straight-httpd/
+		}
+
+		if (strnicmp(path, "D:/straight/straight-httpd/straight-httpd/straight-httpd/httpd/", strlen(path)) != 0)
+		{
+			int key = 0;
+			printf("Please change LOCAL_WEBROOT(in http_fs.c) to \r\n\t%sstraight-httpd/httpd/cncweb/\r\n", path);
+			printf("Please change both UPLOAD_TO_FOLDER(in cgi_upload.c) and FOLDER_TO_LIST(in cgi_files.c) to \r\n\t%sstraight-httpd/httpd/cncweb/app/cache/\n", path);
+
+			printf("Please press any key to quit\n ");
+			key = _getch();
+			exit(1);
+		}
+	}
+
 	memset(szHostName, 0, sizeof(szHostName));
 	memset(szFilter, 0, sizeof(szFilter));
 
 	if (pcap_findalldevs(&allDevices, szError) == -1)
 	{
 		fprintf(stderr, "Error in pcap_findalldevs: %s\n", szError);
+		{
+			int key = 0;
+			printf("Please press any key to quit\n ");
+			key = _getch();
+		}
 		exit(1);
 	}
 
-	printf("\nHere is a list of available devices on your system:\n\n");
+	printf("Here is a list of available devices on your system:\n\n");
 	for (dev = allDevices; dev != NULL; dev = dev->next)
 	{
 		char* pStr;
@@ -254,6 +293,11 @@ int main()
 	if (g_hPcap == NULL)
 	{
 		fprintf(stderr, "\nUnable to open the adapter.\n");
+		{
+			int key = 0;
+			printf("Please press any key to quit\n ");
+			key = _getch();
+		}
 		return -2;
 	}
 
