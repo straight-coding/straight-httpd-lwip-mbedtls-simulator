@@ -126,21 +126,19 @@ struct member alignment 1 byte(/Zp1)
 	char path[MAX_CGI_PATH];	//string, request full path
 	unsigned long optionsAllowed;	//defined by CGI_OPT_xxxxxx
 
-        //cancel notification to app layer because of any HTTP fatal errors
-        //  including timeout, format errors, sending failures, and stack keneral errors
 	void (*OnCancel)(REQUEST_CONTEXT* context);
 
+	//request callbacks
 	int  (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line); //return 1 if eaten
 	void (*OnHeadersReceived)(REQUEST_CONTEXT* context);
 	int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size);
 	void (*OnRequestReceived)(REQUEST_CONTEXT* context);
 	
+	//response callbacks
 	void (*SetResponseHeaders)(REQUEST_CONTEXT* context, char* HttpCode);
 	int  (*ReadContent)(REQUEST_CONTEXT* context, char* buffer, int maxSize);
-	
 	void (*OnAllSent)(REQUEST_CONTEXT* context);
 	
-	//called by FreeHttpContext()
 	void (*OnFinished)(REQUEST_CONTEXT* context);
 	
 	struct CGI_Mapping* next;
