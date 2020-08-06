@@ -9,7 +9,7 @@ In a Windows environment, create a `Virtual Device (VD)` using `pcap`, `lwip` an
   ![stack](/stack.png)
 
 This project creates a `Virtual Device` on `Computer B`. Since the browser on `Computer B` cannot access this local `Virtual Device`, another `Computer A` should be used to access this device remotely. 
-* `Computer B` MUST be a Windows device with `VS2017` or later installed. Use VS2017 to open the project `straight-httpd/straight-httpd.sln` and run it in debug.
+* `Computer B` MUST be a Windows device with `VS2010` or later installed. Use VS2010 to open the project `straight-httpd/straight-httpd.sln` and run it in debug.
 * `Computer A` could be a `Windows`, `Linux`, or a `mobile` device. For Windows, open `File Explorer` and search for `network neighbors`. There should be a device named `Virtual Device`. Right click on it and select `Properties`, and you will see the device information, including its IP address and URL. Use default user `admin` and password `password` to sign into the device home page.
 
   ![discover](/discover.png)  
@@ -53,7 +53,7 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
   * Send ethernet frame from `lwip` stack via `wpcap`.
   * Also provide features: `Mutex`, `Semaphore`, `Mailbox`, `System Tick`, and `File API`.
 
-* folder `straight-httpd`: Microsoft Visual Studio 2017 project: `straight-httpd.sln`, and the project `straight-buildfs` can package all web pages and convert them into source code.
+* folder `straight-httpd`: Microsoft Visual Studio 2010 project: `straight-httpd.sln`, and the project `straight-buildfs` can package all web pages and convert them into source code.
 
 # Self-signed certificate for HTTPS
 
