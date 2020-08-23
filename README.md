@@ -383,6 +383,6 @@ response with JSON including 9 chunks:
     };
 
     void LoadConfig4Edit();
-    void AppyConfig();
+    void ApplyConfig();
 ```
   ![form](/form.png)
