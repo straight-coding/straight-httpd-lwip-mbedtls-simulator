@@ -99,7 +99,7 @@ void TAG_Setter(char* name, char* value)
 
 		if (type == TAG_SETTER)
 		{
-			void (*setter)(void) = tag->_tagHandler;
+			void (*setter)(char*) = tag->_tagHandler;
 			setter(value);
 		}
 		break;

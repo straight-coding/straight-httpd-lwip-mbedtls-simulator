@@ -161,20 +161,8 @@ typedef struct _REQUEST_CONTEXT
 
 void PrintLwipStatus(void); //kill the odlest TIME_WAIT pcb and print active count
 
-void SetKilling(REQUEST_CONTEXT* context);				//for app to kill session
 int  IsKilling(REQUEST_CONTEXT* context, int reset);	//read killing flag, and clear it
-
-void LockContext(REQUEST_CONTEXT* context);		//locked the specified context
-void UnlockContext(REQUEST_CONTEXT* context);	//unlocked the specified context
-
 void SetupHttpContext(void); //initialize context for connections
-REQUEST_CONTEXT* GetHttpContext(void); //get a context for the new connection
-void ResetHttpContext(REQUEST_CONTEXT* context);	//for HTTP pipeline (keep-alive), reset part of the context for the following request
-void CloseHttpContext(REQUEST_CONTEXT* context);	//called when disconnected
-void FreeHttpContext(REQUEST_CONTEXT* context);		//clear context
-int  IsContextTimeout(REQUEST_CONTEXT* context);	//check timeout of the connection
-
-signed char sendBuffered(REQUEST_CONTEXT* context); //send data in context->ctxResponse._sendBuffer
 
 struct altcp_pcb* HttpdInit(int tls, unsigned long port);
 int HttpdStop(struct altcp_pcb *pcbListen);
