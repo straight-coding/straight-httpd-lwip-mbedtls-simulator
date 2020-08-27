@@ -24,7 +24,7 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
 * Support simple SSI (“Server Side Includes”) with simple syntax: `<!--#TAG_NAME-->`. Note that the syntax does not allow spaces between the "<" and ">". Every tag is a placeholder, which corresponds to a variable. The variable can be HTML content or the initial value of a javascript variable. When the device replies to a request, it will first convert the variable into a string. This string then replaces the corresponding tag. Based on the tag content, the js code can then complete HTML/DOM operations, such as select, checkbox, and radio control etc.
 * Demo pages include:
   * **Sign in/out**: verify user's username/password, if successful, redirect to "**Home**", otherwise stay in the login page, the session has 3 minutes timeout after login.
-  * **Home** page:  show some device information and the current status of the device.
+  * **Home** page:  show some device information and the current status of the device, and scan the QR code to access the device web.
   * **Upload** page: multiple files can be selected and queued to be uploaded to a specific device directory. The concurrency is 1, and every upload process can be terminated separately.
   * **Files** page: you can browse all the files in the specified device directory, enter subdirectories or return to the parent directory.
   * **Form** page: demonstrates parameter modification and saving.
