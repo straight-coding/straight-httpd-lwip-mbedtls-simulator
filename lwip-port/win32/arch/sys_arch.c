@@ -54,7 +54,7 @@ void sys_init(void)
 	sys_arch_init();
 }
 
-err_t sys_sem_new(sys_sem_t *sem, unsigned long count)
+err_t sys_sem_new(sys_sem_t *sem, unsigned char count)
 {
 	HANDLE new_sem = CreateSemaphore(0, count, 100000, 0);
 	if (new_sem != NULL) 
