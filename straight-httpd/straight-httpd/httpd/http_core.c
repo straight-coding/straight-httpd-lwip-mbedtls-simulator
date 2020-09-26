@@ -8,6 +8,8 @@
 
 #include "lwip/tcp.h"
 #include "lwip/altcp.h"
+#include "lwip/altcp_tcp.h"
+#include "lwip/altcp_tls.h"
 
 #include "http_cgi.h"
 
@@ -391,18 +393,9 @@ struct altcp_pcb* HttpdInit(int tls, unsigned long port)
 	{
 		extern struct altcp_tls_config* getTlsConfig(void);
 
-		struct altcp_pcb *pcb_tls;
-		struct altcp_pcb *pcb_tcp;
-
 		tlsCfg = getTlsConfig();
 
-		pcb_tcp = altcp_tcp_new_ip_type(IPADDR_TYPE_ANY);
-		LWIP_ASSERT("httpd_init: tcp_new failed", pcb_tcp != NULL);
-
-		pcb_tls = altcp_tls_new(tlsCfg, pcb_tcp);
-		LWIP_ASSERT("httpd_init: altcp_tls_new failed", pcb_tls != NULL);
-
-		listen = pcb_tls;
+		listen = altcp_tls_new(tlsCfg, IPADDR_TYPE_ANY);
 	}
 	else
 	{
