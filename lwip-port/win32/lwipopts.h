@@ -252,6 +252,7 @@ a lot of data that needs to be copied, this should be set high. */
 #define LWIP_TCPIP_TIMEOUT              1
 
 #define LWIP_ALTCP						1
+
 #define LWIP_ALTCP_TLS					1
 #define LWIP_ALTCP_TLS_MBEDTLS          1
 

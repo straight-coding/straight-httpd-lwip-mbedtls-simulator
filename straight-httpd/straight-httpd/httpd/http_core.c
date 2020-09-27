@@ -387,15 +387,15 @@ struct altcp_pcb* HttpdInit(int tls, unsigned long port)
 	signed char err;
 	struct altcp_pcb* listen = NULL;
 
-	LogPrint(0, "HttpdInit @ %d, tls=%d", port, tls);
-
 	if (tls > 0)
 	{
+#if (LWIP_ALTCP_TLS > 0)
 		extern struct altcp_tls_config* getTlsConfig(void);
 
 		tlsCfg = getTlsConfig();
 
 		listen = altcp_tls_new(tlsCfg, IPADDR_TYPE_ANY);
+#endif
 	}
 	else
 	{
@@ -412,6 +412,7 @@ struct altcp_pcb* HttpdInit(int tls, unsigned long port)
 
 		altcp_accept(listen, OnHttpAccept);
 		
+		LogPrint(0, "HttpdInit @ %d, tls=%d", port, tls);
 		return listen;
 	}
 	return NULL;
@@ -483,6 +484,7 @@ static signed char OnHttpAccept(void *pcbListener, struct altcp_pcb *pcbAccepted
 	context->_pcb = pcbAccepted;
 
 	context->_https = (pcbAccepted->inner_conn != 0) ? 1 : 0;
+
 	context->_ipRemote = remote_ip->addr;
 	context->_portRemote = remote_port;
 	context->_portLocal = local_port;

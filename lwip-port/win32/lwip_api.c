@@ -187,6 +187,7 @@ int mutex_unlock(mbedtls_threading_mutex_t *mutex)
 	return 0;
 }
 */
+#if LWIP_ALTCP_TLS
 struct altcp_tls_config* getTlsConfig(void)
 {
 	struct altcp_tls_config* conf;
@@ -200,7 +201,7 @@ struct altcp_tls_config* getTlsConfig(void)
 	conf = altcp_tls_create_config_server_privkey_cert((u8_t*)privkey, privkey_len, (u8_t*)privkey_pass, privkey_pass_len, (u8_t*)cert, cert_len);
 	return conf;
 }
-
+#endif
 void LwipInit(void)
 {
 	struct netif* nif;
@@ -325,14 +326,14 @@ void LwipLinkUp(void)
 	netif_set_netmask(&main_netif, &main_netif_netmask);
 	netif_set_gw(&main_netif, &main_netif_gw);
 	
-	if (IsDhcpEnabled() && dhcp_start(&main_netif) != ERR_OK)
+	if (IsDhcpEnabled())
 	{
-         LWIP_DEBUGF(LWIP_DBG_ON, ("DHCP failed"));
+		if (dhcp_start(&main_netif) == ERR_OK)
+			return;
+        LWIP_DEBUGF(LWIP_DBG_ON, ("DHCP failed"));
 	}
-	else
-	{
-		OnDhcpFinished();
-	}
+
+	OnDhcpFinished();
 }
 
 void OnDhcpFinished(void)

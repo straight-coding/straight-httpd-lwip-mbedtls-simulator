@@ -16,7 +16,12 @@
 #include "http_session.h"
 #include "http_fs.h"
 
+#if (LWIP_ALTCP_TLS > 0)
 #define ALWAYS_REDIRECT_HTTPS	1
+#else
+#define ALWAYS_REDIRECT_HTTPS	0
+#endif
+
 #define LOG_DEBUG_ONLY			0 //max level of debug output
 
 #define METHOD_GET			1 //request method GET
