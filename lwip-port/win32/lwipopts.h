@@ -43,6 +43,22 @@ a lot of data that needs to be copied, this should be set high. */
 /* MEMP_NUM_SYS_TIMEOUT: the number of simulateously active timeouts. */
 #define MEMP_NUM_SYS_TIMEOUT    10
 
+/* TCP Maximum segment size. http://lwip.wikia.com/wiki/Tuning_TCP */
+#undef TCP_MSS
+#define TCP_MSS                 (1500 - 40)	  /*536 TCP_MSS = (Ethernet MTU - IP header size - TCP header size) */
+
+/* TCP sender buffer space (bytes). */
+#undef TCP_SND_BUF
+#define TCP_SND_BUF             (2 * TCP_MSS)
+
+/* TCP sender buffer space (pbufs). This must be at least = 2 * TCP_SND_BUF/TCP_MSS for things to work. */
+#undef TCP_SND_QUEUELEN
+#define TCP_SND_QUEUELEN        (6 * TCP_SND_BUF)/TCP_MSS
+
+/* TCP receive window. */
+#undef TCP_WND
+#define TCP_WND                 (12 * TCP_MSS)
+
 /* ---------- Pbuf options ---------- */
 /* PBUF_POOL_SIZE: the number of buffers in the pbuf pool. */
 #undef PBUF_POOL_SIZE
@@ -50,7 +66,7 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* PBUF_POOL_BUFSIZE: the size of each pbuf in the pbuf pool. */
 #undef PBUF_POOL_BUFSIZE
-#define PBUF_POOL_BUFSIZE       1460 /* LWIP_MEM_ALIGN_SIZE(TCP_MSS+40+PBUF_LINK_HLEN) */
+#define PBUF_POOL_BUFSIZE       1460//LWIP_MEM_ALIGN_SIZE(TCP_MSS + 40 + PBUF_LINK_HLEN)
 
 /* ETH_PAD_SIZE: number of bytes added before the ethernet header to ensure
  * alignment of payload after that header. Since the header is 14 bytes long,
@@ -87,22 +103,6 @@ a lot of data that needs to be copied, this should be set high. */
  * sys_mbox_new() when the acceptmbox is created. */
 #undef DEFAULT_ACCEPTMBOX_SIZE
 #define DEFAULT_ACCEPTMBOX_SIZE         MAX_QUEUE_ENTRIES
-
-/* TCP Maximum segment size. http://lwip.wikia.com/wiki/Tuning_TCP */
-#undef TCP_MSS
-#define TCP_MSS                 (1500 - 40)	  /*536 TCP_MSS = (Ethernet MTU - IP header size - TCP header size) */
-
-/* TCP sender buffer space (bytes). */
-#undef TCP_SND_BUF
-#define TCP_SND_BUF             (2 * TCP_MSS)
-
-/* TCP sender buffer space (pbufs). This must be at least = 2 * TCP_SND_BUF/TCP_MSS for things to work. */
-#undef TCP_SND_QUEUELEN
-#define TCP_SND_QUEUELEN        (4 * TCP_SND_BUF)/TCP_MSS
-
-/* TCP receive window. */
-#undef TCP_WND
-#define TCP_WND                 (12 * TCP_MSS)
 
 /* LWIP_ICMP==1: Enable ICMP module inside the IP stack.
  * Be careful, disable that make your product non-compliant to RFC1122 */
@@ -268,6 +268,7 @@ a lot of data that needs to be copied, this should be set high. */
 #define PACK_STRUCT_USE_INCLUDES		1
 #define LWIP_NO_INTTYPES_H				1
 
+#define MBEDTLS_SSL_MAX_CONTENT_LEN     512
 #define ALTCP_MBEDTLS_RNG_FN			mbedtls_entropy_func 
 /*##############################################################################################*/
 

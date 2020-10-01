@@ -1025,6 +1025,7 @@ dhcp_discover(struct netif *netif)
  *
  * @param netif network interface to bind to the offered address
  */
+extern void OnDhcpFinished(void);
 static void
 dhcp_bind(struct netif *netif)
 {
