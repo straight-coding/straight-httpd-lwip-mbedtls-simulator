@@ -25,7 +25,7 @@ extern int  LWIP_fwrite(void* f, char* buf, int count); //>0:success
 
 #else
 #include "fs_data.c" //this file can be created using straight-buildfs.exe
-static http_file_info* g_WebPages = (http_file_info*)g_szWebRoot; //web pages in ROM
+//static http_file_info* g_WebPages = (http_file_info*)g_szWebRoot; //web pages in ROM
 #endif
 
 static unsigned long g_FilePosition[MAX_FILES]; //read pointers in RAM
@@ -38,7 +38,7 @@ void WEB_fs_init(void)
 	http_file_info* pWebFile = (http_file_info*)g_szWebRoot;
 	while (pWebFile->tLastModified != 0)
 	{
-		printf("%s, size=%lu, time=%lu\r\n", pWebFile->szfilepath, pWebFile->nSize, pWebFile->tLastModified);
+		printf("%s, size=%lu, time=%lu\r\n", (char*)(pWebFile+1), pWebFile->nSize, pWebFile->tLastModified);
 		pWebFile = (http_file_info*)(g_szWebRoot + pWebFile->nOffsetNextFile);
 		nCount++;
 	}
@@ -65,7 +65,7 @@ void* WEB_fopen(const char* szFile, const char* mode)
 	http_file_info* pWebFile = (http_file_info*)g_szWebRoot;
 	while (pWebFile->tLastModified != 0)
 	{
-		if ((strcmp(szFile, pWebFile->szfilepath) == 0) && (pWebFile->nIndex < MAX_FILES))
+		if ((strcmp(szFile, (char*)(pWebFile+1)) == 0) && (pWebFile->nIndex < MAX_FILES))
 		{
 			g_FilePosition[pWebFile->nIndex] = 0; //read position
 			return pWebFile;
@@ -92,7 +92,7 @@ unsigned long WEB_ftime(char* szFile, char* buf, int maxSize)
 	http_file_info* pWebFile = (http_file_info*)g_szWebRoot;
 	while (pWebFile->tLastModified != 0)
 	{
-		if (strcmp(szFile, pWebFile->szfilepath) == 0)
+		if (strcmp(szFile, (char*)(pWebFile+1)) == 0)
 			return pWebFile->tLastModified;
 		pWebFile = (http_file_info*)(g_szWebRoot + pWebFile->nOffsetNextFile);
 	}

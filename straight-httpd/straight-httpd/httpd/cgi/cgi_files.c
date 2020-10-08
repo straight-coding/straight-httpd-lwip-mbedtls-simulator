@@ -112,7 +112,7 @@ static int Files_ReadOneFileInfo(REQUEST_CONTEXT* context, char* buffer, int max
 		int isFolder;
 		char name[128];
 		int size;
-		int off = 0;
+		//int off = 0;
 		time_t date;
 
 		if (context->ctxResponse._dwOperStage == STAGE_END)

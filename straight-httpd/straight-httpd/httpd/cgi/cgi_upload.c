@@ -69,7 +69,7 @@ static long Upload_GetFreeSize(unsigned long askForSize)
 
 static long Upload_Received(REQUEST_CONTEXT* context, unsigned char* pData, unsigned long dwLen)
 {
-	if (LWIP_fwrite(context->_fileHandle, pData, dwLen) > 0) //>0:success
+	if (LWIP_fwrite(context->_fileHandle, (char*)pData, dwLen) > 0) //>0:success
 		return dwLen;  //real count consumed (etc. consume all)
 	return 0;
 }

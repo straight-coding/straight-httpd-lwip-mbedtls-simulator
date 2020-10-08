@@ -80,7 +80,7 @@ void TAG_Setter(char* name, char* value)
 {
 	int i = 0;
 	int type = 0;
-	int size = 0;
+//	int size = 0;
 	SSI_Tag* tag = NULL;
 
 	LogPrint(LOG_DEBUG_ONLY, "  Tag: %s=%s", name, value);
@@ -95,11 +95,11 @@ void TAG_Setter(char* name, char* value)
 			break;
 
 		type = (tag->_tagType & 0xF000);
-		size = (tag->_tagType & 0x0FFF);
+//		size = (tag->_tagType & 0x0FFF);
 
 		if (type == TAG_SETTER)
 		{
-			void (*setter)(char*) = tag->_tagHandler;
+			void (*setter)(char*) = (void (*)(char*))tag->_tagHandler;
 			setter(value);
 		}
 		break;
@@ -133,12 +133,12 @@ int ReplaceTag(REQUEST_CONTEXT* context, char* tagName, char* appendTo, int maxA
 
 		if (type == TAG_GETTER)
 		{
-			char* (*getter)(void) = tag->_tagHandler;
+			char* (*getter)(void) = (char* (*)(void))tag->_tagHandler;
 			strncpy(szTemp, getter(), sizeof(szTemp) - 1);
 		}
 		else if (type == TAG_PROVIDER)
 		{
-			int (*producer)(REQUEST_CONTEXT* context, char* buffer, int maxSize) = tag->_tagHandler;
+			void* (*producer)(REQUEST_CONTEXT* context, char* buffer, int maxSize) = (void* (*)(REQUEST_CONTEXT*,char*,int))tag->_tagHandler;
 			producer(context, szTemp, sizeof(szTemp) - 1);
 		}
 		else if (type == TAG_STRING)

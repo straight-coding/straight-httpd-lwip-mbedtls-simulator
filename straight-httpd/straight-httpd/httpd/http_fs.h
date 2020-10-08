@@ -16,7 +16,7 @@ typedef struct _http_file_info
 	unsigned long nSize; //file size
 	unsigned long nOffsetFileData; //file content offset
 	unsigned long nOffsetNextFile; // ==> _http_file_info*
-	char  szfilepath[0]; //file full path
+	//char  szfilepath[0]; //file full path
 }http_file_info;
 
 void WEB_fs_init(void);
