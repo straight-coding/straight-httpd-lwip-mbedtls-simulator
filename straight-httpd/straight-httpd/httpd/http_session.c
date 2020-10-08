@@ -166,7 +166,7 @@ void SessionCheck(void) //called when header 'X-Auth-Token' or 'Cookie' received
 			else
 				sendElapsed = 0;
 
-			if ((GetSessionTimeout() > 0) && (((sendElapsed < recvElapsed) ? sendElapsed : recvElapsed) > GetSessionTimeout()))
+			if ((GetSessionTimeout() > 0) && (((sendElapsed < recvElapsed) ? sendElapsed : recvElapsed) > (unsigned long)GetSessionTimeout()))
 			{
 				LogPrint(0, "Session killed (timeout) @ %s from %08lX", g_httpSessions[i]._token, g_httpSessions[i]._nLoginIP);
 

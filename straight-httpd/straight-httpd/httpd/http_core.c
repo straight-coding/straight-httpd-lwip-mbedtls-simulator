@@ -3,6 +3,10 @@
   Author: Straight Coder<simpleisrobust@gmail.com>
   Date: April 12, 2020
 */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 
 #include "lwip/opt.h"
 
@@ -406,7 +410,7 @@ struct altcp_pcb* HttpdInit(int tls, unsigned long port)
 	{
 		altcp_setprio(listen, HTTP_TCP_PRIO);
 		
-		err = altcp_bind(listen, IP_ANY_TYPE, port);
+		err = altcp_bind(listen, IP_ANY_TYPE, (u16_t)port);
 
 		listen = altcp_listen_with_backlog_and_err(listen, 2, &err);
 
@@ -805,7 +809,7 @@ static void ParseQueryString(REQUEST_CONTEXT* context)
 	int iHash=-1; //first
 	
 	memset(context->_extension, 0, sizeof(context->_extension));
-	for(i = 0; i < strlen(context->_requestPath); i ++)
+	for(i = 0; i < (int)strlen(context->_requestPath); i ++)
 	{
 		if (context->_requestPath[i] == '.')
 		{

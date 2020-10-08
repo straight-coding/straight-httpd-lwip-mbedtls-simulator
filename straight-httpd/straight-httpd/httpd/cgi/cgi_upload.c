@@ -11,6 +11,9 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern void LogPrint(int level, char* format, ... );
+extern void* LWIP_firstdir(void* filter, int* isFolder, char* name, int maxLen, int* size, time_t* date);
+extern int LWIP_readdir(void* hFind, int* isFolder, char* name, int maxLen, int* size, time_t* date);
+extern void LWIP_closedir(void* hFind);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -85,7 +88,7 @@ static int Upload_OnHeaderReceived(REQUEST_CONTEXT* context, char* header_line)
 		int j;
 		int len = 0;
 		int code = 0;
-		for (j = 0; j < strlen(header_line); j++)
+		for (j = 0; j < (int)strlen(header_line); j++)
 		{
 			if (code == 0)
 			{

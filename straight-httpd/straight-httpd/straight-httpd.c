@@ -11,7 +11,30 @@
 
 #include "../../lwip-port/win32/arch/port.h"
 
+//#include "lwip/altcp.h"
+//#include "lwip/altcp_tcp.h"
+//#include "lwip/altcp_tls.h"
+
+#include "ssdp/ssdp.h"
+#include "lwip/apps/netbiosns.h"
+
 #pragma warning(disable:4996)
+
+extern void LogPrint(int level, char* format, ...);
+
+extern void sys_init();
+extern void PrintLwipStatus(void);
+extern void tcp_kill_all(void);
+
+extern void WEB_fs_init(void);
+
+extern void SetupHttpContext(void);
+
+extern struct altcp_pcb* HttpdInit(int tls, unsigned long port);
+extern int HttpdStop(struct altcp_pcb *pcbListen);
+
+extern void SessionClearAll(void);
+extern void SessionCheck(void);
 
 #include <winsock2.h>
 #pragma comment(lib, "Ws2_32.lib")
@@ -154,7 +177,7 @@ int main(int argc, char* argv[])
 	struct in_addr address;
 	DWORD exitCode = 0;
 
-	struct bpf_program filterCompile;
+//	struct bpf_program filterCompile;
 	char szError[PCAP_ERRBUF_SIZE];
 
 	pcap_if_t *allDevices, *dev;
@@ -181,7 +204,7 @@ int main(int argc, char* argv[])
 		_splitpath(path, drive, dir, fname, ext );
 		sprintf(path, "%s%s", drive, dir);
 
-		for(i = 0; i < strlen(path); i ++)
+		for(i = 0; i < (int)strlen(path); i ++)
 		{
 			if (path[i] == '\\')
 				path[i] = '/'; //D:/straight/straight-httpd/straight-httpd/

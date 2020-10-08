@@ -50,7 +50,7 @@ static int AuthCheck(REQUEST_CONTEXT* context)
 {
 	if (context->ctxResponse._appContext[0] != 0)
 	{
-		int success, i;
+		int i;
 		char* u;
 		char* p;
 		char szNewToken[32];

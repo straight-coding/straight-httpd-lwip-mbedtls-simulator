@@ -3,6 +3,9 @@
   Author: Straight Coder<simpleisrobust@gmail.com>
   Date: April 12, 2020
 */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "lwip/udp.h"
 #include "lwip/igmp.h"
@@ -10,6 +13,7 @@
 #include "lwip/inet.h"
 
 #include "ssdp.h"
+#include "../utils.h"
 
 #define UPNP_CACHE_SEC			1800
 #define UPNP_MULTICAST_ADDRESS  "239.255.255.250"
@@ -39,6 +43,9 @@ extern u32_t GetGateway(void);
 extern u32_t GetSubnet(void);
 
 extern void LogPrint(int level, char* format, ...);
+extern char* GetDeviceName(void);
+extern char* GetDeviceSN(void);
+extern char* GetDeviceUUID(void);
 
 ip_addr_t* GetLocalhost(void)
 {
@@ -222,7 +229,7 @@ void ssdp_send_to(SSDP_TYPES type, ip_addr_t* ipDest, unsigned long portDest)
 			break;
 		case MSEARCH_REPLY:
 			ip_addr_set(&reply_ip, ipDest);
-			reply_port = portDest;
+			reply_port = (unsigned short)portDest;
 
 			NTString = "ST";
 			strcpy(msg, "HTTP/1.1 200 OK\r\n");

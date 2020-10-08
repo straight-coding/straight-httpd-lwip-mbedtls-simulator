@@ -59,7 +59,7 @@ static SSI_Tag g_Getters[] = {
 	{ "VAR_FONT",		TAG_GETTER, GetFont },
 	{ "VAR_LOG",		TAG_PROVIDER, FillLog },
 
-	{NULL, NULL, NULL}
+	{NULL, 0, NULL}
 };
 
 static SSI_Tag g_Setters[] = {
@@ -73,7 +73,7 @@ static SSI_Tag g_Setters[] = {
 	{ "VAR_DATE",		TAG_SETTER, SetDate },
 	{ "VAR_FONT",		TAG_SETTER, SetFont },
 	{ "VAR_LOG",		TAG_SETTER, SetLog },
-	{NULL, NULL, NULL}
+	{NULL, 0, NULL}
 };
 
 void TAG_Setter(char* name, char* value)

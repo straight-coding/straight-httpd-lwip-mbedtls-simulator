@@ -8,6 +8,9 @@
 
 #include <lwip/sys.h>
 
+extern long ston(unsigned char* s);
+extern int Strnicmp(char *str1, char *str2, int n);
+
 const char wday_name[][4] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
 const char mon_name[][4]  = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
@@ -26,11 +29,11 @@ unsigned long sys_now(void)
 	return (unsigned long)GetTickCount();
 }
 
-unsigned long msDiff(unsigned long now, unsigned long last)
+unsigned long msDiff(long long now, long long last)
 {
 	if (now >= last)
-		return (now - last);
-	return ((unsigned long)0xFFFFFFFF - last + now);
+		return (unsigned long)(now - last);
+	return (unsigned long)(0xFFFFFFFFFFFFFFFF - last + now);
 }
 
 CRITICAL_SECTION g_critSec;
@@ -84,7 +87,7 @@ unsigned long sys_arch_sem_wait(sys_sem_t *sem, unsigned long timeout)
 		ret = WaitForSingleObject(sem->sem, INFINITE);
 		endtime = (unsigned long)LWIP_GetTickCount();
 
-		return msDiff(endtime, starttime);
+		return (unsigned long)msDiff(endtime, starttime);
 	}
 
 	starttime = (unsigned long)LWIP_GetTickCount();
@@ -93,7 +96,7 @@ unsigned long sys_arch_sem_wait(sys_sem_t *sem, unsigned long timeout)
 	{
 		endtime = (unsigned long)LWIP_GetTickCount();
 
-		return msDiff(endtime, starttime);
+		return (unsigned long)msDiff(endtime, starttime);
 	}
 	return SYS_ARCH_TIMEOUT;
 }
@@ -230,7 +233,7 @@ unsigned long sys_arch_mbox_fetch(sys_mbox_t *q, void **msg, unsigned long timeo
 		SYS_ARCH_UNPROTECT(lev);
 
 		endtime = (unsigned long)LWIP_GetTickCount();
-		return msDiff(endtime, starttime);
+		return (unsigned long)msDiff(endtime, starttime);
 	}
 
 	if (msg != NULL) 
@@ -282,20 +285,20 @@ time_t parseHttpDate(char* s)
 	struct tm timeptr;
 	memset(&timeptr, 0, sizeof(struct tm));
 
-	timeptr.tm_sec = ston(s + 23);  // seconds after the minute - [0, 60] including leap second
-	timeptr.tm_min = ston(s + 20);  // minutes after the hour - [0, 59]
-	timeptr.tm_hour = ston(s + 17); // hours since midnight - [0, 23]
-	timeptr.tm_mday = ston(s + 5);  // day of the month - [1, 31]
+	timeptr.tm_sec = ston((unsigned char*)s + 23);  // seconds after the minute - [0, 60] including leap second
+	timeptr.tm_min = ston((unsigned char*)s + 20);  // minutes after the hour - [0, 59]
+	timeptr.tm_hour = ston((unsigned char*)s + 17); // hours since midnight - [0, 23]
+	timeptr.tm_mday = ston((unsigned char*)s + 5);  // day of the month - [1, 31]
 	timeptr.tm_mon = -1;			// months since January - [0, 11]
 	for (i = 0; i < 12; i ++)
 	{
-		if (Strnicmp(s+8, mon_name[i], 3) == 0)
+		if (Strnicmp(s+8, (char*)mon_name[i], 3) == 0)
 		{
 			timeptr.tm_mon = i;
 			break;
 		}
 	}
-	timeptr.tm_year = ston(s + 12)-1900;  // years since 1900
+	timeptr.tm_year = ston((unsigned char*)s + 12)-1900;  // years since 1900
 
 	return _mkgmtime(&timeptr);
 }

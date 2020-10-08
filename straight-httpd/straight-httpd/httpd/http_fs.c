@@ -3,12 +3,26 @@
   Author: Straight Coder<simpleisrobust@gmail.com>
   Date: June 28, 2020
 */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "http_fs.h"
+
+#pragma warning(disable:4996) //_CRT_SECURE_NO_WARNINGS
 
 #define USE_FILE_IO		1
 #if (USE_FILE_IO > 0)
 #define LOCAL_WEBROOT	"D:/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/"
+
+extern void* LWIP_fopen(const char* szTemp, const char* mode);
+extern time_t LWIP_ftime(char* fname, char* buf, int maxSize);
+extern int  LWIP_fseek(void* f, long offset);
+extern void LWIP_fclose(void* f);
+extern long LWIP_fsize(void* f);
+extern int  LWIP_fread(void* f, char* buf, int count, unsigned int* bytes); //0=success
+extern int  LWIP_fwrite(void* f, char* buf, int count); //>0:success
+
 #else
 #include "fs_data.c" //this file can be created using straight-buildfs.exe
 static http_file_info* g_WebPages = (http_file_info*)g_szWebRoot; //web pages in ROM
@@ -73,7 +87,7 @@ unsigned long WEB_ftime(char* szFile, char* buf, int maxSize)
 		strcat(szTemp, szFile);
 	else
 		strcat(szTemp, szFile + 1);
-	return LWIP_ftime(szTemp, buf, maxSize);
+	return (unsigned long)LWIP_ftime(szTemp, buf, maxSize);
 #else
 	http_file_info* pWebFile = (http_file_info*)g_szWebRoot;
 	while (pWebFile->tLastModified != 0)

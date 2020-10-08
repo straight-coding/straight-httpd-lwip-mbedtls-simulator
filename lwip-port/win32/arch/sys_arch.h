@@ -58,7 +58,7 @@ typedef unsigned int sys_prot_t;
 
 unsigned long sys_jiffies(void);
 unsigned long sys_now(void);
-unsigned long msDiff(unsigned long now, unsigned long last);
+unsigned long msDiff(long long now, long long last);
 
 unsigned long LWIP_GetTickCount();
 void LogPrint(int level, char* format, ...);

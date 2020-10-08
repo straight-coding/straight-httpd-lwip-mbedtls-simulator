@@ -7,6 +7,8 @@
 #ifndef _HTTP_CORE_H_
 #define _HTTP_CORE_H_
 
+#include <string.h>
+
 #include "lwip/opt.h"		//only for TCP_MSS definition
 
 #include "arch/port.h"		//for device information, network address

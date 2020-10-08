@@ -12,6 +12,8 @@
 
 #pragma warning(disable:4996) //_CRT_SECURE_NO_WARNINGS
 
+extern char* gmt4http(time_t* t, char* out, int maxSize);
+
 void* LWIP_fopen(const char* szTemp, const char* mode)
 {
 	FILE *f;

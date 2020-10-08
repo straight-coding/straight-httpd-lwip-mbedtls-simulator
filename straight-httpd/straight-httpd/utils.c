@@ -6,7 +6,11 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-
+#include <string.h>
+#include <ctype.h>
+#ifdef WIN32
+#include <direct.h>
+#endif
 #include "utils.h"
 
 static const TypeHeader contentTypes[] = {
@@ -85,7 +89,7 @@ long ston(unsigned char* s)
 void ntos(long n, unsigned char* s)
 {
 	const unsigned char hex_alpha[16] = "0123456789";
-	unsigned char i, first, div, remain;
+	unsigned long i, first, div, remain;
 
 	i = 0;
 	if (n == 0)
@@ -319,7 +323,7 @@ int URLDecode(char* url)
 	}
 	return i;
 }
-
+#ifdef WIN32
 void MakeDeepPath(char* szPath)
 {
 	char	*p1, *p2, chTmp;
@@ -349,7 +353,7 @@ void MakeDeepPath(char* szPath)
 		p1 = p2 + 1;
 	}
 }
-
+#endif
 char* GetContentType(const char* extension)
 {
 	int i = 0;
@@ -362,7 +366,7 @@ char* GetContentType(const char* extension)
 
 		if (typeLen == extLen)
 		{
-			if (Strnicmp(extension, contentTypes[i].extension, typeLen) == 0)
+			if (Strnicmp((char*)extension, contentTypes[i].extension, typeLen) == 0)
 				return contentTypes[i].content_type;
 		}
 		i++;
@@ -371,7 +375,7 @@ char* GetContentType(const char* extension)
 
 unsigned long GetIpAddress(char* addr)
 {
-	unsigned char* p = addr;
+	unsigned char* p = (unsigned char*)addr;
 	unsigned long ip = (unsigned char)ston(p);
 
 	p = strchr(p, '.');

@@ -14,6 +14,7 @@ static const char tagEnd[]   = "-->";
 extern void LogPrint(int level, char* format, ... );
 extern int Strnicmp(char *str1, char *str2, int n);
 extern int ReplaceTag(REQUEST_CONTEXT* context, char* tagName, char* appendTo, int maxAllowed);
+extern void TAG_Setter(char* name, char* value);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 void WEB_OnFormHeaders(REQUEST_CONTEXT* context)
@@ -115,8 +116,8 @@ int WEB_OnFormReceived(REQUEST_CONTEXT* context, char* buffer, int size)
 
 void WEB_RequestReceived(REQUEST_CONTEXT* context)
 {
-	int success;
-	char szTemp[256];
+//	int success;
+//	char szTemp[256];
 
 	SSI_Context* ctxSSI = (SSI_Context*)context->ctxResponse._appContext;
 
@@ -142,7 +143,7 @@ void WEB_RequestReceived(REQUEST_CONTEXT* context)
 
 	if ((context->_responsePath[0] == '/') && (context->_responsePath[1] == 0))
 	{ //default path
-		char* ext = strstr(WEB_DEFAULT_PAGE, ".");
+		char* ext = strstr((char*)WEB_DEFAULT_PAGE, ".");
 		strcpy(context->_responsePath, WEB_DEFAULT_PAGE);
 		if (ext != NULL)
 			strcpy(context->_extension, ext+1);
@@ -316,8 +317,8 @@ int WEB_ReadContent(REQUEST_CONTEXT* context, char* buffer, int maxSize)
 			while(context->ctxResponse._dwOperIndex < context->ctxResponse._dwTotal)
 			{
 				maxRead = (context->ctxResponse._dwTotal - context->ctxResponse._dwOperIndex);
-				if (maxRead > sizeof(ctxSSI->_cache) - ctxSSI->_cacheOffset)
-					maxRead = sizeof(ctxSSI->_cache) - ctxSSI->_cacheOffset;
+				if (maxRead > (int)sizeof(ctxSSI->_cache) - ctxSSI->_cacheOffset)
+					maxRead = (int)sizeof(ctxSSI->_cache) - ctxSSI->_cacheOffset;
 
 				if (ctxSSI->_fp == NULL)
 				{
@@ -360,9 +361,9 @@ int WEB_ReadContent(REQUEST_CONTEXT* context, char* buffer, int maxSize)
 								break; //send buffer if full
 							}
 						}
-						else if (consumed <= ctxSSI->_cacheOffset - strlen(tagStart))
+						else if (consumed <= ctxSSI->_cacheOffset - (int)strlen(tagStart))
 						{ //detect start TAG
-							if (Strnicmp(pCache+consumed, tagStart, strlen(tagStart)) == 0)
+							if (Strnicmp(pCache+consumed, (char*)tagStart, (int)strlen(tagStart)) == 0)
 							{ //start found, "<!--#"
 								LogPrint(LOG_DEBUG_ONLY, "Tag start found");
 
@@ -396,9 +397,9 @@ int WEB_ReadContent(REQUEST_CONTEXT* context, char* buffer, int maxSize)
 							ctxSSI->_tagName[ctxSSI->_tagLength] = 0;
 							consumed++;
 						}
-						else if (consumed <= ctxSSI->_cacheOffset - strlen(tagEnd))
+						else if (consumed <= ctxSSI->_cacheOffset - (int)strlen(tagEnd))
 						{ //detect end TAG
-							if (Strnicmp(pCache + consumed, tagEnd, strlen(tagEnd)) == 0)
+							if (Strnicmp(pCache + consumed, (char*)tagEnd, strlen(tagEnd)) == 0)
 							{ //end found, "-->"
 								int nAppend;
 								LogPrint(LOG_DEBUG_ONLY, "Tag end: %s", ctxSSI->_tagName);

@@ -6,12 +6,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <lwip/sys.h>
 
 #include "port.h"
 
 extern void LogPrint(int level, char* format, ...);
+extern long ston(unsigned char* s);
+extern unsigned long GetIpAddress(char* addr);
 
 //////////////////////////////////////////////////////////////////////////////////////
 // Constant global variables
@@ -29,14 +32,14 @@ static const char* g_szDeviceVersion = "v1.0.0";
 static const char* g_szDeviceSN = "2020-04-10";
 static const char* g_szDeviceUUID = "A5757C42-0234-4600-8E0F-8551B7EAEB7A";
 
-char* GetVendor(void)			{	return g_szVendor;	}
-char* GetVendorURL(void)		{	return g_szVendorURL; }
-char* GetModel(void)			{	return g_szModel;	}
-char* GetModelURL(void)			{	return g_szModelURL;	}
-char* GetDeviceName(void)		{	return g_szDeviceName;	}
-char* GetDeviceSN(void)			{	return g_szDeviceSN;	}
-char* GetDeviceUUID(void)		{	return g_szDeviceUUID;	}
-char* GetDeviceVersion(void)	{	return g_szDeviceVersion;	}
+char* GetVendor(void)			{	return (char*)g_szVendor;	}
+char* GetVendorURL(void)		{	return (char*)g_szVendorURL; }
+char* GetModel(void)			{	return (char*)g_szModel;	}
+char* GetModelURL(void)			{	return (char*)g_szModelURL;	}
+char* GetDeviceName(void)		{	return (char*)g_szDeviceName;	}
+char* GetDeviceSN(void)			{	return (char*)g_szDeviceSN;	}
+char* GetDeviceUUID(void)		{	return (char*)g_szDeviceUUID;	}
+char* GetDeviceVersion(void)	{	return (char*)g_szDeviceVersion;	}
 unsigned char* GetMyMAC(void)	{	return (unsigned char*)g_byMyMAC;	}
 
 //////////////////////////////////////////////////////////////////////////////////////
