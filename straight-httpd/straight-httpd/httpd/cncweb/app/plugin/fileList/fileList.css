@@ -4,10 +4,23 @@
   Date: June 07, 2020
 */
 
+.file-list li:first-child
+{
+    border: 1px solid #8c8c8c;
+}
+
+.file-list li:not(:first-child)
+{
+    border-top: 0px solid #8c8c8c;
+    border-left: 1px solid #8c8c8c;
+    border-right: 1px solid #8c8c8c;
+    border-bottom: 1px solid #8c8c8c;
+}
+
 .file-item
 {
     padding: 10px; 
-    border: 1px solid #8c8c8c;
+/*    border: 1px solid #8c8c8c;*/
 }
 .file-size
 {

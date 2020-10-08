@@ -11,10 +11,6 @@
 
 #include "../../lwip-port/win32/arch/port.h"
 
-//#include "lwip/altcp.h"
-//#include "lwip/altcp_tcp.h"
-//#include "lwip/altcp_tls.h"
-
 #include "ssdp/ssdp.h"
 #include "lwip/apps/netbiosns.h"
 

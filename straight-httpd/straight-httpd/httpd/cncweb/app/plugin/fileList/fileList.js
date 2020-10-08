@@ -28,6 +28,9 @@ function fileItem(opt)
     _this.fInfo = opt.fInfo;
     _this.onclick = opt.onclick;
 
+	if (!_this.container.classList.contains('file-list'))
+		_this.container.classList.add('file-list');
+
     var li = document.createElement('li');
         li.style.width = "100%";
         li.setAttribute('id', 'file_' + _this.fInfo.fileid);
