@@ -268,7 +268,6 @@ a lot of data that needs to be copied, this should be set high. */
 #define PACK_STRUCT_USE_INCLUDES		1
 #define LWIP_NO_INTTYPES_H				1
 
-#define MBEDTLS_SSL_MAX_CONTENT_LEN     512
 #define ALTCP_MBEDTLS_RNG_FN			mbedtls_entropy_func 
 /*##############################################################################################*/
 
