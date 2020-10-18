@@ -273,4 +273,14 @@ a lot of data that needs to be copied, this should be set high. */
 
 void LwipLogPrint(char* format, ... );
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+
+#ifdef WIN32
+//C4103: alignment changed after including header, may be due to missing #pragma pack(pop)
+#pragma warning(disable:4103)
+#endif
+
 #endif /* __LWIPOPTS_H__ */

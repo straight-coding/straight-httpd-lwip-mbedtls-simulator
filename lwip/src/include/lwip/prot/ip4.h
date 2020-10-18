@@ -47,7 +47,7 @@ extern "C" {
 /** This is the packed version of ip4_addr_t,
     used in network headers that are itself packed */
 #ifdef PACK_STRUCT_USE_INCLUDES
-#  include "arch/bpstruct.h"
+#include "arch/bpstruct.h"
 #endif
 PACK_STRUCT_BEGIN
 struct ip4_addr_packed {
@@ -55,7 +55,7 @@ struct ip4_addr_packed {
 } PACK_STRUCT_STRUCT;
 PACK_STRUCT_END
 #ifdef PACK_STRUCT_USE_INCLUDES
-#  include "arch/epstruct.h"
+#include "arch/epstruct.h"
 #endif
 
 typedef struct ip4_addr_packed ip4_addr_p_t;
@@ -66,7 +66,7 @@ typedef struct ip4_addr_packed ip4_addr_p_t;
 #define IP_HLEN_MAX 60
 
 #ifdef PACK_STRUCT_USE_INCLUDES
-#  include "arch/bpstruct.h"
+#include "arch/bpstruct.h"
 #endif
 PACK_STRUCT_BEGIN
 /* The IPv4 header */
@@ -97,7 +97,7 @@ struct ip_hdr {
 } PACK_STRUCT_STRUCT;
 PACK_STRUCT_END
 #ifdef PACK_STRUCT_USE_INCLUDES
-#  include "arch/epstruct.h"
+#include "arch/epstruct.h"
 #endif
 
 /* Macros to get struct ip_hdr fields: */

@@ -53,7 +53,7 @@ extern "C" {
  * order to support compilers that don't have structure packing.
  */
 #ifdef PACK_STRUCT_USE_INCLUDES
-#  include "arch/bpstruct.h"
+#include "arch/bpstruct.h"
 #endif
 PACK_STRUCT_BEGIN
 struct ip4_addr_wordaligned {
@@ -61,7 +61,7 @@ struct ip4_addr_wordaligned {
 } PACK_STRUCT_STRUCT;
 PACK_STRUCT_END
 #ifdef PACK_STRUCT_USE_INCLUDES
-#  include "arch/epstruct.h"
+#include "arch/epstruct.h"
 #endif
 
 /** MEMCPY-like copying of IP addresses where addresses are known to be
@@ -79,7 +79,7 @@ PACK_STRUCT_END
 #endif
 
 #ifdef PACK_STRUCT_USE_INCLUDES
-#  include "arch/bpstruct.h"
+#include "arch/bpstruct.h"
 #endif
 PACK_STRUCT_BEGIN
 /** the ARP message, see RFC 826 ("Packet format") */
@@ -96,7 +96,7 @@ struct etharp_hdr {
 } PACK_STRUCT_STRUCT;
 PACK_STRUCT_END
 #ifdef PACK_STRUCT_USE_INCLUDES
-#  include "arch/epstruct.h"
+#include "arch/epstruct.h"
 #endif
 
 #define SIZEOF_ETHARP_HDR 28

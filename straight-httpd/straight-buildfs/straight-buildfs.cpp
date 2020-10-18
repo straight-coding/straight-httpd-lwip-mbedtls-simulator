@@ -101,7 +101,7 @@ int main()
 	{
 		if (iter->second.size() > 0)
 		{
-			for (int i = 0; i < iter->second.size(); i++)
+			for (int i = 0; i < (int)iter->second.size(); i++)
 			{
 				CFile file;
 				CFileStatus status;
@@ -117,8 +117,8 @@ int main()
 
 					file.GetStatus(status);
 
-					fileInfo.tLastModified = status.m_mtime.GetTime();
-					fileInfo.nSize = status.m_size;
+					fileInfo.tLastModified = (unsigned long)status.m_mtime.GetTime();
+					fileInfo.nSize = (unsigned long)status.m_size;
 					fileInfo.nIndex = nFileIndex ++; // status.m_attribute;
 
 					memset(path, 0, sizeof(path));

@@ -112,6 +112,13 @@ static const char *cert = "-----BEGIN CERTIFICATE-----\n"\
 	"5Rd26w==\n"\
 	"-----END CERTIFICATE-----\n";
 
+#if (LWIP_ALTCP_TLS > 0)
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
+unsigned char memory_buf[2 * 1024];
+extern void mbedtls_memory_buffer_alloc_init(unsigned char *buf, size_t len);
+#endif
+#endif
+
 extern sys_mbox_t tcpip_mbox;
 
 struct netif main_netif;
@@ -189,6 +196,7 @@ int mutex_unlock(mbedtls_threading_mutex_t *mutex)
 	return 0;
 }
 */
+
 #if LWIP_ALTCP_TLS
 struct altcp_tls_config* getTlsConfig(void)
 {
@@ -203,13 +211,8 @@ struct altcp_tls_config* getTlsConfig(void)
 	conf = altcp_tls_create_config_server_privkey_cert((u8_t*)privkey, privkey_len, (u8_t*)privkey_pass, privkey_pass_len, (u8_t*)cert, cert_len);
 	return conf;
 }
-
-#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
-unsigned char memory_buf[8 * 1024];
-extern void mbedtls_memory_buffer_alloc_init(unsigned char *buf, size_t len);
 #endif
 
-#endif
 void LwipInit(void)
 {
 	struct netif* nif;

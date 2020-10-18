@@ -247,7 +247,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\lwip\src\include;$(SolutionDir)\..\pcap\Include;$(SolutionDir)\..\lwip-port\win32;$(SolutionDir)\..\mbedtls\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\lwip\src\include;$(SolutionDir)..\pcap\Include;$(SolutionDir)..\lwip-port\win32;$(SolutionDir)..\mbedtls\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

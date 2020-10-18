@@ -3743,6 +3743,11 @@
 #include MBEDTLS_USER_CONFIG_FILE
 #endif
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+
 #include "mbedtls/check_config.h"
 
 #endif /* MBEDTLS_CONFIG_H */

@@ -53,7 +53,7 @@ extern "C" {
 #endif
 
 #ifdef PACK_STRUCT_USE_INCLUDES
-#  include "arch/bpstruct.h"
+#include "arch/bpstruct.h"
 #endif
 PACK_STRUCT_BEGIN
 /** An Ethernet MAC address */
@@ -62,7 +62,7 @@ struct eth_addr {
 } PACK_STRUCT_STRUCT;
 PACK_STRUCT_END
 #ifdef PACK_STRUCT_USE_INCLUDES
-#  include "arch/epstruct.h"
+#include "arch/epstruct.h"
 #endif
 
 /** Initialize a struct eth_addr with its 6 bytes (takes care of correct braces) */

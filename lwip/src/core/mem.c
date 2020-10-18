@@ -951,7 +951,7 @@ mem_malloc_adjust_lfree:
         LWIP_MEM_ALLOC_UNPROTECT();
         sys_mutex_unlock(&mem_mutex);
         LWIP_ASSERT("mem_malloc: allocated memory not above ram_end.",
-                    (mem_ptr_t)mem + SIZEOF_STRUCT_MEM + size <= (mem_ptr_t)ram_end);
+                    (mem_ptr_t)mem + SIZEOF_STRUCT_MEM + size <= (unsigned long)(mem_ptr_t)ram_end);
         LWIP_ASSERT("mem_malloc: allocated memory properly aligned.",
                     ((mem_ptr_t)mem + SIZEOF_STRUCT_MEM) % MEM_ALIGNMENT == 0);
         LWIP_ASSERT("mem_malloc: sanity check alignment",
