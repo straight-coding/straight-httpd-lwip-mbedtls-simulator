@@ -1,0 +1,486 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\lwip">
+      <UniqueIdentifier>{3788221f-c240-432f-a67a-488255a978a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\mbedtls">
+      <UniqueIdentifier>{a3fa70b7-8e56-48f0-b967-9493710060e1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="straight-httpd.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="httpd\http_cgi.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="httpd\http_core.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="httpd\cgi\cgi_ssi.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="httpd\cgi\cgi_web.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ssdp\ssdp.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="httpd\cgi\cgi_ssdp.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utils.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip-port\win32\netif\ethernetif.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\ipv4\acd.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\api\api_lib.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\api\api_msg.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\def.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\ipv4\dhcp.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\api\err.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\ipv4\etharp.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\netif\ethernet.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\ipv4\icmp.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\ipv4\igmp.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\inet_chksum.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\init.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\ip.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\ipv4\ip4.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\ipv4\ip4_addr.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\ipv4\ip4_frag.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\mem.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\memp.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\apps\netbiosns\netbiosns.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\api\netbuf.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\netif.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\pbuf.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\raw.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\tcp.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\tcp_in.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\tcp_out.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\api\tcpip.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\timeouts.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\udp.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="httpd\cgi\cgi_upload.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="httpd\cgi\cgi_files.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="httpd\cgi\cgi_auth.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="httpd\http_web.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="httpd\http_session.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="httpd\cgi\cgi_form.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip-port\win32\arch\sys_arch.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip-port\win32\arch\port_file.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip-port\win32\arch\port_device.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\aes.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\aesni.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\arc4.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\asn1parse.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\asn1write.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\base64.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\bignum.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\blowfish.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\camellia.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\ccm.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\certs.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\cipher.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\cipher_wrap.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\cmac.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\ctr_drbg.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\debug.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\des.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\dhm.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\ecdh.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\ecdsa.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\ecjpake.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\ecp.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\ecp_curves.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\entropy.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\entropy_poll.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\error.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\gcm.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\havege.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\hmac_drbg.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\md.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\md2.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\md4.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\md5.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\memory_buffer_alloc.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\oid.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\padlock.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\pem.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\pk.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\pk_wrap.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\pkcs5.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\pkcs11.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\pkcs12.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\pkparse.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\pkwrite.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\platform.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\ripemd160.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\rsa.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\rsa_internal.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\sha1.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\sha256.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\sha512.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\ssl_cache.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\ssl_ciphersuites.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\ssl_cli.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\ssl_cookie.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\ssl_srv.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\ssl_ticket.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\ssl_tls.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\x509_crt.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\threading.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\timing.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\version.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\version_features.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\x509.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\x509_create.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\x509_crl.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\x509_csr.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\x509write_crt.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\x509write_csr.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\xtea.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\platform_util.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\aria.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\chacha20.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\chachapoly.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\hkdf.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\net_sockets.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\nist_kw.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\poly1305.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\psa_crypto.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\psa_crypto_se.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\psa_crypto_slot_management.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\psa_crypto_storage.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\psa_its_file.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mbedtls\library\ssl_msg.c">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\altcp.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\altcp_alloc.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\core\altcp_tcp.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\apps\altcp_tls\altcp_tls_mbedtls.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip\src\apps\altcp_tls\altcp_tls_mbedtls_mem.c">
+      <Filter>Source Files\lwip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lwip-port\win32\lwip_api.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="httpd\http_fs.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\lwip-port\win32\lwipopts.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="httpd\http_cgi.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="httpd\http_core.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lwip-port\win32\netif\ethernetif.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ssdp\ssdp.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lwip\src\include\lwip\opt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lwip\src\include\lwip\arch.h">
+      <Filter>Source Files\lwip</Filter>
+    </ClInclude>
+    <ClInclude Include="httpd\http_web.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="httpd\http_session.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lwip-port\win32\arch\sys_arch.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lwip-port\win32\arch\port.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\mbedtls\include\mbedtls\ssl.h">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClInclude>
+    <ClInclude Include="httpd\http_fs.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\mbedtls\include\mbedtls\config.h">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
