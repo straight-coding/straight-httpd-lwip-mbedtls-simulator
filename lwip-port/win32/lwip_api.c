@@ -139,7 +139,6 @@ ip_addr_t main_netif_ipaddr, main_netif_netmask, main_netif_gw;
 extern void LwipLinkUp(void);
 extern void LwipLinkDown(void);
 
-unsigned char memory_buf[128 * 1024];
 /*
 void mutex_init(mbedtls_threading_mutex_t *mutex)
 {
@@ -204,10 +203,22 @@ struct altcp_tls_config* getTlsConfig(void)
 	conf = altcp_tls_create_config_server_privkey_cert((u8_t*)privkey, privkey_len, (u8_t*)privkey_pass, privkey_pass_len, (u8_t*)cert, cert_len);
 	return conf;
 }
+
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
+unsigned char memory_buf[8 * 1024];
+extern void mbedtls_memory_buffer_alloc_init(unsigned char *buf, size_t len);
+#endif
+
 #endif
 void LwipInit(void)
 {
 	struct netif* nif;
+
+#if (LWIP_ALTCP_TLS > 0)
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
+	mbedtls_memory_buffer_alloc_init(memory_buf, sizeof(memory_buf));
+#endif
+#endif
 
 	lwip_init();
 

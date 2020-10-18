@@ -235,6 +235,7 @@ int main(int argc, char* argv[])
 	printf("Here is a list of available devices on your system:\n\n");
 	for (dev = allDevices; dev != NULL; dev = dev->next)
 	{
+		bpf_u_int32 ipValid = 0;
 		char* pStr;
 		pcap_addr_t *dev_addr;
 
@@ -244,8 +245,18 @@ int main(int argc, char* argv[])
 			continue;
 		if ((dev->flags & PCAP_IF_RUNNING) == 0)
 			continue;
+		if ((dev->flags & PCAP_IF_CONNECTION_STATUS_CONNECTED) == 0)
+			continue;
 
-		printf("%d. %s\n", ++i, dev->description);
+//#define PCAP_IF_LOOPBACK				0x00000001	/* interface is loopback */
+//#define PCAP_IF_UP					0x00000002	/* interface is up */
+//#define PCAP_IF_RUNNING					0x00000004	/* interface is running */
+//#define PCAP_IF_WIRELESS				0x00000008	/* interface is wireless (*NOT* necessarily Wi-Fi!) */
+//#define PCAP_IF_CONNECTION_STATUS			0x00000030	/* connection status: */
+//#define PCAP_IF_CONNECTION_STATUS_UNKNOWN		0x00000000	/* unknown */
+//#define PCAP_IF_CONNECTION_STATUS_CONNECTED		0x00000010	/* connected */
+//#define PCAP_IF_CONNECTION_STATUS_DISCONNECTED		0x00000020	/* disconnected */
+//#define PCAP_IF_CONNECTION_STATUS_NOT_APPLICABLE	0x00000030	/* not applicable */
 
 		if ((dev->description == NULL) || (strlen(dev->description) <= 0))
 			continue;
@@ -259,15 +270,24 @@ int main(int argc, char* argv[])
 
 		for (dev_addr = dev->addresses; dev_addr != NULL; dev_addr = dev_addr->next) 
 		{
-			if (dev_addr->addr->sa_family == AF_INET && dev_addr->addr && dev_addr->netmask) 
+			if ((dev_addr->addr->sa_family == AF_INET) && dev_addr->addr && dev_addr->netmask)
 			{
+				if (((struct sockaddr_in *)dev_addr->addr)->sin_addr.S_un.S_addr == 0)
+					continue;
+
+				printf("%d. %s\n", ++i, dev->description);
 				printf("    Found a device %s on address %s with netmask %s, broadaddr %s\n", dev->name, 
 					inet_ntoa(((struct sockaddr_in *)dev_addr->addr)->sin_addr),
 					inet_ntoa(((struct sockaddr_in *)dev_addr->netmask)->sin_addr),
 					inet_ntoa(((struct sockaddr_in *)dev_addr->broadaddr)->sin_addr));
-				continue;
+
+				ipValid = ((struct sockaddr_in *)dev_addr->addr)->sin_addr.S_un.S_addr;
+				break;
 			}
 		}
+
+		if (ipValid == 0)
+			continue;
 
 		if (-1 == pcap_lookupnet(dev->name, &ip, &subnet_mask, szError))
 		{
@@ -283,9 +303,9 @@ int main(int argc, char* argv[])
 
 		if (strstr(szHostIP, "0.0.0.0") == szHostIP)
 			continue;
-		if (strstr(szHostIP, "127.0") == szHostIP)
+		if (strstr(szHostIP, "127.0.") == szHostIP)
 			continue;
-		if (strstr(szHostIP, "169.254") == szHostIP)
+		if (strstr(szHostIP, "169.254.") == szHostIP)
 			continue;
 
 		address.s_addr = subnet_mask;
@@ -299,7 +319,7 @@ int main(int argc, char* argv[])
 		printf("    Selected Host: %s\n", szHostName);
 		printf("       IP address: %s, %08lX\n", szHostIP, ip);
 		printf("      Subnet Mask: %s\n", szHostSubnet);
-		break;
+		//break;
 	}
 	pcap_freealldevs(allDevices);
 

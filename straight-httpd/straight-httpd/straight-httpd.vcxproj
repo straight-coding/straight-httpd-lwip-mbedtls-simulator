@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -165,6 +165,7 @@
     <ClInclude Include="..\..\lwip\src\include\lwip\opt.h" />
     <ClInclude Include="..\..\lwip-port\win32\lwipopts.h" />
     <ClInclude Include="..\..\lwip-port\win32\netif\ethernetif.h" />
+    <ClInclude Include="..\..\mbedtls\include\mbedtls\config.h" />
     <ClInclude Include="..\..\mbedtls\include\mbedtls\ssl.h" />
     <ClInclude Include="httpd\http_cgi.h" />
     <ClInclude Include="httpd\http_core.h" />
