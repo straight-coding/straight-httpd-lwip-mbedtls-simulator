@@ -43,6 +43,13 @@ a lot of data that needs to be copied, this should be set high. */
 /* MEMP_NUM_SYS_TIMEOUT: the number of simulateously active timeouts. */
 #define MEMP_NUM_SYS_TIMEOUT    10
 
+#define ETH_PAD_SIZE			0 
+#define LWIP_TCP                1
+
+/* TCP_TTL: Default Time-To-Live value. */
+#undef TCP_TTL
+#define TCP_TTL                 255
+
 /* TCP Maximum segment size. http://lwip.wikia.com/wiki/Tuning_TCP */
 #undef TCP_MSS
 #define TCP_MSS                 (1500 - 40)	  /*536 TCP_MSS = (Ethernet MTU - IP header size - TCP header size) */
@@ -57,7 +64,7 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* TCP receive window. */
 #undef TCP_WND
-#define TCP_WND                 (12 * TCP_MSS)
+#define TCP_WND                 (12 * TCP_MSS) //TCP_WND >= MBEDTLS_SSL_MAX_CONTENT_LEN
 
 /* ---------- Pbuf options ---------- */
 /* PBUF_POOL_SIZE: the number of buffers in the pbuf pool. */
@@ -66,20 +73,7 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* PBUF_POOL_BUFSIZE: the size of each pbuf in the pbuf pool. */
 #undef PBUF_POOL_BUFSIZE
-#define PBUF_POOL_BUFSIZE       1460//LWIP_MEM_ALIGN_SIZE(TCP_MSS + 40 + PBUF_LINK_HLEN)
-
-/* ETH_PAD_SIZE: number of bytes added before the ethernet header to ensure
- * alignment of payload after that header. Since the header is 14 bytes long,
- * without this padding e.g. addresses in the IP header will not be aligned
- * on a 32-bit boundary, so setting this to 2 can speed up 32-bit-platforms. */
-#define ETH_PAD_SIZE			0 
-
-/* LWIP_TCP==1: Turn on TCP. */
-#define LWIP_TCP                1
-
-/* TCP_TTL: Default Time-To-Live value. */
-#undef TCP_TTL
-#define TCP_TTL                 255
+#define PBUF_POOL_BUFSIZE       (1500 - 40)//LWIP_MEM_ALIGN_SIZE(TCP_MSS + 40 + PBUF_LINK_HLEN)
 
 /* Controls if TCP should queue segments that arrive out of
    order. Define to 0 if your device is low on memory. */
@@ -187,6 +181,7 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* LWIP_SOCKET==1: Enable Socket API (require to use sockets.c) */
 #define LWIP_SOCKET                     0
+
 #define LWIP_COMPAT_MUTEX               0
 
 /*##############################################################################################*/
@@ -268,7 +263,10 @@ a lot of data that needs to be copied, this should be set high. */
 #define PACK_STRUCT_USE_INCLUDES		1
 #define LWIP_NO_INTTYPES_H				1
 
-#define ALTCP_MBEDTLS_RNG_FN			mbedtls_entropy_func 
+#define ALTCP_MBEDTLS_RNG_FN					mbedtls_entropy_func 
+#define MBEDTLS_PLATFORM_NV_SEED_READ_MACRO		mbedtls_platform_std_nv_seed_read
+#define MBEDTLS_PLATFORM_NV_SEED_WRITE_MACRO	mbedtls_platform_std_nv_seed_write
+
 /*##############################################################################################*/
 
 void LwipLogPrint(char* format, ... );
@@ -284,3 +282,5 @@ void LwipLogPrint(char* format, ... );
 #endif
 
 #endif /* __LWIPOPTS_H__ */
+
+

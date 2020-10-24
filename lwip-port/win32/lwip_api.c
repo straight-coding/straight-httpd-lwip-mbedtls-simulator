@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include "lwip/init.h"
 
@@ -19,98 +20,74 @@
 #include "lwip/altcp_tcp.h"
 #include "lwip/altcp_tls.h"
 
-static struct altcp_tls_config* cfg = NULL;
-static size_t privkey_len = 0;
-static size_t privkey_pass_len = 0;
-static size_t cert_len = 0;
+#include "mbedtls/config.h"
+
+#if (LWIP_ALTCP_TLS > 0)
+#define KEYSIZE		512
 
 static const char *privkey_pass = "straight";
 
+#if (KEYSIZE == 512)
 static const char *privkey = "-----BEGIN ENCRYPTED PRIVATE KEY-----\n"\
-	"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\n"\
-	"Pdc=\n"\
+	"MIIBpjBABgkqhkiG9w0BBQ0wMzAbBgkqhkiG9w0BBQwwDgQIGPULjavQsEgCAggA\n"\
+	"MBQGCCqGSIb3DQMHBAhzhjxyhEJ7NgSCAWBihB0wi33LrSzyWYUjmBc2DmIo9FgB\n"\
+	"AK51vUyljP7XbSUE9lfSenRCf2bCtHlOe/x1crRmnI8Tr8F5iw6mOBEfJ6orROdy\n"\
+	"NAjNMNZXu76tIYjkblRuMSzXDNoQzH/dKxN1KMojtsKQbG2EcQVfG0GlQypXstgr\n"\
+	"ajJp57MZy0BKGXaWYUc+9Vgda8SLxWNLRy5wNwSBmN02ZxjT5t5zpYaUaUB1WFY4\n"\
+	"6pIMgmynn636boOF2VHXQdRTJbcn76hsJYkVQhERB/z8yYKIhl0Y8Jag3Wm151wt\n"\
+	"gXwZivq7cVwgk7TWuE15NJQQKRNo1GMbkMLyaHLIQwvLeXYeul38ryxXm5CtvmG+\n"\
+	"VmndzTSd6H1kJcgv2mTlH7deajEgNO2JMLSEYQRv0AJyVwdgJauWu3iz7+0W1iAD\n"\
+	"r2q+8CrzT1HhNdRoDLs28gwQ/f48XG8Erfg1ZZfUuQCNrYL1wATTs+wy\n"\
 	"-----END ENCRYPTED PRIVATE KEY-----\n";
 
 static const char *cert = "-----BEGIN CERTIFICATE-----\n"\
-	"MIIFEDCCAvigAwIBAgIQ+UjKCIcDNLRKcHf+9tlCFjANBgkqhkiG9w0BAQ0FADAR\n"\
-	"MQ8wDQYDVQQDEwZDQVJvb3QwHhcNMjAwNjA2MDcwMDAwWhcNMzAwNjA2MDcwMDAw\n"\
-	"WjAaMRgwFgYDVQQDEw9zZXJ2ZXIuc3RyYWlnaHQwggIiMA0GCSqGSIb3DQEBAQUA\n"\
-	"A4ICDwAwggIKAoICAQDRA3XspjYrcSXowTn59X/fchaHiiSto9H/si7juqHLPKwM\n"\
-	"GuUsremif7bWSuwOeNlix8VlDAC0F8YvwIsVgpj2Okf13K8qWvwMrbnxf9sbF0Gr\n"\
-	"iFDhguK3mJOv31hXCV0D5ApRk3VY2XXhgB39GBEapw/MEylwAEQJEHrKNmhUlMPO\n"\
-	"b/14jhVx/CqDGcec3d58PjsCqbkaKK599rS6D9hBmiaYAc1j5yJ6X50tbNBuChvY\n"\
-	"nmkHg72Wzeo8XMA91YXNeYbCuKnjaHfNCh3qtjyq1TjD5KNMWTm7qTjMEC9v7PFV\n"\
-	"9jaVbcT/mvIzR/I0lGj7Hvhx0n3SeM2HppKC+TinlWJl8JON3up9Jcc7GPJmFKsk\n"\
-	"DvRUxkbiEE00gnzPKwNxo3Jv6Dkp2iG13NWR1zS7C5X4K5C0ToSDJnG64CqhgmO7\n"\
-	"cvHi7Bp2SDGAhdDAFC36ZuuAtl4CyonUIMXwmbnEIHURDFyr1wwCq6cUonRTyqS2\n"\
-	"jQ4h2ujf2r4Fw5SuVYG1hnGaga17MWE6SmdftHKN1TF5jdCQb07jQBxccvK2kZL7\n"\
-	"S+wUnZc3xevs82X+yZf5mwpDwIXDY3sZ444Snq+6Mi5DoPTZ9qe7zhD1jY0Ob5sJ\n"\
-	"u9FYMMewlGjHl327Xf1TcBst+nOOdMpo+vOQriN+jI6oIZQEQCBuFSXVaCXQcQID\n"\
-	"AQABo1swWTATBgNVHSUEDDAKBggrBgEFBQcDATBCBgNVHQEEOzA5gBCSAdfUvW/H\n"\
-	"oozRFOuOwv7DoRMwETEPMA0GA1UEAxMGQ0FSb290ghCEbjEbwaNTmUlAMsisbhAO\n"\
-	"MA0GCSqGSIb3DQEBDQUAA4ICAQACqqPdUx+/MWlG71RS4L4ru2GwHYBZZVF68VCN\n"\
-	"DhSj2xt54FNzaW/G0OS6qCItosiYeRM+bZjDKngGmIZ8pJtGkhaqO35vnkR9jajY\n"\
-	"gsH87yx/fpkObN+2Av4R6gq+e01Z+54ldBWTyIDqumIi0oKSoKBSi4hZHn14eheK\n"\
-	"w0K21PzfUuPRYioECwxQOw6oAmsTrydlOdUi9vn1ZwRmlnnnAQgaRjkCAk9TymRW\n"\
-	"vBlD1jbUTkONBRJSR73ry7oWvqldzAnnTh9J7v6Fy2NAJsvpT7XDavra/CEerla8\n"\
-	"kaa5RRtbRqQG6wnFHpt9xTsY5n5bgEuIqwETfW34XvtbpcQ1geiDQf7vE9nJ/a0/\n"\
-	"E1Z9JMzXdIzfYJ4CGDJVYCear3Pqt6vWkcYIIjmOdzpSPsImbcMGFNyIpzkxeqms\n"\
-	"1g10oEe5dbcs58rkKmyU1o1gwzQrEhgzHCRObjsHLkCX2S+h7Zwunu2EN/bVOW+6\n"\
-	"gbXzSdAn8t32ax5WDpkBeBP4sTKVWtf3kLR9ilODe06YOH0CkWcFGa0cf97WsZcT\n"\
-	"+rTHSaMjsdU8lyitPsNFBHkrlCEEFWSG7rL08IoFomj8N5Uqr7HQpsiJfB2wnJrG\n"\
-	"5ytnzI1XSYQqWotGKMz4b4pPfFK9jhyh3rtndD6xElmJdfDOLi7/pnm0CK+m1kf2\n"\
-	"5Rd26w==\n"\
+	"MIIBhjCCATCgAwIBAgIQuY9Og0ylhpRIUZV9sJFi5DANBgkqhkiG9w0BAQsFADAR\n"\
+	"MQ8wDQYDVQQDEwZDQVJvb3QwHhcNMjAxMDI0MDcwMDAwWhcNMzAxMDI0MDcwMDAw\n"\
+	"WjAaMRgwFgYDVQQDEw9zZXJ2ZXIuc3RyYWlnaHQwXDANBgkqhkiG9w0BAQEFAANL\n"\
+	"ADBIAkEA44T2OhYNX5CAVfP3aB7xC8XpIIRvST0JGeRptFWv7MiMsrI/Ewe/Lt+K\n"\
+	"ImUPDZwSzhJ4YEqMfOjclKPV06bf3QIDAQABo1swWTATBgNVHSUEDDAKBggrBgEF\n"\
+	"BQcDATBCBgNVHQEEOzA5gBB4pVILJFLqT8sdQXmk6FaWoRMwETEPMA0GA1UEAxMG\n"\
+	"Q0FSb290ghASHfUmS8dmi0SWS8hDV/pFMA0GCSqGSIb3DQEBCwUAA0EAQfkZZ2l1\n"\
+	"YCu7PHQBVwC6BFF8Pq5FfxpzFm2xFJ/hMI9U2xmSbLdWclCiy0fXNTW+yl4TKgbk\n"\
+	"EMYAWHOUwlBsTA==\n"\
 	"-----END CERTIFICATE-----\n";
+#endif
+
+#if (KEYSIZE == 1024)
+static const char *privkey = "-----BEGIN ENCRYPTED PRIVATE KEY-----\n"\
+	"MIICxjBABgkqhkiG9w0BBQ0wMzAbBgkqhkiG9w0BBQwwDgQICZi2OGpU2lkCAggA\n"\
+	"MBQGCCqGSIb3DQMHBAgSQEOgHjn0zQSCAoDr9oboaJBu+dZbTFCauetynjG3djiX\n"\
+	"inTaCQ+cJb/mAJqcIqxypz6DH/VU5blq3p6HSNwp8f3olxfuOMEnCJkHXaRZeh0f\n"\
+	"Fib8eBoS8BPMFbqyI68Aua1rIBRrkkGARFGvGaFun4qYaV1mEEcBrox7HHrzE3cH\n"\
+	"meT1aNK+ucXKeqAv0X9xw9zJhsf2e6x3uAbg1ZF63UbCN330W4ZLin7PdS81OLhf\n"\
+	"wGU7H2YUrqDEMH7B/g4/VAymhIVHu2B5eEYuWc55KnsrqREA0mZuEwHGiMzyTek3\n"\
+	"YMrhJDRDU1nOonq57tmek43anxsnnDw2t1D0SR4xbOFSW6kxzfhgpM5hU1w6fNkX\n"\
+	"4HpZWNfYlCCmH3cfmVMWrkbQWyLANqsApKAQL8y2KdrmCXxjPEVQclTIRKGWMy6X\n"\
+	"GLc2JxHekqU86pN6D+lo6E6XAsoGOm/1LexMzcNsEVhiWIWXDG0e9mdizwmouWl/\n"\
+	"Gw18vUVqkSmgJuUCZ7FMfa6THB9CSnXFDkH2/8XvMX8QYQj+83JefCUkDhYgDGCa\n"\
+	"NQATsnAg23YcYy6Jhd4Ft/sM+SBuzTWFeoeoSzTPQT+1Bxt/pWMl7kVf8JUUz0FV\n"\
+	"wyBCUm52pjieqfCUTMcZDeouhnQdq+wE+ZV7XtLt2CJl0grc/JB9A3cwVy43XQ/i\n"\
+	"f0UxRfKcgUI/UG83FpEzQaFcwoXi3/+S0qg3Nk4G0mAAIi2KfgFiIqStTyIWorWn\n"\
+	"A+1Ibheu3wAJxRpUJEyq8YJN/VKz65LSGSZGntrXKJbvlCo7XTZMS8No3JxT5+id\n"\
+	"OG0ttzydqRaCicQ4wbh+e5uQ6DCyNQfxbaZIwfeeVNC9aQ5GbiExbSH8\n"\
+	"-----END ENCRYPTED PRIVATE KEY-----\n";
+
+static const char *cert = "-----BEGIN CERTIFICATE-----\n"\
+	"MIICCzCCAXSgAwIBAgIQph/1VIEBq6BPQba4fDUF0zANBgkqhkiG9w0BAQsFADAR\n"\
+	"MQ8wDQYDVQQDEwZDQVJvb3QwHhcNMjAwNjA2MDcwMDAwWhcNMzAwNjA2MDcwMDAw\n"\
+	"WjAaMRgwFgYDVQQDEw9zZXJ2ZXIuc3RyYWlnaHQwgZ8wDQYJKoZIhvcNAQEBBQAD\n"\
+	"gY0AMIGJAoGBAMew5lAQoJ6RNsBgvM3JaSd4GEd7LUumVyVnI5Meyv0hAftC+Muo\n"\
+	"fmjlyS9bvHBQEwF2MwRSL1uHXV47J8pIr8g6iN7a7augsIO79x5bOPr+GXO4mXCs\n"\
+	"gRuWeYddcbKHx7IEAcUA78Kc70KAHSnrSNRQQRRv1GVQjgIhaBfjaYjNAgMBAAGj\n"\
+	"WzBZMBMGA1UdJQQMMAoGCCsGAQUFBwMBMEIGA1UdAQQ7MDmAEIIlXCLg5+C1KClr\n"\
+	"DaYFc7yhEzARMQ8wDQYDVQQDEwZDQVJvb3SCELtRJzGDgSqHS7iarn4k5vswDQYJ\n"\
+	"KoZIhvcNAQELBQADgYEAdfty93O6syeOCjcRFVDW+WnVrzB+vRg1zeujUD1EHSNj\n"\
+	"Mf+aMALrZ7NaHpgx3ifbpijuc1l7ZztiSyvz1/c9srcj3W6DHsV5KgmABGbL/bGR\n"\
+	"P9jV/z8GctLSbsCRH9SZHktF2pqNq87cSTPUx5VPWoOiluMZtqjCO9g13yRv5qk=\n"\
+	"-----END CERTIFICATE-----\n";
+#endif
+
+#endif
 
 #if (LWIP_ALTCP_TLS > 0)
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
@@ -146,7 +123,7 @@ ip_addr_t main_netif_ipaddr, main_netif_netmask, main_netif_gw;
 extern void LwipLinkUp(void);
 extern void LwipLinkDown(void);
 
-/*
+#ifdef MBEDTLS_THREADING_ALT
 void mutex_init(mbedtls_threading_mutex_t *mutex)
 {
 	OS_ERR err;
@@ -195,15 +172,16 @@ int mutex_unlock(mbedtls_threading_mutex_t *mutex)
 	OSMutexPost(&mutex->mutex, (OS_OPT)OS_OPT_POST_NONE, &err);
 	return 0;
 }
-*/
+#endif
 
-#if LWIP_ALTCP_TLS
+#if (LWIP_ALTCP_TLS > 0)
 struct altcp_tls_config* getTlsConfig(void)
 {
 	struct altcp_tls_config* conf;
-	privkey_len = strlen(privkey) + 1;
-	privkey_pass_len = strlen(privkey_pass) + 1;
-	cert_len = strlen(cert) + 1;
+	
+	size_t privkey_len = strlen(privkey) + 1;
+	size_t privkey_pass_len = strlen(privkey_pass) + 1;
+	size_t cert_len = strlen(cert) + 1;
 
 	//mbedtls_memory_buffer_alloc_init(memory_buf, sizeof(memory_buf));
 	//mbedtls_threading_set_alt(mutex_init, mutex_free, mutex_lock, mutex_unlock);
@@ -211,18 +189,57 @@ struct altcp_tls_config* getTlsConfig(void)
 	conf = altcp_tls_create_config_server_privkey_cert((u8_t*)privkey, privkey_len, (u8_t*)privkey_pass, privkey_pass_len, (u8_t*)cert, cert_len);
 	return conf;
 }
+
+#endif
+
+#ifdef MBEDTLS_ENTROPY_NV_SEED
+unsigned char g_bySeed[256];
+int mbedtls_platform_std_nv_seed_read(unsigned char *buf, size_t buf_len)
+{
+	LWIP_DEBUGF(REST_DEBUG, ("RNG read len=%d, data: 0x%02X, 0x%02X, 0x%02X, 0x%02X, ..., 0x%02X",
+							buf_len, g_bySeed[0], g_bySeed[1], g_bySeed[2], g_bySeed[3], g_bySeed[buf_len-1]));
+
+	memcpy(buf, g_bySeed, buf_len);
+	return (buf_len);
+}
+
+int mbedtls_platform_std_nv_seed_write(unsigned char *buf, size_t buf_len)
+{
+	if (memcmp(g_bySeed, buf, buf_len) != 0)
+	{
+		LWIP_DEBUGF(REST_DEBUG, ("RNG update len=%d, data: 0x%02X, 0x%02X, 0x%02X, 0x%02X, ..., 0x%02X",
+								buf_len, buf[0], buf[1], buf[2], buf[3], buf[buf_len-1]));
+	}
+
+	memcpy(g_bySeed, buf, buf_len);
+	return (buf_len);
+}
 #endif
 
 void LwipInit(void)
 {
-	struct netif* nif;
-
 #if (LWIP_ALTCP_TLS > 0)
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 	mbedtls_memory_buffer_alloc_init(memory_buf, sizeof(memory_buf));
 #endif
 #endif
 
+#ifdef MBEDTLS_ENTROPY_NV_SEED
+	{
+		memset(g_bySeed, 0xAA, sizeof(g_bySeed));
+#ifdef _WIN32
+		{
+			int i;
+			srand((unsigned int)time(0));
+			for(i = 0; i < sizeof(g_bySeed); i ++)
+			{
+				g_bySeed[i] = (unsigned char)rand();
+			}
+		}
+#endif
+	}
+#endif
+	
 	lwip_init();
 
 	if (sys_mbox_new(&tcpip_mbox, TCPIP_MBOX_SIZE) != ERR_OK)
@@ -236,20 +253,20 @@ void LwipInit(void)
 
 		LWIP_MARK_TCPIP_THREAD();
 	}
-	
+
 	main_netif_ipaddr.addr = PP_HTONL(GetMyIP());
 	main_netif_netmask.addr = PP_HTONL(GetSubnet());
 	main_netif_gw.addr = PP_HTONL(GetGateway());
 
 	netif_set_flags(&main_netif, NETIF_FLAG_IGMP);
 	
-	nif = netif_add(&main_netif,
-					&main_netif_ipaddr, 
-					&main_netif_netmask, 
-					&main_netif_gw, 
-					NULL, 
-					ethernetif_init, 
-					tcpip_input);
+	netif_add(&main_netif,
+				&main_netif_ipaddr, 
+				&main_netif_netmask, 
+				&main_netif_gw, 
+				NULL, 
+				ethernetif_init, 
+				tcpip_input);
 	netif_set_default(&main_netif);
 	
 	LwipLinkUp();
@@ -276,27 +293,29 @@ int tcpip_inloop(void)
 
 	LOCK_TCPIP_CORE();
 
-	sleeptime = sys_timeouts_sleeptime(); /* Return the time left before the next timeout is due. If no timeouts are enqueued, returns 0xffffffff */
-	if (sleeptime == SYS_TIMEOUTS_SLEEPTIME_INFINITE)
-	{ //timer queue is empty
-		noTimerCount++;
-	}
-	else if (sleeptime == 0)
-	{ //timeout
-		sys_check_timeouts();
-
-		sleeptime = sys_timeouts_sleeptime(); /* Return the time left before the next timeout is due */
-		timer0Count++;
-	}
-	else
 	{
-		timer1Count++;
-	}
+		sleeptime = sys_timeouts_sleeptime(); /* Return the time left before the next timeout is due. If no timeouts are enqueued, returns 0xffffffff */
+		if (sleeptime == SYS_TIMEOUTS_SLEEPTIME_INFINITE)
+		{ //timer queue is empty
+			noTimerCount++;
+		}
+		else if (sleeptime == 0)
+		{ //timeout
+			sys_check_timeouts();
 
-	if (sleeptime != SYS_TIMEOUTS_SLEEPTIME_INFINITE)
-		waitMS = sleeptime; //next timer will come soon, in urgent
-	if (waitMS == 0)
-		waitMS = waitMin;
+			sleeptime = sys_timeouts_sleeptime(); /* Return the time left before the next timeout is due */
+			timer0Count++;
+		}
+		else
+		{
+			timer1Count++;
+		}
+
+		if (sleeptime != SYS_TIMEOUTS_SLEEPTIME_INFINITE)
+			waitMS = sleeptime; //next timer will come soon, in urgent
+		if (waitMS == 0)
+			waitMS = waitMin;
+	}
 
 	UNLOCK_TCPIP_CORE();
 
@@ -330,6 +349,8 @@ int tcpip_inloop(void)
 	return 0;
 }
 
+extern u32_t g_nNetIsUp;
+
 void LwipLinkUp(void)
 {
 	netif_set_link_up(&main_netif);	
@@ -342,14 +363,14 @@ void LwipLinkUp(void)
 	netif_set_ipaddr(&main_netif, &main_netif_ipaddr);
 	netif_set_netmask(&main_netif, &main_netif_netmask);
 	netif_set_gw(&main_netif, &main_netif_gw);
-	
+
 	if (IsDhcpEnabled())
 	{
 		if (dhcp_start(&main_netif) == ERR_OK)
 			return;
-        LWIP_DEBUGF(LWIP_DBG_ON, ("DHCP failed"));
+		LWIP_DEBUGF(LWIP_DBG_ON, ("DHCP failed"));
 	}
-
+	
 	OnDhcpFinished();
 }
 
@@ -381,3 +402,4 @@ void LwipLinkDown(void)
 	netif_set_down(&main_netif);
 	netif_set_link_down(&main_netif);	
 }
+
