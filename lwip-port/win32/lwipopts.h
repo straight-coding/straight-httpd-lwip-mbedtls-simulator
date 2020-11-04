@@ -59,7 +59,7 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* TCP Maximum segment size. http://lwip.wikia.com/wiki/Tuning_TCP */
 #undef TCP_MSS
-#define TCP_MSS                 1460//(1500 - 40)	  /*536 TCP_MSS = (Ethernet MTU - IP header size - TCP header size) */
+#define TCP_MSS                 800//(1500 - 40)	  /*536 TCP_MSS = (Ethernet MTU - IP header size - TCP header size) */
 
 /* TCP sender buffer space (bytes). */
 #undef TCP_SND_BUF
@@ -71,7 +71,7 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* TCP receive window. */
 #undef TCP_WND
-#define TCP_WND                 (12 * TCP_MSS) //TCP_WND >= MBEDTLS_SSL_MAX_CONTENT_LEN
+#define TCP_WND                 (22 * TCP_MSS) //TCP_WND >= MBEDTLS_SSL_MAX_CONTENT_LEN
 
 /* ---------- Pbuf options ---------- */
 /* PBUF_POOL_SIZE: the number of buffers in the pbuf pool. */
@@ -80,7 +80,7 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* PBUF_POOL_BUFSIZE: the size of each pbuf in the pbuf pool. */
 #undef PBUF_POOL_BUFSIZE
-#define PBUF_POOL_BUFSIZE       (1500 - 40)//LWIP_MEM_ALIGN_SIZE(TCP_MSS + 40 + PBUF_LINK_HLEN)
+#define PBUF_POOL_BUFSIZE       LWIP_MEM_ALIGN_SIZE(TCP_MSS + 40 + PBUF_LINK_HLEN)
 
 /* Controls if TCP should queue segments that arrive out of
    order. Define to 0 if your device is low on memory. */

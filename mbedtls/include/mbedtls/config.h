@@ -1882,7 +1882,7 @@
  *
  * Enable modifying the maximum I/O buffer size.
  */
-//#define MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
+#define MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
 
 /**
  * \def MBEDTLS_TEST_HOOKS
