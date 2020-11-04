@@ -21,8 +21,10 @@
 
 /* MEM_SIZE: the size of the heap memory. If the application will send
 a lot of data that needs to be copied, this should be set high. */
+//100KB to support large file downloading and uploading, and keep-alive works good
+//57KB basic memory to create TLS connections, and support large file downloading and uploading, but keep-alive may fail
 #undef MEM_SIZE
-#define MEM_SIZE                (2*8*8*1024) 
+#define MEM_SIZE                (57*1024) 
 
 /* MEMP_NUM_PBUF: the number of memp struct pbufs. If the application
    sends a lot of data out of ROM (or other static memory), this
