@@ -6,6 +6,13 @@
 #define __LWIPOPTS_H__
 
 /* ---------- Memory options ---------- */
+
+/* if you define MEMP_MEM_MALLOC to 1 in your lwipopts.h,
+   *every* piece of dynamically allocated memory will come from the *heap* (the size of which is defined by MEM_SIZE).  
+   -- this is the *heap* and it is allocated as mem_memory. */
+#undef MEMP_MEM_MALLOC
+#define MEMP_MEM_MALLOC 		1
+
 /* MEM_ALIGNMENT: should be set to the alignment of the CPU for which
    lwIP is compiled. 4 byte alignment -> define MEM_ALIGNMENT to 4, 2
    byte alignment -> define MEM_ALIGNMENT to 2. */
@@ -15,7 +22,7 @@
 /* MEM_SIZE: the size of the heap memory. If the application will send
 a lot of data that needs to be copied, this should be set high. */
 #undef MEM_SIZE
-#define MEM_SIZE                (8192*16) 
+#define MEM_SIZE                (2*8*8*1024) 
 
 /* MEMP_NUM_PBUF: the number of memp struct pbufs. If the application
    sends a lot of data out of ROM (or other static memory), this
@@ -52,7 +59,7 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* TCP Maximum segment size. http://lwip.wikia.com/wiki/Tuning_TCP */
 #undef TCP_MSS
-#define TCP_MSS                 (1500 - 40)	  /*536 TCP_MSS = (Ethernet MTU - IP header size - TCP header size) */
+#define TCP_MSS                 1460//(1500 - 40)	  /*536 TCP_MSS = (Ethernet MTU - IP header size - TCP header size) */
 
 /* TCP sender buffer space (bytes). */
 #undef TCP_SND_BUF
@@ -224,6 +231,8 @@ a lot of data that needs to be copied, this should be set high. */
 #define DNS_DEBUG                       LWIP_DBG_OFF
 #define SSDP_DEBUG                      LWIP_DBG_ON
 #define REST_DEBUG         				LWIP_DBG_ON
+
+#define ALTCP_MBEDTLS_LIB_DEBUG			LWIP_DBG_ON
 
 #define LWIP_IPV4 						1
 #define LWIP_IPV6						0

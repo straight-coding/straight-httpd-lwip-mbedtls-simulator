@@ -175,6 +175,7 @@ int mutex_unlock(mbedtls_threading_mutex_t *mutex)
 #endif
 
 #if (LWIP_ALTCP_TLS > 0)
+extern void mbedtls_debug_set_threshold(int threshold);
 struct altcp_tls_config* getTlsConfig(void)
 {
 	struct altcp_tls_config* conf;
@@ -187,6 +188,7 @@ struct altcp_tls_config* getTlsConfig(void)
 	//mbedtls_threading_set_alt(mutex_init, mutex_free, mutex_lock, mutex_unlock);
 
 	conf = altcp_tls_create_config_server_privkey_cert((u8_t*)privkey, privkey_len, (u8_t*)privkey_pass, privkey_pass_len, (u8_t*)cert, cert_len);
+	mbedtls_debug_set_threshold(1); //0 No debug,1 Error,2 State change,3 Informational,4 Verbose
 	return conf;
 }
 
