@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include "lwip/opt.h"		//only for TCP_MSS definition
+#include "lwip/sys.h"
 
 #include "arch/port.h"		//for device information, network address
 #include "arch/sys_arch.h"	//for semaphore, mutex, mbox, file, time, tick, and log functions

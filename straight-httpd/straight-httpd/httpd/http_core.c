@@ -3,12 +3,9 @@
   Author: Straight Coder<simpleisrobust@gmail.com>
   Date: April 12, 2020
 */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
 
 #include "lwip/opt.h"
+#include "lwip/sys.h"
 
 #include "lwip/tcp.h"
 #include "lwip/altcp.h"
@@ -33,7 +30,7 @@ extern struct tcp_pcb *tcp_tw_pcbs;
 extern void tcp_kill_timewait(void);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-static void SetKilling(REQUEST_CONTEXT* context);				//for app to kill session
+//static void SetKilling(REQUEST_CONTEXT* context);				//for app to kill session
 
 static void LockContext(REQUEST_CONTEXT* context);		//locked the specified context
 static void UnlockContext(REQUEST_CONTEXT* context);	//unlocked the specified context
@@ -49,11 +46,11 @@ static signed char sendBuffered(REQUEST_CONTEXT* context); //send data in contex
 static signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller);
 static signed char HttpResponseProc(REQUEST_CONTEXT* context, int caller);
 
-static signed char OnHttpAccept(void *arg, struct altcp_pcb *pcb, signed char err);
-static signed char OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *p, signed char err);
-static signed char OnHttpPoll(void *arg, struct altcp_pcb *pcb);
-static signed char OnHttpSent(void *arg, struct altcp_pcb *pcb, u16_t len);
-static void  OnHttpError(void *arg, signed char err);
+static err_t OnHttpAccept(void *arg, struct altcp_pcb *pcb, err_t err);
+static err_t OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *p, err_t err);
+static err_t OnHttpPoll(void *arg, struct altcp_pcb *pcb);
+static err_t OnHttpSent(void *arg, struct altcp_pcb *pcb, u16_t len);
+static void OnHttpError(void *arg, err_t err);
 
 static const char* Response_Status_Lines[] = {
 	// 1xx: Informational - Request received, continuing process 
@@ -117,6 +114,8 @@ const char redirect_body2[] = "';</script></body></html>";
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 static REQUEST_CONTEXT g_httpContext[MAX_CONNECTIONS];
 static sys_mutex_t	    g_httpMutex[MAX_CONNECTIONS];
+
+volatile long httpsListening = 0;
 
 void PrintLwipStatus(void)
 {
@@ -388,7 +387,7 @@ static void FreeHttpContext(REQUEST_CONTEXT* context)
 struct altcp_tls_config* tlsCfg = NULL;
 struct altcp_pcb* HttpdInit(int tls, unsigned long port)
 {
-	signed char err;
+	err_t err;
 	struct altcp_pcb* listen = NULL;
 
 	if (tls > 0)
@@ -396,6 +395,8 @@ struct altcp_pcb* HttpdInit(int tls, unsigned long port)
 #if (LWIP_ALTCP_TLS > 0)
 		extern struct altcp_tls_config* getTlsConfig(void);
 
+		httpsListening = 0;
+		
 		tlsCfg = getTlsConfig();
 
 		listen = altcp_tls_new(tlsCfg, IPADDR_TYPE_ANY);
@@ -417,6 +418,10 @@ struct altcp_pcb* HttpdInit(int tls, unsigned long port)
 		altcp_accept(listen, OnHttpAccept);
 		
 		LogPrint(0, "HttpdInit @ %d, tls=%d", port, tls);
+
+		if ((tls > 0) && (listen != NULL))
+			httpsListening = 1;
+		
 		return listen;
 	}
 	return NULL;
@@ -442,7 +447,7 @@ int HttpdStop(struct altcp_pcb *pcbListen)
  *  Return ERR_OK to continue receiving
  * 	Otherwise, tcp_abort() will be called by stack out of this callback function
  */
-static signed char OnHttpAccept(void *pcbListener, struct altcp_pcb *pcbAccepted, signed char errIn) //errIn=ERR_MEM or ERR_OK
+int OnHttpAccept(void *pcbListener, struct altcp_pcb *pcbAccepted, err_t errIn) //errIn=ERR_MEM or ERR_OK
 { //arg ==> g_pcbListen
 	REQUEST_CONTEXT* context = NULL;
 
@@ -473,7 +478,6 @@ static signed char OnHttpAccept(void *pcbListener, struct altcp_pcb *pcbAccepted
 	altcp_setprio(pcbAccepted, TCP_PRIO_NORMAL);
 	
 	/*Set TF_NODELAY*/
-	//tcp_nagle_disable(pcbAccepted); //set TF_NODELAY
 	altcp_nagle_disable(pcbAccepted); //set TF_NODELAY
 	//altcp_nagle_enable(pcbAccepted); //clear TF_NODELAY
 
@@ -486,9 +490,11 @@ static signed char OnHttpAccept(void *pcbListener, struct altcp_pcb *pcbAccepted
 	}
 
 	context->_pcb = pcbAccepted;
-
+#if (LWIP_ALTCP_TLS > 0)
 	context->_https = (pcbAccepted->inner_conn != 0) ? 1 : 0;
-
+#else
+	context->_https = 0;
+#endif	
 	context->_ipRemote = remote_ip->addr;
 	context->_portRemote = remote_port;
 	context->_portLocal = local_port;
@@ -512,7 +518,7 @@ static signed char OnHttpAccept(void *pcbListener, struct altcp_pcb *pcbAccepted
  *    return ERR_OK if data eaten by app layer
  *    otherwise keep data in pcb
  */
-static signed char OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *p, signed char err) //err always ERR_OK currently
+int OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *p, err_t err) //err always ERR_OK currently
 { //return ERR_OK if data eaten; return IN_PROGRESS if data not eaten; return ERR_ABRT if tcp_abort before return
 	signed char errRet = ERR_OK;
 	
@@ -629,7 +635,7 @@ static signed char OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *
  * @return ERR_OK: try to send some data by calling tcp_output
  *     Only return ERR_ABRT if you have called tcp_abort from within the callback function!
  */
-static signed char OnHttpPoll(void *arg, struct altcp_pcb *pcb)
+int OnHttpPoll(void *arg, struct altcp_pcb *pcb)
 {
 	signed char err = ERR_OK;
 	REQUEST_CONTEXT* context = (REQUEST_CONTEXT*)arg;
@@ -687,7 +693,7 @@ static signed char OnHttpPoll(void *arg, struct altcp_pcb *pcb)
  * @return ERR_OK: try to send some data by calling tcp_output
  *    Only return ERR_ABRT if you have called tcp_abort from within the callback function!
  */
-static signed char OnHttpSent(void *arg, struct altcp_pcb *pcb, u16_t len)
+int OnHttpSent(void *arg, struct altcp_pcb *pcb, u16_t len)
 {
 	signed char err = ERR_OK;
 	
@@ -740,7 +746,7 @@ static signed char OnHttpSent(void *arg, struct altcp_pcb *pcb, u16_t len)
  *    ERR_ABRT: aborted through tcp_abort or by a TCP timer
  *    ERR_RST: the connection was reset by the remote host
  */
-static void OnHttpError(void *arg, signed char err)
+static void OnHttpError(void *arg, err_t err)
 { //pcb already freed
 	REQUEST_CONTEXT* context = (REQUEST_CONTEXT*)arg;
 	LWIP_UNUSED_ARG(err);
@@ -759,7 +765,7 @@ static void OnHttpError(void *arg, signed char err)
 	}
 	PrintLwipStatus();
 }
-
+/*
 static void SetKilling(REQUEST_CONTEXT* context)
 {
 	if (context->_pMutex != NULL)
@@ -770,7 +776,7 @@ static void SetKilling(REQUEST_CONTEXT* context)
 	if (context->_pMutex != NULL)
 		sys_mutex_unlock(context->_pMutex);
 }
-
+*/
 int IsKilling(REQUEST_CONTEXT* context, int reset)
 {
 	int killing = 0;
@@ -1105,13 +1111,13 @@ static signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //alway
 							context->_rangeTo = 0;
 							if (p != NULL)
 							{
-								context->_rangeFrom = ston(p + 7);
+								context->_rangeFrom = atol(p + 7);
 								p = strstr((char*)p + 7, "-");
 								if (p != NULL)
 								{
 									if ((p[1] >= '0') && (p[1] <= '9'))
 									{
-										context->_rangeTo = ston(p + 1);
+										context->_rangeTo = atol(p + 1);
 										context->_rangeTo ++; // ==> [_rangeFrom, _rangeTo)
 									}
 									else

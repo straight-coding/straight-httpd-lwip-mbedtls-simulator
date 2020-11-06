@@ -93,7 +93,7 @@ typedef enum {
 #ifdef LWIP_ERR_T
 typedef LWIP_ERR_T err_t;
 #else /* LWIP_ERR_T */
-typedef s8_t err_t;
+typedef int err_t;
 #endif /* LWIP_ERR_T*/
 
 /**

@@ -632,7 +632,7 @@ altcp_mbedtls_setup(void *conf, struct altcp_pcb *conn, struct altcp_pcb *inner_
 	mbedtls_ssl_init(&state->ssl_context);
 	ret = mbedtls_ssl_setup(&state->ssl_context, &config->conf);
 	if (ret != 0) {
-		LWIP_DEBUGF(ALTCP_MBEDTLS_DEBUG, ("mbedtls_ssl_setup failed\n"));
+		LWIP_DEBUGF(ALTCP_MBEDTLS_DEBUG, ("mbedtls_ssl_setup failed: %d\n", ret)); // %d\n", ret
 		/* @todo: convert 'ret' to err_t */
 		altcp_mbedtls_free(conf, state);
 		return ERR_MEM;

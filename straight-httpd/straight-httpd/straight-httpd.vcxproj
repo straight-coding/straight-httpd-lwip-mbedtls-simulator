@@ -166,6 +166,7 @@
     <ClInclude Include="..\..\lwip-port\win32\lwipopts.h" />
     <ClInclude Include="..\..\lwip-port\win32\netif\ethernetif.h" />
     <ClInclude Include="..\..\mbedtls\include\mbedtls\config.h" />
+    <ClInclude Include="..\..\mbedtls\include\mbedtls\config_user.h" />
     <ClInclude Include="..\..\mbedtls\include\mbedtls\ssl.h" />
     <ClInclude Include="httpd\http_cgi.h" />
     <ClInclude Include="httpd\http_core.h" />

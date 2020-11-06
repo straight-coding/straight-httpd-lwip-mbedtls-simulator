@@ -482,5 +482,8 @@
     <ClInclude Include="..\..\mbedtls\include\mbedtls\config.h">
       <Filter>Source Files\mbedtls</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\mbedtls\include\mbedtls\config_user.h">
+      <Filter>Source Files\mbedtls</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

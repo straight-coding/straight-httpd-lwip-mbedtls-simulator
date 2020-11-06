@@ -1,6 +1,8 @@
 #ifndef LWIP_ARCH_SYS_ARCH_H
 #define LWIP_ARCH_SYS_ARCH_H
 
+#include "lwip/err.h"
+
 #pragma warning(disable:4996) //_CRT_SECURE_NO_WARNINGS
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -32,7 +34,7 @@ typedef struct _sys_mut sys_mutex_t;
 #define sys_mutex_valid(mutex) (((mutex) != NULL) && sys_mutex_valid_val(*(mutex)))
 #define sys_mutex_set_invalid(mutex) ((mutex)->mut = NULL)
 
-signed char sys_mutex_new(sys_mutex_t *mutex);
+err_t sys_mutex_new(sys_mutex_t *mutex);
 void sys_mutex_lock(sys_mutex_t *mutex);
 void sys_mutex_unlock(sys_mutex_t *mutex);
 

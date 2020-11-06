@@ -1,6 +1,4 @@
-/*
-  lwipopts.h, lwIP Options Configuration.
-*/
+/* lwipopts.h, lwIP Options Configuration. */
 
 #ifndef __LWIPOPTS_H__
 #define __LWIPOPTS_H__
@@ -13,6 +11,7 @@
 #undef MEMP_MEM_MALLOC
 #define MEMP_MEM_MALLOC 		1
 
+/* ---------- Memory options ---------- */
 /* MEM_ALIGNMENT: should be set to the alignment of the CPU for which
    lwIP is compiled. 4 byte alignment -> define MEM_ALIGNMENT to 4, 2
    byte alignment -> define MEM_ALIGNMENT to 2. */
@@ -24,13 +23,18 @@ a lot of data that needs to be copied, this should be set high. */
 //100KB to support large file downloading and uploading, and keep-alive works good
 //57KB basic memory to create TLS connections, and support large file downloading and uploading, but keep-alive may fail
 #undef MEM_SIZE
-#define MEM_SIZE                (57*1024) 
+#define MEM_SIZE                (100*1024) 
 
 /* MEMP_NUM_PBUF: the number of memp struct pbufs. If the application
    sends a lot of data out of ROM (or other static memory), this
    should be set high. */
 #undef MEMP_NUM_PBUF
 #define MEMP_NUM_PBUF           10
+
+/* MEMP_NUM_RAW_PCB: Number of raw connection PCBs 
+   (requires the LWIP_RAW option) */
+#undef MEMP_NUM_RAW_PCB
+#define MEMP_NUM_RAW_PCB        0
 
 /* MEMP_NUM_UDP_PCB: the number of UDP protocol control blocks. One
    per active UDP "connection". */
@@ -61,7 +65,7 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* TCP Maximum segment size. http://lwip.wikia.com/wiki/Tuning_TCP */
 #undef TCP_MSS
-#define TCP_MSS                 800//(1500 - 40)	  /*536 TCP_MSS = (Ethernet MTU - IP header size - TCP header size) */
+#define TCP_MSS                 800//(1500 - 40)	  /* TCP_MSS = (Ethernet MTU - IP header size - TCP header size) */
 
 /* TCP sender buffer space (bytes). */
 #undef TCP_SND_BUF
@@ -82,12 +86,14 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* PBUF_POOL_BUFSIZE: the size of each pbuf in the pbuf pool. */
 #undef PBUF_POOL_BUFSIZE
-#define PBUF_POOL_BUFSIZE       LWIP_MEM_ALIGN_SIZE(TCP_MSS + 40 + PBUF_LINK_HLEN)
+#define PBUF_POOL_BUFSIZE       LWIP_MEM_ALIGN_SIZE(TCP_MSS + 40 + (14 + ETH_PAD_SIZE))
 
 /* Controls if TCP should queue segments that arrive out of
    order. Define to 0 if your device is low on memory. */
 #undef TCP_QUEUE_OOSEQ
 #define TCP_QUEUE_OOSEQ         0
+
+#define LWIP_TCP_SACK_OUT       0
 
 /* TCPIP_MBOX_SIZE: The mailbox size for the tcpip thread messages
  * The queue size value itself is platform-dependent, but is passed to
@@ -241,11 +247,10 @@ a lot of data that needs to be copied, this should be set high. */
 #define LWIP_UDP						1
 #define LWIP_TCP						1
 #define LWIP_DNS                        0
-#define LWIP_RAW						1
+#define LWIP_RAW						0
 #define LWIP_AUTOIP						0
 #define LWIP_IGMP						1
 
-#define LWIP_TCP_SACK_OUT               0
 #define TCP_LISTEN_BACKLOG              4
 
 #define LWIP_SINGLE_NETIF				1
@@ -273,10 +278,6 @@ a lot of data that needs to be copied, this should be set high. */
 
 #define PACK_STRUCT_USE_INCLUDES		1
 #define LWIP_NO_INTTYPES_H				1
-
-#define ALTCP_MBEDTLS_RNG_FN					mbedtls_entropy_func 
-#define MBEDTLS_PLATFORM_NV_SEED_READ_MACRO		mbedtls_platform_std_nv_seed_read
-#define MBEDTLS_PLATFORM_NV_SEED_WRITE_MACRO	mbedtls_platform_std_nv_seed_write
 
 /*##############################################################################################*/
 

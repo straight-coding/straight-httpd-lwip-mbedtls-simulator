@@ -20,7 +20,7 @@ typedef struct _SESSION
 	unsigned long _nLoginIP;
 	unsigned long _tLastReceived;	//tick of the last received
 	unsigned long _tLastSent;		//tick of the last sent
-}SESSION;
+}SESSION;	//size of SESSION: 44
 
 void SetupSession(void);
 

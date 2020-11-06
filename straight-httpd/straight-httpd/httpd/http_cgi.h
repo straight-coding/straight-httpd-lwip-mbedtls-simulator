@@ -7,6 +7,10 @@
 #ifndef _HTTP_CGI_H_
 #define _HTTP_CGI_H_
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "http_core.h"
 #include "http_web.h"
 
@@ -50,7 +54,7 @@ struct CGI_Mapping
 	void (*OnFinished)(REQUEST_CONTEXT* context);
 	
 	struct CGI_Mapping* next;
-};
+};	//size of CGI_Mapping: 108
 
 typedef struct
 {
@@ -71,7 +75,7 @@ typedef struct
 
 	short _cacheOffset; //for tag parsing
 	char  _cache[MAX_TAG_LEN]; //pre-read buffer
-}SSI_Context;
+}SSI_Context;	//size of SSI_Context: 216
 
 void CGI_SetupMapping(void); //setup mapping when initializing httpd context
 

@@ -162,9 +162,9 @@ void WEB_RequestReceived(REQUEST_CONTEXT* context)
 	ctxSSI->_fp = WEB_fopen(context->_responsePath, "rb");
 	if (ctxSSI->_fp != NULL)
 	{ //gzip file starts with 1F 8B 08
-		int outBytes=0;
+		unsigned int outBytes=0;
 		unsigned char flag[64];
-		if (WEB_fread(ctxSSI->_fp, flag, 3, &outBytes) == 0)
+		if (WEB_fread(ctxSSI->_fp, (char*)flag, 3, &outBytes) == 0)
 		{
 			WEB_fseek(ctxSSI->_fp, 0);
 			if ((flag[0] == 0x1F) && (flag[1] == 0x8B) && (flag[2] == 0x08))

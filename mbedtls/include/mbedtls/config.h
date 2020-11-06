@@ -196,7 +196,7 @@
  * Uncomment to prevent default assignment of standard functions in the
  * platform layer.
  */
-//#define MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
+#define MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
 
 /**
  * \def MBEDTLS_PLATFORM_EXIT_ALT
@@ -3742,6 +3742,8 @@
 #if defined(MBEDTLS_USER_CONFIG_FILE)
 #include MBEDTLS_USER_CONFIG_FILE
 #endif
+
+#include "mbedtls/config_user.h"
 
 #include <stdio.h>
 #include <stdlib.h>

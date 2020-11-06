@@ -11,6 +11,7 @@
 extern void LogPrint(int level, char* format, ... );
 extern int  Strnicmp(char *str1, char *str2, int n);
 extern void InitDevInfo(void);
+extern unsigned long GetMyIP(void);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -152,6 +153,8 @@ int CGI_HeaderReceived(REQUEST_CONTEXT* context, char* header_line) //called whe
 
 void CGI_HeadersReceived(REQUEST_CONTEXT* context) //called when all HTTP request headers are received
 {
+	extern long httpsListening;
+	
 	if (context->handler != NULL)
 	{
 		if ((context->_options & CGI_OPT_AUTH_REQUIRED) != 0)
@@ -187,7 +190,7 @@ void CGI_HeadersReceived(REQUEST_CONTEXT* context) //called when all HTTP reques
 		return;
 
 #if (ALWAYS_REDIRECT_HTTPS > 0)
-	if ((context->_https == 0) && (stricmp(context->_requestPath, "upnp_device.xml") != 0))
+	if ((httpsListening > 0) && (context->_https == 0) && (Strnicmp(context->_requestPath, "upnp_device.xml", 15) != 0))
 	{
 		unsigned long myip = GetMyIP();
 
@@ -265,7 +268,7 @@ void CGI_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo) //set 
 		char date[40];
 		memset(date, 0, sizeof(date));
 
-		strcpy_s(date, 10, "Date: ");
+		strncpy(date, "Date: ", 10);
 		getClock(date + 6, sizeof(date) - 8);
 		strcat(date, CRLF);
 		strcat(context->ctxResponse._sendBuffer, date);
