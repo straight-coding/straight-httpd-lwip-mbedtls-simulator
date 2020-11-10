@@ -323,37 +323,7 @@ int URLDecode(char* url)
 	}
 	return i;
 }
-#ifdef WIN32
-void MakeDeepPath(char* szPath)
-{
-	char	*p1, *p2, chTmp;
-	char	szTemp[256];
 
-	memset(szTemp, 0, sizeof(szTemp));
-	strncpy(szTemp, szPath, sizeof(szTemp)-1);
-
-	p1 = szTemp;
-	while (*p1 != 0)
-	{
-		if (*p1 == '\\')
-			*p1 = '/';
-		p1++;
-	}
-
-	p1 = szTemp;
-	while (1)
-	{
-		p2 = strchr(p1, '/');
-		if (p2 == NULL)
-			break;
-		chTmp = p2[0];
-		p2[0] = 0;
-		_mkdir(szTemp);
-		p2[0] = chTmp;
-		p1 = p2 + 1;
-	}
-}
-#endif
 char* GetContentType(const char* extension)
 {
 	int i = 0;

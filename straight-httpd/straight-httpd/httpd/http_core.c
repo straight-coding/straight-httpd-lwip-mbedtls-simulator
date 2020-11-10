@@ -1067,7 +1067,7 @@ static signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //alway
 						else if (Strnicmp(buffer+nLinePos, "Content-Length:", 15) == 0)
 						{
 							LogPrint(LOG_DEBUG_ONLY, "%s @ %d\r\n", buffer + nLinePos, context->_sid);
-							context->_contentLength = ston((u8_t*)buffer+nLinePos+15);
+							context->_contentLength = atol((char*)buffer+nLinePos+15);
 							context->_contentReceived = 0;
 						}
 						else if (Strnicmp(buffer+nLinePos, "Connection:", 11) == 0)

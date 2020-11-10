@@ -27,5 +27,10 @@ int  WEB_fseek(void* f, long offset);
 void WEB_fclose(void* f);
 long WEB_fsize(void* f);
 int  WEB_fread(void* f, char* buf, int count, unsigned int* bytes); //0=success
+int  WEB_fwrite(void* f, char* buf, int count); //>0:success
+
+void* WEB_firstdir(void* filter, int* isFolder, char* name, int maxLen, int* size, unsigned long long* date);   /* date/time in unix secs past 1-Jan-70 */
+int   WEB_readdir(void* hFind, int* isFolder, char* name, int maxLen, int* size, unsigned long long* date);     /* date/time in unix secs past 1-Jan-70 */
+void  WEB_closedir(void* hFind);
 
 #endif

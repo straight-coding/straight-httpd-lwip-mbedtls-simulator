@@ -8,6 +8,10 @@
 
 #include "../http_cgi.h"
 
+#ifdef WIN32
+#define Strnicmp strnicmp
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern void LogPrint(int level, char* format, ... );
@@ -41,9 +45,9 @@ struct CGI_Mapping g_cgiAuth = {
 static int CheckUser(char* u, char* p)
 {
 	int success = 0;
-	if ((stricmp(u, "admin") == 0))// && (stricmp(p, "password") == 0))
+	if ((Strnicmp(u, "admin", 5) == 0))// && (stricmp(p, "password") == 0))
 		success = 1;
-	else if ((stricmp(u, "user") == 0))// && (stricmp(p, "password") == 0))
+	else if ((Strnicmp(u, "user", 4) == 0))// && (stricmp(p, "password") == 0))
 		success = 1;
 	return success;
 }
@@ -120,7 +124,7 @@ static void Auth_OnRequestReceived(REQUEST_CONTEXT* context)
 {
 	SSI_Context* ctxSSI = (SSI_Context*)context->ctxResponse._appContext;
 
-	if (stricmp(context->_requestPath, WEB_SESSION_CHECK) == 0)
+	if (Strnicmp(context->_requestPath, WEB_SESSION_CHECK, strlen(WEB_SESSION_CHECK)) == 0)
 	{ //session exists?
 		if (context->_session == NULL)
 			context->_result = CODE_UNAUTHORIZED; ////Unauthorized (RFC 7235)
@@ -129,7 +133,7 @@ static void Auth_OnRequestReceived(REQUEST_CONTEXT* context)
 		return;
 	}
 
-	if (stricmp(context->_requestPath, WEB_LOGOUT_PAGE) == 0)
+	if (Strnicmp(context->_requestPath, WEB_LOGOUT_PAGE, strlen(WEB_LOGOUT_PAGE)) == 0)
 	{ //logout
 		SessionKill(context->_session);
 
@@ -140,7 +144,7 @@ static void Auth_OnRequestReceived(REQUEST_CONTEXT* context)
 		return;
 	}
 
-	if ((context->_requestMethod == METHOD_POST) && (stricmp(context->_requestPath, WEB_DEFAULT_PAGE) == 0))
+	if ((context->_requestMethod == METHOD_POST) && (Strnicmp(context->_requestPath, WEB_DEFAULT_PAGE, strlen(WEB_DEFAULT_PAGE)) == 0))
 	{ //login
 		int success = AuthCheck(context);
 		memset(ctxSSI, 0, sizeof(SSI_Context)); //clear after OnAuthCheck
@@ -167,9 +171,9 @@ static void Auth_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo
 { //append headers
 	int nSize = strlen(context->ctxResponse._sendBuffer);
 
-	if (stricmp(context->_requestPath, WEB_LOGOUT_PAGE) == 0)
+	if (Strnicmp(context->_requestPath, WEB_LOGOUT_PAGE, strlen(WEB_LOGOUT_PAGE)) == 0)
 		LWIP_sprintf(context->ctxResponse._sendBuffer + nSize, "X-Auth-Token: SID=\r\nSet-Cookie: SID=; Path=/; HttpOnly; max-age=3600\r\n");
-	else if ((context->_requestMethod == METHOD_POST) && (stricmp(context->_requestPath, WEB_DEFAULT_PAGE) == 0))
+	else if ((context->_requestMethod == METHOD_POST) && (Strnicmp(context->_requestPath, WEB_DEFAULT_PAGE, strlen(WEB_DEFAULT_PAGE)) == 0))
 	{
 		if ((context->ctxResponse._authorized == CODE_OK) && (context->ctxResponse._token[0] != 0))
 		{

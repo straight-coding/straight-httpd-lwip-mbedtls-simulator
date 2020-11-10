@@ -3,13 +3,43 @@
 #ifndef __LWIPOPTS_H__
 #define __LWIPOPTS_H__
 
-/* ---------- Memory options ---------- */
+/*
+   if lwip is used with mbedtls package, there are three options that need to be set carefully.
+	MEM_SIZE: More memory is better
+	TCP_MSS:  MUST be bigger enough
+	TCP_WND:  MUST be greater than MBEDTLS_SSL_MAX_CONTENT_LEN (it could not be changed less than 16384)
+*/
 
-/* if you define MEMP_MEM_MALLOC to 1 in your lwipopts.h,
-   *every* piece of dynamically allocated memory will come from the *heap* (the size of which is defined by MEM_SIZE).  
-   -- this is the *heap* and it is allocated as mem_memory. */
-#undef MEMP_MEM_MALLOC
-#define MEMP_MEM_MALLOC 		1
+/* ---------- Memory options ---------- */
+/* MEM_LIBC_MALLOC==1: Use malloc/free/realloc provided by your C-library
+ * instead of the lwip internal allocator. Can save code size if you
+ * already use it. */
+#undef  MEM_LIBC_MALLOC
+#define MEM_LIBC_MALLOC         0
+
+/* MEMP_MEM_MALLOC==1: Use mem_malloc/mem_free instead of the lwip pool allocator.
+ * Especially useful with MEM_LIBC_MALLOC but handle with care regarding execution
+ * speed (heap alloc can be much slower than pool alloc) and usage from interrupts
+ * (especially if your netif driver allocates PBUF_POOL pbufs for received frames
+ * from interrupt)!
+ * ATTENTION: Currently, this uses the heap for ALL pools (also for private pools,
+ * not only for internal pools defined in memp_std.h)! */
+#undef  MEMP_MEM_MALLOC
+#define MEMP_MEM_MALLOC 		1 //Only one can be selected with MEM_USE_POOLS
+
+/* MEM_USE_POOLS==1: Use an alternative to malloc() by allocating from a set
+ * of memory pools of various sizes. When mem_malloc is called, an element of
+ * the smallest pool that can provide the length needed is returned.
+ * To use this, MEMP_USE_CUSTOM_POOLS also has to be enabled. */
+#undef  MEM_USE_POOLS
+#define MEM_USE_POOLS           0 //Only one can be selected with MEMP_MEM_MALLOC
+
+/* MEM_SIZE: the size of the heap memory. If the application will send
+a lot of data that needs to be copied, this should be set high. */
+//100KB to support large file downloading and uploading, and keep-alive works good
+//57KB basic memory to create TLS connections, and support large file downloading and uploading, but keep-alive may fail
+#undef  MEM_SIZE
+#define MEM_SIZE                (160*1024) 
 
 /* ---------- Memory options ---------- */
 /* MEM_ALIGNMENT: should be set to the alignment of the CPU for which
@@ -17,19 +47,6 @@
    byte alignment -> define MEM_ALIGNMENT to 2. */
 #undef  MEM_ALIGNMENT
 #define MEM_ALIGNMENT           4
-
-/* MEM_SIZE: the size of the heap memory. If the application will send
-a lot of data that needs to be copied, this should be set high. */
-//100KB to support large file downloading and uploading, and keep-alive works good
-//57KB basic memory to create TLS connections, and support large file downloading and uploading, but keep-alive may fail
-#undef MEM_SIZE
-#define MEM_SIZE                (100*1024) 
-
-/* MEMP_NUM_PBUF: the number of memp struct pbufs. If the application
-   sends a lot of data out of ROM (or other static memory), this
-   should be set high. */
-#undef MEMP_NUM_PBUF
-#define MEMP_NUM_PBUF           10
 
 /* MEMP_NUM_RAW_PCB: Number of raw connection PCBs 
    (requires the LWIP_RAW option) */
@@ -53,40 +70,16 @@ a lot of data that needs to be copied, this should be set high. */
 #undef MEMP_NUM_TCP_SEG
 #define MEMP_NUM_TCP_SEG        32
 
-/* MEMP_NUM_SYS_TIMEOUT: the number of simulateously active timeouts. */
-#define MEMP_NUM_SYS_TIMEOUT    10
-
 #define ETH_PAD_SIZE			0 
 #define LWIP_TCP                1
-
-/* TCP_TTL: Default Time-To-Live value. */
-#undef TCP_TTL
-#define TCP_TTL                 255
 
 /* TCP Maximum segment size. http://lwip.wikia.com/wiki/Tuning_TCP */
 #undef TCP_MSS
 #define TCP_MSS                 800//(1500 - 40)	  /* TCP_MSS = (Ethernet MTU - IP header size - TCP header size) */
 
-/* TCP sender buffer space (bytes). */
-#undef TCP_SND_BUF
-#define TCP_SND_BUF             (2 * TCP_MSS)
-
-/* TCP sender buffer space (pbufs). This must be at least = 2 * TCP_SND_BUF/TCP_MSS for things to work. */
-#undef TCP_SND_QUEUELEN
-#define TCP_SND_QUEUELEN        (6 * TCP_SND_BUF)/TCP_MSS
-
 /* TCP receive window. */
 #undef TCP_WND
 #define TCP_WND                 (22 * TCP_MSS) //TCP_WND >= MBEDTLS_SSL_MAX_CONTENT_LEN
-
-/* ---------- Pbuf options ---------- */
-/* PBUF_POOL_SIZE: the number of buffers in the pbuf pool. */
-#undef PBUF_POOL_SIZE
-#define PBUF_POOL_SIZE          128
-
-/* PBUF_POOL_BUFSIZE: the size of each pbuf in the pbuf pool. */
-#undef PBUF_POOL_BUFSIZE
-#define PBUF_POOL_BUFSIZE       LWIP_MEM_ALIGN_SIZE(TCP_MSS + 40 + (14 + ETH_PAD_SIZE))
 
 /* Controls if TCP should queue segments that arrive out of
    order. Define to 0 if your device is low on memory. */
@@ -124,10 +117,6 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* LWIP_UDP==1: Turn on UDP. */
 #define LWIP_UDP                1
-
-/* UDP_TTL: Default Time-To-Live value. */
-#undef UDP_TTL
-#define UDP_TTL                 255
 
 /* DEFAULT_UDP_RECVMBOX_SIZE: The mailbox size for the incoming packets on a
  * NETCONN_UDP. The queue size value itself is platform-dependent, but is passed
@@ -205,22 +194,10 @@ a lot of data that needs to be copied, this should be set high. */
 #define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_ALL //LWIP_DBG_LEVEL_WARNING	//LWIP_DBG_LEVEL_ALL
 #define LWIP_DBG_TYPES_ON               LWIP_DBG_ON
 
-#define ETHARP_DEBUG                    LWIP_DBG_OFF
-#define NETIF_DEBUG                     LWIP_DBG_OFF
-#define PBUF_DEBUG                      LWIP_DBG_OFF
-#define API_LIB_DEBUG                   LWIP_DBG_OFF
-#define API_MSG_DEBUG                   LWIP_DBG_OFF
-#define SOCKETS_DEBUG                   LWIP_DBG_OFF
-#define ACD_DEBUG						LWIP_DBG_OFF
 #define ICMP_DEBUG                      LWIP_DBG_OFF
 #define IGMP_DEBUG                      LWIP_DBG_OFF
-#define INET_DEBUG                      LWIP_DBG_OFF
-#define IP_DEBUG                        LWIP_DBG_OFF
-#define IP_REASS_DEBUG                  LWIP_DBG_OFF
-#define RAW_DEBUG                       LWIP_DBG_OFF
 #define MEM_DEBUG                       LWIP_DBG_OFF
 #define MEMP_DEBUG                      LWIP_DBG_OFF
-#define SYS_DEBUG                       LWIP_DBG_OFF
 #define TIMERS_DEBUG                    LWIP_DBG_OFF
 #define TCP_DEBUG                       LWIP_DBG_OFF
 #define TCP_INPUT_DEBUG                 LWIP_DBG_OFF
@@ -233,10 +210,7 @@ a lot of data that needs to be copied, this should be set high. */
 #define TCP_QLEN_DEBUG                  LWIP_DBG_OFF
 #define UDP_DEBUG                       LWIP_DBG_OFF
 #define TCPIP_DEBUG                     LWIP_DBG_OFF
-#define SLIP_DEBUG                      LWIP_DBG_OFF
 #define DHCP_DEBUG                      LWIP_DBG_OFF
-#define AUTOIP_DEBUG                    LWIP_DBG_OFF
-#define DNS_DEBUG                       LWIP_DBG_OFF
 #define SSDP_DEBUG                      LWIP_DBG_ON
 #define REST_DEBUG         				LWIP_DBG_ON
 

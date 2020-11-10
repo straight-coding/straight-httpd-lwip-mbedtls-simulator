@@ -97,13 +97,6 @@ static const char *cert = "-----BEGIN CERTIFICATE-----\n"\
 
 #endif
 
-#if (LWIP_ALTCP_TLS > 0)
-#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
-unsigned char memory_buf[2 * 1024];
-extern void mbedtls_memory_buffer_alloc_init(unsigned char *buf, size_t len);
-#endif
-#endif
-
 extern sys_mbox_t tcpip_mbox;
 
 struct netif main_netif;
@@ -192,9 +185,6 @@ struct altcp_tls_config* getTlsConfig(void)
 	size_t privkey_pass_len = strlen(privkey_pass) + 1;
 	size_t cert_len = strlen(cert) + 1;
 
-	//mbedtls_memory_buffer_alloc_init(memory_buf, sizeof(memory_buf));
-	//mbedtls_threading_set_alt(mutex_init, mutex_free, mutex_lock, mutex_unlock);
-
 	conf = altcp_tls_create_config_server_privkey_cert((u8_t*)privkey, privkey_len, (u8_t*)privkey_pass, privkey_pass_len, (u8_t*)cert, cert_len);
 	mbedtls_debug_set_threshold(MBEDTLS_DEBUG_LEVEL); //0 No debug,1 Error,2 State change,3 Informational,4 Verbose
 	
@@ -229,12 +219,6 @@ int mbedtls_platform_std_nv_seed_write(unsigned char *buf, size_t buf_len)
 
 void LwipInit(void)
 {
-#if (LWIP_ALTCP_TLS > 0)
-#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
-	mbedtls_memory_buffer_alloc_init(memory_buf, sizeof(memory_buf));
-#endif
-#endif
-
 #ifdef MBEDTLS_ENTROPY_NV_SEED
 	{
 		memset(g_bySeed, 0xAA, sizeof(g_bySeed));

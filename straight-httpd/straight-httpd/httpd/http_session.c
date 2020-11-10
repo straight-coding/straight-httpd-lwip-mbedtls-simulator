@@ -16,7 +16,9 @@ extern int  Strnicmp(char *str1, char *str2, int n);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#if !NO_SYS
 static sys_mutex_t		g_sessionMutex;
+#endif
 static SESSION			g_httpSessions[MAX_SESSIONS];
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -96,7 +98,7 @@ int SessionTypes(char* extension)
 	{
 		return 1;
 	}
-
+/*
 	if ((extension[0] == 0) ||
 		(Strnicmp(extension, "htm", 3) == 0) ||
 		(Strnicmp(extension, "html", 4) == 0) ||
@@ -107,7 +109,7 @@ int SessionTypes(char* extension)
 	{
 		return 1;
 	}
-	return 0;
+	return 0;*/
 }
 
 SESSION* GetSession(char* token)
@@ -115,32 +117,40 @@ SESSION* GetSession(char* token)
 	int i;
 	if ((token != NULL) && (token[0] != 0))
 	{
+		int nTotalCount = 0;
 		for (i = 0; i < MAX_SESSIONS; i++)
 		{
 			if (g_httpSessions[i]._token[0] == 0)
 				continue;
 
+			LogPrint(0, "Compare session: [%s] ? [%s]", token, g_httpSessions[i]._token);
+			nTotalCount ++;
+			
 			if (strstr(token, g_httpSessions[i]._token) != NULL)
+			{
+				LogPrint(0, "Session found: %s from %08lX", g_httpSessions[i]._token, g_httpSessions[i]._nLoginIP);
 				return &g_httpSessions[i];
+			}
 		}
+		LogPrint(0, "No such a session: %s, total=%d", token, nTotalCount);
 	}
 	return NULL;
 }
 
-void SessionCheck(void) //called when header 'X-Auth-Token' or 'Cookie' received, also called after all headers received
+void SessionCheck(long long tick) //called when header 'X-Auth-Token' or 'Cookie' received, also called after all headers received
 {
 	int i;
 	sys_mutex_lock(&g_sessionMutex);
 	{
-		unsigned long recvElapsed;
-		unsigned long sendElapsed;
+		unsigned long long recvElapsed;
+		unsigned long long sendElapsed;
 
 		for (i = 0; i < MAX_SESSIONS; i++)
 		{
 			if (g_httpSessions[i]._token[0] == 0)
 				continue;
 
-			recvElapsed = LWIP_GetTickCount();
+			recvElapsed = tick;
 			sendElapsed = recvElapsed;
 
 			if (recvElapsed == 0) recvElapsed = 1;

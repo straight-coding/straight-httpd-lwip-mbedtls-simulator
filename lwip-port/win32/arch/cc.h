@@ -108,11 +108,11 @@ typedef signed     long		mem_ptr_t; /* Unsigned 32 bit quantity        */
 
 /*--------------macros--------------------------------------------------------*/
 #ifndef LWIP_PLATFORM_ASSERT
-//#define LWIP_PLATFORM_ASSERT(x) //do {LwipLogPrint x;} while(0)
-#define LWIP_PLATFORM_ASSERT(x) \
-    do \
-    {   printf("Assertion \"%s\" failed at line %d in %s\n", x, __LINE__, __FILE__); \
-    } while(0)
+#define LWIP_PLATFORM_ASSERT(x) do {LwipLogPrint(x);} while(0)
+//#define LWIP_PLATFORM_ASSERT(x) \
+//    do \
+//    {   printf("Assertion \"%s\" failed at line %d in %s\n", x, __LINE__, __FILE__); \
+//    } while(0)
 #endif
 
 #ifndef LWIP_PLATFORM_DIAG

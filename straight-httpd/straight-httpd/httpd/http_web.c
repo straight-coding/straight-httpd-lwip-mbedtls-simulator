@@ -173,6 +173,7 @@ void WEB_RequestReceived(REQUEST_CONTEXT* context)
 
 		if (ctxSSI->_ssi == 0)
 		{
+#if (DATE_HEADER > 0)
 			time_t tFile = 0;
 
 			strcpy(ctxSSI->_lastModified, "Last-Modified: ");
@@ -193,6 +194,7 @@ void WEB_RequestReceived(REQUEST_CONTEXT* context)
 					strcat(ctxSSI->_lastModified, CRLF);
 				}
 			}
+#endif
 		}
 
 		context->_fileHandle = ctxSSI->_fp;

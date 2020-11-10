@@ -30,7 +30,7 @@ extern struct altcp_pcb* HttpdInit(int tls, unsigned long port);
 extern int HttpdStop(struct altcp_pcb *pcbListen);
 
 extern void SessionClearAll(void);
-extern void SessionCheck(void);
+extern void SessionCheck(long long tick);
 
 #include <winsock2.h>
 #pragma comment(lib, "Ws2_32.lib")
@@ -428,7 +428,7 @@ DWORD WINAPI AppThread(void* data)
 		{
 			if (tcpip_inloop() > 0)
 				continue;
-			SessionCheck();
+			SessionCheck(GetTickCount64());
 		}
 
 		PrintLwipStatus();
@@ -453,7 +453,7 @@ DWORD WINAPI AppThread(void* data)
 			if (tcpip_inloop() > 0)
 				continue;
 
-			SessionCheck();
+			SessionCheck(GetTickCount64());
 		}
 
 		if (g_pcbListen80 != NULL)

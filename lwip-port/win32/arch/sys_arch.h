@@ -3,7 +3,9 @@
 
 #include "lwip/err.h"
 
+#ifdef WIN32
 #pragma warning(disable:4996) //_CRT_SECURE_NO_WARNINGS
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // OS
@@ -74,12 +76,13 @@ void sys_arch_unprotect();
 char* getClock(char* buf, int maxSize);
 time_t parseHttpDate(char* s);
 
-const char wday_name[][4];
-const char mon_name[][4];
+extern const char wday_name[][4];
+extern const char mon_name[][4];
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // File
 ///////////////////////////////////////////////////////////////////////////////////////////
+#define LOCAL_FILE_SYSTEM	1
 
 typedef struct FILE LWIP_FIL;
 void* LWIP_fopen(const char* szTemp, const char* mode);
@@ -89,5 +92,10 @@ void LWIP_fclose(void* f);
 long LWIP_fsize(void* f);
 int  LWIP_fread(void* f, char* buf, int count, unsigned int* bytes); //0=success
 int  LWIP_fwrite(void* f, char* buf, int count); //>0:success
+
+void  MakeDeepPath(char* szPath);
+void* LWIP_firstdir(void* filter, int* isFolder, char* name, int maxLen, int* size, time_t* date);
+int   LWIP_readdir(void* hFind, int* isFolder, char* name, int maxLen, int* size, time_t* date);
+void  LWIP_closedir(void* hFind);
 
 #endif

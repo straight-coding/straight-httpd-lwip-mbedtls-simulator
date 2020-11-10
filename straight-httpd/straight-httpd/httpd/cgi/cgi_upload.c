@@ -11,9 +11,6 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern void LogPrint(int level, char* format, ... );
-extern void* LWIP_firstdir(void* filter, int* isFolder, char* name, int maxLen, int* size, time_t* date);
-extern int LWIP_readdir(void* hFind, int* isFolder, char* name, int maxLen, int* size, time_t* date);
-extern void LWIP_closedir(void* hFind);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -52,7 +49,7 @@ static long Upload_Start(void* context, char* szFileName, long nFileSize)
 {
 	REQUEST_CONTEXT* ctx = (REQUEST_CONTEXT*)context;
 
-	ctx->_fileHandle = LWIP_fopen(ctx->ctxResponse._appContext, "wb");
+	ctx->_fileHandle = WEB_fopen(ctx->ctxResponse._appContext, "wb");
 	if (ctx->_fileHandle == 0)
 	{
 		LogPrint(0, "Failed to create file %s @%d", ctx->ctxResponse._appContext, ctx->_sid);
@@ -69,7 +66,7 @@ static long Upload_GetFreeSize(unsigned long askForSize)
 
 static long Upload_Received(REQUEST_CONTEXT* context, unsigned char* pData, unsigned long dwLen)
 {
-	if (LWIP_fwrite(context->_fileHandle, (char*)pData, dwLen) > 0) //>0:success
+	if (WEB_fwrite(context->_fileHandle, (char*)pData, dwLen) > 0) //>0:success
 		return dwLen;  //real count consumed (etc. consume all)
 	return 0;
 }
@@ -78,7 +75,7 @@ static void Upload_AllReceived(REQUEST_CONTEXT* context)
 { //to upgrade after f/w completely received
 	LogPrint(0, "Post upgrade done: length=%d @%d", context->_contentLength, context->_sid);
 
-	LWIP_fclose(context->_fileHandle);
+	WEB_fclose(context->_fileHandle);
 }
 
 static int Upload_OnHeaderReceived(REQUEST_CONTEXT* context, char* header_line)

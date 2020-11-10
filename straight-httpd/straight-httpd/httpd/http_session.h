@@ -31,7 +31,7 @@ void SessionKill(SESSION* session);
 void SessionClearAll(void); //mutex used inside
 int  SessionTypes(char* extension);
 
-void SessionCheck(void);
+void SessionCheck(long long tick);
 void SessionReceived(SESSION* session);
 void SessionSent(SESSION* session);
 

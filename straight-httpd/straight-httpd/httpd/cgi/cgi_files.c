@@ -13,9 +13,6 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern void LogPrint(int level, char* format, ... );
-extern void* LWIP_firstdir(void* filter, int* isFolder, char* name, int maxLen, int* size, time_t* date);
-extern int LWIP_readdir(void* hFind, int* isFolder, char* name, int maxLen, int* size, time_t* date);
-extern void LWIP_closedir(void* hFind);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 static void Files_OnRequestReceived(REQUEST_CONTEXT* context);
@@ -86,10 +83,10 @@ static void Files_OnRequestReceived(REQUEST_CONTEXT* context)
 		char name[64];
 		int size;
 		time_t date;
-		ctxSSI->_fp = LWIP_firstdir(context->_responsePath, &isFolder, name, sizeof(name), &size, &date);
+		ctxSSI->_fp = WEB_firstdir(context->_responsePath, &isFolder, name, sizeof(name), &size, (unsigned long long*)&date);
 		if (ctxSSI->_fp != NULL)
 		{
-			LWIP_closedir(ctxSSI->_fp);
+			WEB_closedir(ctxSSI->_fp);
 			ctxSSI->_fp = NULL;
 		}
 	}
@@ -121,7 +118,7 @@ static int Files_ReadOneFileInfo(REQUEST_CONTEXT* context, char* buffer, int max
 		{
 			if (ctxSSI->_fp != NULL)
 			{
-				LWIP_closedir(ctxSSI->_fp);
+				WEB_closedir(ctxSSI->_fp);
 				ctxSSI->_fp = NULL;
 			}
 			return -1;
@@ -134,8 +131,7 @@ static int Files_ReadOneFileInfo(REQUEST_CONTEXT* context, char* buffer, int max
 			if (context->ctxResponse._dwOperStage == 0)
 			{ //first time to open dir
 				context->ctxResponse._dwOperStage++;
-
-				ctxSSI->_fp = LWIP_firstdir(context->_responsePath, &isFolder, name, sizeof(name), &size, &date);
+				ctxSSI->_fp = WEB_firstdir(context->_responsePath, &isFolder, name, sizeof(name), &size, (unsigned long long*)&date);
 				if (ctxSSI->_fp == NULL)
 				{ //empty folder
 					strcpy(buffer + outputCount, "{\"result\":0, \"data\":[]}");
@@ -149,9 +145,9 @@ static int Files_ReadOneFileInfo(REQUEST_CONTEXT* context, char* buffer, int max
 			{ //next file item
 				context->ctxResponse._dwOperStage++;
 
-				if (LWIP_readdir(ctxSSI->_fp, &isFolder, name, sizeof(name), &size, &date) <= 0)
+				if (WEB_readdir(ctxSSI->_fp, &isFolder, name, sizeof(name), &size, (unsigned long long*)&date) <= 0)
 				{ //no more files
-					LWIP_closedir(ctxSSI->_fp);
+					WEB_closedir(ctxSSI->_fp);
 					ctxSSI->_fp = NULL;
 
 					strcpy(buffer + outputCount, "]}");
