@@ -230,7 +230,7 @@ void WEB_AppendHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 		size = context->_rangeTo - context->_rangeFrom;
 
 		if (nHeadersSize == 0)
-			LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_range, context->_rangeFrom, context->_rangeTo-1, context->ctxResponse._dwTotal, GetContentType(context->_extension), size, "close");
+			LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_range, context->_rangeFrom, context->_rangeTo-1, context->ctxResponse._dwTotal, GetContentType(context->_extension), size, CONNECTION_HEADER);
 
 		context->ctxResponse._dwTotal = size;
 		WEB_fseek(context->_fileHandle, context->_rangeFrom);
@@ -238,12 +238,12 @@ void WEB_AppendHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 	else if (chunkHeader > 0)
 	{
 		if (nHeadersSize == 0)
-			LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_chunked, HttpCodeInfo, GetContentType(context->_extension), "", "close");
+			LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_chunked, HttpCodeInfo, GetContentType(context->_extension), "", CONNECTION_HEADER);
 	}
 	else
 	{
 		if (nHeadersSize == 0)
-			LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, GetContentType(context->_extension), context->ctxResponse._dwTotal, "close");
+			LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, HttpCodeInfo, GetContentType(context->_extension), context->ctxResponse._dwTotal, CONNECTION_HEADER);
 	}
 	nHeadersSize = strlen(context->ctxResponse._sendBuffer);
 

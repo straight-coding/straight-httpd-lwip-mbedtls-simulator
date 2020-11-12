@@ -12,6 +12,11 @@
 #include "lwip/opt.h"		//only for TCP_MSS definition
 #include "lwip/sys.h"
 
+#ifndef WIN32
+#include "log.h"
+#include "bsp.h"
+#endif
+
 #include "arch/port.h"		//for device information, network address
 #include "arch/sys_arch.h"	//for semaphore, mutex, mbox, file, time, tick, and log functions
 
@@ -42,6 +47,13 @@
 #define CODE_ENTITYTOOLARGE	-413	//Payload Too Large (RFC 7231)
 #define CODE_URITOOLONG		-414	//URI Too Long (RFC 7231)
 
+#define CONNECTION_HEADER	"keep-alive" //"close"
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// Function replacement
+#ifndef WIN32
+#define LWIP_GetTickCount 	BSP_GetTickCount
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // HTTP receiving FSM state
 
@@ -68,7 +80,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define MAX_CONNECTIONS 				5		//max concurrent socket connections
+#define MAX_CONNECTIONS 				4		//max concurrent socket connections
 #define MAX_REQ_BUF_SIZE				TCP_MSS	//length of the request header is up to MAX_REQ_BUF_SIZE bytes
 #define MAX_APP_CONTEXT_SIZE			512		//reserved buffer for app/cgi layer, such as SSI_Context peocessing
 
@@ -101,7 +113,7 @@ typedef struct _RESPONSE_CONTEXT
 	int 	_total2Send;	//total bytes to send
 	int 	_totalSent;		//total bytes already sent
 
-	unsigned long _tLastSent;		//tick of the last sent, for http_core.c
+	unsigned long long _tLastSent;		//tick of the last sent, for http_core.c
 	unsigned long _nSendTimeout; 	//60*1000, for http_core.c
 	
 	int 	_bytesLeft;				//remaining data length, for http_core.c
@@ -116,14 +128,15 @@ typedef struct _REQUEST_CONTEXT
 	int 	_state;			//HTTP FSM, for http_core.c
 	int 	_peer_closing;	//half close, for http_core.c
 	
-	unsigned long _tRequestStart;	//tick of the request began, for http_core.c
-	unsigned long _tLastReceived;	//tick of the last received, for http_core.c
+	unsigned long long _tRequestStart;	//tick of the request began, for http_core.c
+	unsigned long long _tLastReceived;	//tick of the last received, for http_core.c
 	unsigned long _nReceiveTimeout; //60*1000, for http_core.c
 
 	unsigned long  _https;		//is it HTTPS request? for redirecting from http to https
 	unsigned long  _ipRemote;	//keep user's IP when logged in
 	unsigned short _portRemote; //peer port
 	unsigned short _portLocal;  //local port: 80 or 443
+	int _checkAlive;			//keep-alive request, for http_core.c
 
 	sys_mutex_t* _pMutex; 		//not used because of single thread processing
 	int 	_killing;			//notification from other tasks

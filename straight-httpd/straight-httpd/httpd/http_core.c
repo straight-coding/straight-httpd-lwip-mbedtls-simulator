@@ -191,8 +191,8 @@ static REQUEST_CONTEXT* GetHttpContext(void)
 
 static int IsContextTimeout(REQUEST_CONTEXT* context) //called by OnHttpPoll
 {
-	unsigned long recvElapsed = LWIP_GetTickCount();
-	unsigned long sendElapsed = recvElapsed;
+	unsigned long long recvElapsed = LWIP_GetTickCount();
+	unsigned long long sendElapsed = recvElapsed;
 
 	if (recvElapsed == 0) recvElapsed = 1;
 	if (sendElapsed == 0) sendElapsed = 1;
@@ -623,7 +623,7 @@ int OnHttpReceive(void *arg, struct altcp_pcb *pcb, struct pbuf *p, err_t err) /
 			return ERR_OK;
 		}
 
-		if (Strnicmp(context->_requestPath, WEB_SESSION_CHECK, strlen(WEB_SESSION_CHECK)) != 0)
+		if (context->_checkAlive == 0)
 			SessionReceived(context->_session); //mutex used inside
 	}
 
@@ -702,7 +702,7 @@ int OnHttpSent(void *arg, struct altcp_pcb *pcb, u16_t len)
 	{
 		LogPrint(LOG_DEBUG_ONLY, "OnHttpSent, size=%d, err=%d  @%d", len, err, context->_sid);
 		
-		if (Strnicmp(context->_requestPath, WEB_SESSION_CHECK, strlen(WEB_SESSION_CHECK)) != 0)
+		if (context->_checkAlive == 0)
 			SessionSent(context->_session); //mutex used inside
 
 		context->ctxResponse._totalSent += len;
@@ -1052,6 +1052,8 @@ static signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //alway
 									}
 								}
 							}
+							
+							context->_checkAlive = 0;
 							context->_posQuestion = -1;
 							context->_requestPath[pathLen] = 0;
 							pathLen = URLDecode(context->_requestPath);
@@ -1062,6 +1064,9 @@ static signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //alway
 							ParseQueryString(context); //parameters will be separated
 							strcpy(context->_responsePath, context->_requestPath); //no parameters included
 
+							if (Strnicmp(context->_requestPath, WEB_SESSION_CHECK, strlen(WEB_SESSION_CHECK)) == 0)
+								context->_checkAlive = 1;
+							
 							CGI_SetCgiHandler(context);
 						}
 						else if (Strnicmp(buffer+nLinePos, "Content-Length:", 15) == 0)

@@ -82,7 +82,7 @@ static void Files_OnRequestReceived(REQUEST_CONTEXT* context)
 		int isFolder;
 		char name[64];
 		int size;
-		time_t date;
+		long long date;
 		ctxSSI->_fp = WEB_firstdir(context->_responsePath, &isFolder, name, sizeof(name), &size, (unsigned long long*)&date);
 		if (ctxSSI->_fp != NULL)
 		{
@@ -97,7 +97,7 @@ static void Files_SetResponseHeader(REQUEST_CONTEXT* context, char* HttpCodeInfo
 	if (context->_requestMethod == METHOD_GET)
 	{
 		if (context->_result == CODE_OK)
-			LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_chunked, HttpCodeInfo, "application/json", "", "close");
+			LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_chunked, HttpCodeInfo, "application/json", "", CONNECTION_HEADER);
 	}
 }
 
@@ -112,7 +112,7 @@ static int Files_ReadOneFileInfo(REQUEST_CONTEXT* context, char* buffer, int max
 		char name[128];
 		int size;
 		//int off = 0;
-		time_t date;
+		long long date;
 
 		if (context->ctxResponse._dwOperStage == STAGE_END)
 		{

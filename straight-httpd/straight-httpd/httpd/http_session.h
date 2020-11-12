@@ -18,8 +18,8 @@ typedef struct _SESSION
 	char _token[MAX_COOKIE_SIZE];	//for http_core.c
 
 	unsigned long _nLoginIP;
-	unsigned long _tLastReceived;	//tick of the last received
-	unsigned long _tLastSent;		//tick of the last sent
+	unsigned long long _tLastReceived;	//tick of the last received
+	unsigned long long _tLastSent;		//tick of the last sent
 }SESSION;	//size of SESSION: 44
 
 void SetupSession(void);
