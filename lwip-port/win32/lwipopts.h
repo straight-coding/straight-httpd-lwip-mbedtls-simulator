@@ -3,6 +3,8 @@
 #ifndef __LWIPOPTS_H__
 #define __LWIPOPTS_H__
 
+#define ENABLE_HTTPS	1
+
 /*
    if lwip is used with mbedtls package, there are three options that need to be set carefully.
 	MEM_SIZE: More memory is better
@@ -39,7 +41,11 @@ a lot of data that needs to be copied, this should be set high. */
 //100KB to support large file downloading and uploading, and keep-alive works good
 //57KB basic memory to create TLS connections, and support large file downloading and uploading, but keep-alive may fail
 #undef  MEM_SIZE
-#define MEM_SIZE                (160*1024) 
+#if (ENABLE_HTTPS > 0)
+#define MEM_SIZE                (100*1024) 
+#else
+#define MEM_SIZE                (24*1024) 
+#endif
 
 /* ---------- Memory options ---------- */
 /* MEM_ALIGNMENT: should be set to the alignment of the CPU for which
@@ -56,11 +62,11 @@ a lot of data that needs to be copied, this should be set high. */
 /* MEMP_NUM_UDP_PCB: the number of UDP protocol control blocks. One
    per active UDP "connection". */
 #undef MEMP_NUM_UDP_PCB
-#define MEMP_NUM_UDP_PCB        6
+#define MEMP_NUM_UDP_PCB        2
 
 /* MEMP_NUM_TCP_PCB: the number of simulatenously active TCP connections. */
 #undef MEMP_NUM_TCP_PCB
-#define MEMP_NUM_TCP_PCB        12
+#define MEMP_NUM_TCP_PCB        6
 
 /* MEMP_NUM_TCP_PCB_LISTEN: the number of listening TCP connections. */
 #undef MEMP_NUM_TCP_PCB_LISTEN
@@ -68,7 +74,7 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* MEMP_NUM_TCP_SEG: the number of simultaneously queued TCP segments. */
 #undef MEMP_NUM_TCP_SEG
-#define MEMP_NUM_TCP_SEG        32
+#define MEMP_NUM_TCP_SEG        16
 
 #define ETH_PAD_SIZE			0 
 #define LWIP_TCP                1
@@ -79,7 +85,11 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* TCP receive window. */
 #undef TCP_WND
+#if (ENABLE_HTTPS > 0)
 #define TCP_WND                 (22 * TCP_MSS) //TCP_WND >= MBEDTLS_SSL_MAX_CONTENT_LEN
+#else
+#define TCP_WND                 (4 * TCP_MSS) //TCP_WND >= MBEDTLS_SSL_MAX_CONTENT_LEN
+#endif
 
 /* Controls if TCP should queue segments that arrive out of
    order. Define to 0 if your device is low on memory. */
@@ -92,19 +102,19 @@ a lot of data that needs to be copied, this should be set high. */
  * The queue size value itself is platform-dependent, but is passed to
  * sys_mbox_new() when tcpip_init is called. */
 #undef TCPIP_MBOX_SIZE
-#define TCPIP_MBOX_SIZE			MAX_QUEUE_ENTRIES
+#define TCPIP_MBOX_SIZE			        64
 
 /* DEFAULT_TCP_RECVMBOX_SIZE: The mailbox size for the incoming packets on a
  * NETCONN_TCP. The queue size value itself is platform-dependent, but is passed
  * to sys_mbox_new() when the recvmbox is created. */
 #undef DEFAULT_TCP_RECVMBOX_SIZE
-#define DEFAULT_TCP_RECVMBOX_SIZE       MAX_QUEUE_ENTRIES
+#define DEFAULT_TCP_RECVMBOX_SIZE       64
 
 /* DEFAULT_ACCEPTMBOX_SIZE: The mailbox size for the incoming connections.
  * The queue size value itself is platform-dependent, but is passed to
  * sys_mbox_new() when the acceptmbox is created. */
 #undef DEFAULT_ACCEPTMBOX_SIZE
-#define DEFAULT_ACCEPTMBOX_SIZE         MAX_QUEUE_ENTRIES
+#define DEFAULT_ACCEPTMBOX_SIZE         64
 
 /* LWIP_ICMP==1: Enable ICMP module inside the IP stack.
  * Be careful, disable that make your product non-compliant to RFC1122 */
@@ -117,23 +127,6 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* LWIP_UDP==1: Turn on UDP. */
 #define LWIP_UDP                1
-
-/* DEFAULT_UDP_RECVMBOX_SIZE: The mailbox size for the incoming packets on a
- * NETCONN_UDP. The queue size value itself is platform-dependent, but is passed
- * to sys_mbox_new() when the recvmbox is created. */
-#undef DEFAULT_UDP_RECVMBOX_SIZE
-#define DEFAULT_UDP_RECVMBOX_SIZE       MAX_QUEUE_ENTRIES
-
-/* DEFAULT_RAW_RECVMBOX_SIZE: The mailbox size for the incoming packets on a
- * NETCONN_RAW. The queue size value itself is platform-dependent, but is passed
- * to sys_mbox_new() when the recvmbox is created. */
-#undef DEFAULT_RAW_RECVMBOX_SIZE
-#define DEFAULT_RAW_RECVMBOX_SIZE       MAX_QUEUE_ENTRIES
-
-/* DEFAULT_ACCEPTMBOX_SIZE: The mailbox size for the incoming connections.
- * The queue size value itself is platform-dependent, but is passed to
- * sys_mbox_new() when the acceptmbox is created. */
-#define DEFAULT_ACCEPTMBOX_SIZE         MAX_QUEUE_ENTRIES
 
 /* LWIP_STATS==1: Enable statistics collection in lwip_stats. */
 #undef LWIP_STATS
@@ -209,7 +202,6 @@ a lot of data that needs to be copied, this should be set high. */
 #define TCP_RST_DEBUG                   LWIP_DBG_OFF
 #define TCP_QLEN_DEBUG                  LWIP_DBG_OFF
 #define UDP_DEBUG                       LWIP_DBG_OFF
-#define TCPIP_DEBUG                     LWIP_DBG_OFF
 #define DHCP_DEBUG                      LWIP_DBG_OFF
 #define SSDP_DEBUG                      LWIP_DBG_ON
 #define REST_DEBUG         				LWIP_DBG_ON
@@ -238,8 +230,13 @@ a lot of data that needs to be copied, this should be set high. */
 
 #define LWIP_ALTCP						1
 
+#if (ENABLE_HTTPS > 0)
 #define LWIP_ALTCP_TLS					1
 #define LWIP_ALTCP_TLS_MBEDTLS          1
+#else
+#define LWIP_ALTCP_TLS					0
+#define LWIP_ALTCP_TLS_MBEDTLS          0
+#endif
 
 #define ALTCP_MBEDTLS_DEBUG             LWIP_DBG_ON
 //#define ALTCP_MBEDTLS_SESSION_CACHE_TIMEOUT_SECONDS   (3*60)
