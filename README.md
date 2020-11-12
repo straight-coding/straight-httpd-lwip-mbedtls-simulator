@@ -37,7 +37,7 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
 # Future work
 
 * Spport MQTT protocol.
-* Port httpd to a real embedded system, such as Cortex-M4 LPC40xx (Please refer to Project ['LPC407x-NoOS-LWIP-MBEDTLS-HTTPD-KEIL'](https://github.com/straight-coding/LPC407x-NoOS-LWIP-MBEDTLS-HTTPD-KEIL)).
+* Port httpd to a real embedded system, such as Cortex-M4 LPC40xx (Please refer to another project [LPC407x-NoOS-LWIP-MBEDTLS-HTTPD-KEIL](https://github.com/straight-coding/LPC407x-NoOS-LWIP-MBEDTLS-HTTPD-KEIL)).
 
 # Prerequisites
 
