@@ -212,10 +212,10 @@ struct member alignment 1 byte(/Zp1)
 
 | Device HTTP Events | CGI Adapter - Actions | Description |
 | ------------ |:-------------:| -------------:|
-| GET /app/index.shtml HTTP/1.1 |	CGI_SetCgiHandler(context)	| First request line |
-| Connection: keep-alive<br>Cookie: SID=0123ABCD<br>X-Auth-Token: SID=0123ABCD<br>Range: bytes=0-<br>If-Modified-Since:	| processed in http_core.c | Request headers  |
-| other headers	| CGI_HeaderReceived(context,line)		| Request headers |
-| all headers received	| Check session: GetSession(char* token)<br>CGI_HeadersReceived(context)	| End of the request headers	|
+| GET /app/index.shtml HTTP/1.1 |	CGI_SetCgiHandler(context)<br>查找绑定设置，找到处理函数	| First request line |
+| Connection: keep-alive<br>Cookie: SID=0123ABCD<br>X-Auth-Token: SID=0123ABCD<br>Range: bytes=0-<br>If-Modified-Since:	| processed in http_core.c<br>默认处理一些解析需要的请求头 | Request headers  |
+| other headers	| CGI_HeaderReceived(context,line)<br>不关心的请求头留给回调处理 | Request headers |
+| all headers received	| Check session: GetSession(char* token)<br>找到已登录的会话<br>CGI_HeadersReceived(context)| End of the request headers	|
 | request completely received		| CGI_RequestReceived(context)		| Ready to response  |
 | send response headers		| CGI_SetResponseHeaders(context,codeInfo)		| Response headers	| 
 | response with content		| CGI_LoadContentToSend(context, caller)		| Response body	| 
