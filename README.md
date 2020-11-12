@@ -22,7 +22,7 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
 
 * Support `SSDP` protocol: neighbours can detect this virtual device in the network.
 * Support `HTTPS`: all HTTP requests will be redirected to HTTPS (except SSDP XML). Both `GET` and `POST` are supported.
-* Support `HTTP/1.1 pipelining` and `keep-alive`.
+* Support `HTTP/1.1 pipelining` and `keep-alive`. It is better for HTTPS to reuse connections because creating new connections is time consuming.
 * Support `chunked` response: Because the device memory is limited, generally it is not possible to wait for all the data to be ready before replying. When the device begins to return data, it does not know the total length. `Transfer-Encoding: chunked` allows you to split the data into chunks of various lengths, so that every chunk is within the device’s memory limit.
 * Support `range` request: `Range: bytes=0-` allows you to specify a single range. This feature is suitable for paged data, multi-threaded downloading or video fast forwarding.
 * Support request header `If-Modified-Since` for browsers to cache static files.
