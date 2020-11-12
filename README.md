@@ -123,7 +123,7 @@ case ETHNET_INPUT: //2020-03-29 added by straight coder
 struct member alignment 1 byte(/Zp1)
 ```
 
-# Structure for CGI mapping
+# Structure for CGI mapping (定义请求路径、http接收事件与处理函数之间的绑定关系)
 
 ```
     struct CGI_Mapping
@@ -152,6 +152,7 @@ struct member alignment 1 byte(/Zp1)
  * Functions for CGI processing
 ``` 
     //setup mapping when initializing httpd context
+    //建立所有的路径、事件和函数的绑定关系
     void CGI_SetupMapping(void); 
    
     //cancel notification to app layer because of any HTTP fatal errors
