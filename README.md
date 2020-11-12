@@ -30,8 +30,8 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
 * Demo pages include:
   * **Sign in/out**: verify user's username/password, if successful, redirect to "**Home**", otherwise stay in the login page, the session has 3 minutes timeout after login.
   * **Home** page:  show some device information and the current status of the device, and scan the QR code to access the device web.
-  * **Upload** page: multiple files can be selected and queued to be uploaded to a specific device directory. The concurrency is 1, and every upload process can be terminated separately.
-  * **Files** page: you can browse all the files in the specified device directory, enter subdirectories or return to the parent directory. In addition, all files could be downloaded.
+  * **Upload** page: multiple files can be selected and queued to be uploaded to a specific device directory. The concurrency is 1, and every upload process can be terminated separately. Support large files.
+  * **Files** page: you can browse all the files in the specified device directory, enter subdirectories or return to the parent directory. In addition, all files could be downloaded. Support large files.
   * **Form** page: demonstrates parameter modification and saving.
 
 # Future work
