@@ -1,6 +1,6 @@
 # straight-httpd
 
-Simple httpd demo for embedded systems based on lwip and mbedtls. The goal of this project is to build a prototype system to simulate web services on an embedded system. The simulator has the following benefits (本项目的目标是搭建一个原型系统来模拟嵌入式系统上的 web 服务，利用该模拟器有如下好处):
+Simple httpd demo for embedded systems based on lwip and mbedtls (本项目是基于 lwip 和 mbedtls 开发的 http server 原型). The goal of this project is to build a prototype system to simulate web services on an embedded system. The simulator has the following benefits (本项目的目标是搭建一个原型系统来模拟嵌入式系统上的 web 服务，利用该模拟器有如下好处):
 * The Windows platform is far more powerful than any MCU, and `Microsoft Visual Studio` has powerful debugging tools, so debugging will be much more efficient (Windows平台远比任何MCU强大，加上 Visual Studio 丰富的调试手段，让调试效率大大提高).
 * When working with a team, if only limited hardware or `J-TAG emulators` are available, some features that do not depend on the hardware can be developed using this prototype simultaneously (团队开发时，如果硬件环境不足、或J-TAG仿真器数量有限时，不依赖硬件环境的某些应用可以进行同步开发).
 * `lwip` and `mbedtls` have a lot of optional parameters, which need to be optimized for different embedded systems. To compare parameters, extensive experimentation is required, and this prototype can help speed up this process (`lwip` 和 `mbedtls` 有非常多的可选参数，如何优化参数以适应不同的嵌入式系统，需要大量的比较实验，该模拟环境可以大大缩减实验周期).
@@ -21,6 +21,7 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
 
 * Support `SSDP` protocol: neighbours can detect this virtual device in the network.
 * Support `HTTPS`: all HTTP requests will be redirected to HTTPS (except SSDP XML). Both `GET` and `POST` are supported.
+* Support `HTTP/1.1 pipelining` and `keep-alive`.
 * Support `chunked` response: Because the device memory is limited, generally it is not possible to wait for all the data to be ready before replying. When the device begins to return data, it does not know the total length. `Transfer-Encoding: chunked` allows you to split the data into chunks of various lengths, so that every chunk is within the device’s memory limit.
 * Support `range` request: `Range: bytes=0-` allows you to specify a single range. This feature is suitable for paged data, multi-threaded downloading or video fast forwarding.
 * Support request header `If-Modified-Since` for browsers to cache static files.
