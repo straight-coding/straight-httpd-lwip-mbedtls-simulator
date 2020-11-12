@@ -194,9 +194,15 @@ struct member alignment 1 byte(/Zp1)
     // 	  context->ctxResponse._dwOperStage = 0; //major progress, set _dwOperStage=STAGE_END if it is the last data chunk
     //	  context->ctxResponse._dwOperIndex = 0; //sub-progress for each stage, for app layer internal use
     //    caller: called from HTTP_PROC_CALLER_RECV (event) / HTTP_PROC_CALLER_POLL (timer) / HTTP_PROC_CALLER_SENT (event)
+    // int (*ReadContent)(REQUEST_CONTEXT* context, char* buffer, int maxSize); //need to be implemented by upper level
     //  return 1 if data is ready to send
     //	  data MUST be put in context->ctxResponse._sendBuffer, 
     //         and the buffer size set to context->ctxResponse._bytesLeft before return
+    //来自lwip的OnReceive和OnPoll会触发该接口的调用，上层需要提供绑定函数ReadContent(REQUEST_CONTEXT* context, char* buffer, int maxSize)
+    //该函数从上层获取最多maxSize字节数据用于发送，具体发送进度控制需要在回调ReadContent中实现：
+    //请求上下文中有两个变量可用于进度控制：
+    //    主进度变量_dwOperStage：如果是最后一块数据，调用结束时置为STAGE_END，其他值由用户控制
+    //    辅进度变量_dwOperIndex：如果需要用到两级进度、或仅仅是做个判断标记，该变量也用得上
     int CGI_LoadContentToSend(REQUEST_CONTEXT* context, int caller);
 ```
 
