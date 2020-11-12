@@ -2,6 +2,7 @@
 //
 
 #include "pch.h"
+#include "Shlwapi.h"
 
 #include <iostream>
 #include <vector>
@@ -11,11 +12,15 @@ using namespace std;
 
 #pragma warning(disable:4996) //_CRT_SECURE_NO_WARNINGS
 
+#define ATTRI_GZIP	0x00000001
+
 typedef struct _http_file_info
 {
 	unsigned long nIndex;
-	unsigned long tLastModified;
 	unsigned long nSize;
+	unsigned long long tLastModified;
+	unsigned long nAttributes;
+	unsigned long nReserved;
 	unsigned long nOffsetFileData; //file content offset
 	unsigned long nOffsetNextFile; // ==> _http_file_info*
 }http_file_info;
@@ -28,12 +33,12 @@ int  LWIP_readdir(void* hFind, int* isFolder, char* name, int maxLen, int* size,
 void LWIP_closedir(void* hFind);
 void LWIP_sprintf(char* buf, const char* format, ...);
 
-const char* pRootFolder = "../straight-httpd/httpd/cncweb/";
-const char* fsBin = "../straight-httpd/httpd/fs.bin";
-const char* fsData = "../straight-httpd/httpd/fs_data.c";
+char pRootFolder[512];// = "../straight-httpd/httpd/cncweb/";
+char fsBin[512];// = "../straight-httpd/httpd/fs.bin";
+char fsData[512];// = "../straight-httpd/httpd/fs_data.c";
 BYTE szBuffer[8192];
 
-int main()
+int main(int argc, char** argv)
 {
 	int isFolder;
 	char name[MAX_PATH];
@@ -42,9 +47,47 @@ int main()
 	time_t date;
 	vector<CString> folderList;
 	map<int, vector<CString>> filesByNameLen;
-	int rootLen = strlen(pRootFolder)-1;
+	CString strPath;
 
-	TRACE("sizeof(http_file_info) = %d\r\n", sizeof(http_file_info));
+	memset(pRootFolder, 0, sizeof(pRootFolder));
+	memset(fsBin, 0, sizeof(fsBin));
+	memset(fsData, 0, sizeof(fsData));
+
+	if ((argc != 3) || (strlen(argv[argc-2]) == 0) || (strlen(argv[argc-1]) == 0))
+	{
+		printf("Usage: straight-buildfs.exe <webroot folder> <output source folder>\r\n");
+		exit(0);
+	}
+
+	strPath = argv[argc-2];
+	strPath.Trim();
+	strPath.Replace("\\", "/");
+	if (strPath.Right(1) != "/")
+		strPath += "/";
+	strcpy(pRootFolder, strPath);
+
+	strPath = argv[argc-1];
+	strPath.Trim();
+	strPath.Replace("\\", "/");
+	if (strPath.Right(1) != "/")
+		strPath += "/";
+	strPath += "fs.bin";
+	strcpy(fsBin, strPath);
+
+	strPath = argv[argc-1];
+	strPath.Trim();
+	strPath.Replace("\\", "/");
+	if (strPath.Right(1) != "/")
+		strPath += "/";
+	strPath += "fs_data.c";
+	strcpy(fsData, strPath);
+
+	printf("Web root: %s\r\n", pRootFolder);
+	printf("fs.bin: %s\r\n", fsBin);
+	printf("fs-data.c: %s\r\n", fsData);
+	printf("sizeof(http_file_info) = %d\r\n", sizeof(http_file_info));
+
+	int rootLen = strlen(pRootFolder)-1;
 
 	folderList.push_back(pRootFolder);
 	while (folderList.size() > 0)
@@ -67,20 +110,24 @@ int main()
 				//TRACE("%s%s\r\n", strFilter.Mid(rootLen), name);
 
 				strSubFolder.Format("%s%s/", strFilter, name);
-				folderList.push_back(strSubFolder);
+				if (strSubFolder.Right(11) != "/app/cache/")
+					folderList.push_back(strSubFolder);
 			}
 			else
 			{
 				CString filePath;
 				filePath.Format("%s%s", strFilter.Mid(rootLen), name);
-				int nLen = filePath.GetLength();
-				if (filesByNameLen.find(nLen) == filesByNameLen.end())
+				if (stricmp(filePath.Right(4), ".bak") != 0)
 				{
-					vector<CString> fileList;
-					filesByNameLen[nLen] = fileList;
+					int nLen = filePath.GetLength();
+					if (filesByNameLen.find(nLen) == filesByNameLen.end())
+					{
+						vector<CString> fileList;
+						filesByNameLen[nLen] = fileList;
+					}
+					printf("%s\r\n", filePath);
+					filesByNameLen[nLen].push_back(filePath);
 				}
-				TRACE("%s\r\n", filePath);
-				filesByNameLen[nLen].push_back(filePath);
 			}
 
 			if (LWIP_readdir(fp, &isFolder, name, sizeof(name), &size, &date) <= 0)
@@ -108,7 +155,7 @@ int main()
 
 				CString strFilePath;
 				strFilePath.Format("%s%s", pRootFolder, iter->second[i].Mid(1));
-				TRACE("%s\r\n", iter->second[i]);
+				printf("%s\r\n", iter->second[i]);
 
 				file.Open(strFilePath, CFile::modeRead | CFile::typeBinary | CFile::shareDenyNone, NULL);
 				if (file.m_hFile != CFile::hFileNull)
@@ -117,32 +164,46 @@ int main()
 
 					file.GetStatus(status);
 
-					fileInfo.tLastModified = (unsigned long)status.m_mtime.GetTime();
+					//fileInfo.nAttributes |= ATTRI_GZIP;
+					fileInfo.tLastModified = status.m_mtime.GetTime();
 					fileInfo.nSize = (unsigned long)status.m_size;
 					fileInfo.nIndex = nFileIndex ++; // status.m_attribute;
 
 					memset(path, 0, sizeof(path));
 					sprintf(path, "%s", iter->second[i]);
 
-					int nIndexSize = sizeof(fileInfo) + strlen(path) + 1;
+					int nPathLen4 = strlen(path)+1;
+					nPathLen4 = ((nPathLen4 + 3) & 0xFFFFFFFC); //4-byte alignment
+
+					int nIndexSize = sizeof(fileInfo) + nPathLen4;
 
 					nOffsetWrite += nIndexSize;
 					fileInfo.nOffsetFileData = nOffsetWrite;
 
-					nOffsetWrite += fileInfo.nSize;
+					nOffsetWrite += ((fileInfo.nSize + 3) & 0xFFFFFFFC); //4-byte alignment
+					int nPadding = ((fileInfo.nSize + 3) & 0xFFFFFFFC) - fileInfo.nSize;
+
 					fileInfo.nOffsetNextFile = nOffsetWrite;
 
 					if (fBin.m_hFile != CFile::hFileNull)
 					{
 						fBin.Write(&fileInfo, sizeof(fileInfo));
-						fBin.Write(path, strlen(path)+1);
+						fBin.Write(path, nPathLen4);
 					}
 
 					while (TRUE)
 					{
 						int nRead = file.Read(szBuffer, sizeof(szBuffer));
 						if (nRead <= 0)
+						{
+							if (nPadding > 0)
+							{
+								long lPad = 0;
+								fBin.Write(&lPad, nPadding);
+							}
 							break;
+						}
+
 						if (fBin.m_hFile != CFile::hFileNull)
 						{
 							fBin.Write(szBuffer, nRead);
@@ -171,7 +232,7 @@ int main()
 		file.Open(fsData, CFile::modeCreate | CFile::modeReadWrite | CFile::typeBinary | CFile::shareDenyNone, NULL);
 		if (file.m_hFile != CFile::hFileNull)
 		{
-			CString strLine = "const unsigned char g_szWebRoot[] = {\r\n";
+			CString strLine = "const unsigned char g_szWebRoot[] __attribute__((aligned(4))) = {\r\n";
 			file.Write(strLine, strLine.GetLength());
 
 			int nCount = 0;
