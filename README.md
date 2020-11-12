@@ -148,6 +148,8 @@ struct member alignment 1 byte(/Zp1)
 	
 	struct CGI_Mapping* next;
     };
+    //其中的回调函数，如果不需要可以设置为 NULL，如：静态网页、SSI等已被http_core.c处理，就不需要额外处理
+    //像 POST 等需要特殊处理的，就需要增加相应的回调函数
 ```
  * Functions for CGI processing
 ``` 
