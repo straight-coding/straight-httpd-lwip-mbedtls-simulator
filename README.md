@@ -157,27 +157,36 @@ struct member alignment 1 byte(/Zp1)
    
     //cancel notification to app layer because of any HTTP fatal errors
     //  including timeout, format errors, sending failures, and stack keneral errors
+    //如果错误源自系统内部，如处理http时遇到内存不足、或连接错误等无法恢复的错误时，通过回调通知上层做相应处理（可选）
     void CGI_Cancel(REQUEST_CONTEXT* context);
 
     //called by FreeHttpContext()
+    //单次请求结束之前，回调通知上层做相应处理（可选）
     void CGI_Finish(REQUEST_CONTEXT* context);
 
     //called when the first line of the HTTP request is completely received
+    //收到http请求路径时，立即查找相关的绑定设置，只有CGI_SetupMapping定义过的绑定请求才会被处理
     void CGI_SetCgiHandler(REQUEST_CONTEXT* context);
 
     //if any HTTP request header/line is skipped by http-core.c, the following function will be called, return 1 if accepted
+    //如果请求头没有被http-core.c吃掉，就要看上层有没有定义回调函数以进行特殊处理
     int CGI_HeaderReceived(REQUEST_CONTEXT* context, char* header_line);
 
     //called when all HTTP request headers/lines are received
+    //所有请求头接收完毕，在此回调上层函数可以进行一些额外准备，以便消化紧接着的请求内容（如POST，或上载文件）
     void CGI_HeadersReceived(REQUEST_CONTEXT* context);
 
-    //called when any bytes of the HTTP request body are received (may be partial), and return the accepted count.
+    //called when any bytes of the HTTP request body are received (may be partial), and return the accepted count, 0 for blocking, or negative for error.
+    //上传内容收到后，回调上层函数，告知数据块位置和大小，经上层处理后，返回实际消化掉的字节数，0表示阻塞，负数表示接收遇错会导致连接关闭。
+    //如果回调只是消化了部分数据，那残余数据会被后续的数据继续触发、或被定时触发
     int CGI_ContentReceived(REQUEST_CONTEXT* context, char* buffer, int size);
 
     //called when the HTTP request body is completely received
+    //所有请求内容完全收到，且缓存内容被完全处理，下一步应该进入应答阶段
     void CGI_RequestReceived(REQUEST_CONTEXT* context);
 
     //set response headers: content-type, content-length, connection, and http code and status info
+    //响应请求的第一步是准备响应头，如填写响应数据类型、长度、错误码、或连接保持参数
     void CGI_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo);
 
     //load response body chunk by chunk
