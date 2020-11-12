@@ -11,6 +11,8 @@
 #include "arch/sys_arch.h"
 #include "http_fs.h"
 
+#define FAKE_FS		1
+
 #ifdef _WIN32
 #pragma warning(disable:4996) //_CRT_SECURE_NO_WARNINGS
 #endif
@@ -28,16 +30,37 @@ extern int  LWIP_fwrite(void* f, char* buf, int count); //>0:success
 
 #else
 #include "fs_data.c" //this file can be created using straight-buildfs.exe
-//static http_file_info* g_WebPages = (http_file_info*)g_szWebRoot; //web pages in ROM
+
+#if (FAKE_FS > 0)
+char* pFakeFile = "@@FakeFile%03dMB.dat";
+http_file_info fakeFiles[] __attribute__((aligned(4))) = {
+	{ 0,   1*1024*1024, 1605130877+0*60, 0, 0, 0, 0 },
+	{ 1,   2*1024*1024, 1605130877+1*60, 0, 0, 0, 0 },
+	{ 2,   8*1024*1024, 1605130877+2*60, 0, 0, 0, 0 },
+	{ 3,  16*1024*1024, 1605130877+3*60, 0, 0, 0, 0 },
+	{ 4,  64*1024*1024, 1605130877+4*60, 0, 0, 0, 0 },
+	{ 5, 128*1024*1024, 1605130877+5*60, 0, 0, 0, 0 },
+	{ 6, 256*1024*1024, 1605130877+6*60, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 0, 0, 0 }
+};
 #endif
 
-static unsigned long g_FilePosition[MAX_FILES]; //read pointers in RAM
+#endif
 
-void WEB_fs_init(void)
+typedef struct _file_handle
 {
+	http_file_info* pFileInfo;
+	unsigned long lReadPos;
+}file_handle;
+
+file_handle g_FileOpened[MAX_FILES];
+
+int WEB_fs_init(void)
+{
+	int nCount = 0;
+	
 #if (LOCAL_FILE_SYSTEM > 0)
 #else
-	int nCount = 0;
 	http_file_info* pWebFile = (http_file_info*)g_szWebRoot;
 	while (pWebFile->tLastModified != 0)
 	{
@@ -47,15 +70,10 @@ void WEB_fs_init(void)
 		pWebFile = (http_file_info*)(g_szWebRoot + pWebFile->nOffsetNextFile);
 		nCount++;
 	}
-	memset(g_FilePosition, 0, sizeof(g_FilePosition));
-
-	if (nCount > MAX_FILES)
-	{
-#ifdef WIN32
-		printf("MAX_FILES should be greater than %d\r\n", nCount);
 #endif
-	}
-#endif
+	
+	memset(g_FileOpened, 0, sizeof(g_FileOpened));
+	return nCount;
 }
 
 void* WEB_fopen(const char* szFile, const char* mode)
@@ -78,14 +96,49 @@ void* WEB_fopen(const char* szFile, const char* mode)
 	http_file_info* pWebFile = (http_file_info*)g_szWebRoot;
 	while (pWebFile->tLastModified != 0)
 	{
-		if ((strcmp(szFile, (char*)(pWebFile+1)) == 0) && (pWebFile->nIndex < MAX_FILES))
+		if (strcmp(szFile, (char*)(pWebFile+1)) == 0)
 		{
-			g_FilePosition[pWebFile->nIndex] = 0; //read position
-			return pWebFile;
+			int i;
+			for(i = 0; i < MAX_FILES; i ++)
+			{
+				if (g_FileOpened[i].pFileInfo == NULL)
+				{
+					g_FileOpened[i].pFileInfo = pWebFile;
+					g_FileOpened[i].lReadPos = 0;
+					return (&g_FileOpened[i]);
+				}
+			}
+			break;
 		}
 		pWebFile = (http_file_info*)(g_szWebRoot + pWebFile->nOffsetNextFile);
 	}
-	return 0;
+	
+#if (FAKE_FS > 0)
+	{
+		char szFakeName[128];
+		pWebFile = &fakeFiles[0];
+		while(pWebFile->nSize > 0)
+		{
+			sprintf(szFakeName, pFakeFile, pWebFile->nSize >> 20);
+			if ((strstr(szFile, szFakeName) != NULL) || (strchr(mode, 'w') != NULL))
+			{
+				int i;
+				for(i = 0; i < MAX_FILES; i ++)
+				{
+					if (g_FileOpened[i].pFileInfo == NULL)
+					{
+						g_FileOpened[i].pFileInfo = pWebFile;
+						g_FileOpened[i].lReadPos = 0;
+						return (&g_FileOpened[i]);
+					}
+				}
+				break;
+			}
+			pWebFile ++;
+		}
+	}
+#endif
+	return NULL;
 #endif
 }
 
@@ -109,6 +162,23 @@ unsigned long WEB_ftime(char* szFile, char* buf, int maxSize)
 			return pWebFile->tLastModified;
 		pWebFile = (http_file_info*)(g_szWebRoot + pWebFile->nOffsetNextFile);
 	}
+	
+#if (FAKE_FS > 0)
+	{
+		char szFakeName[128];
+		pWebFile = &fakeFiles[0];
+		while(pWebFile->nSize > 0)
+		{
+			sprintf(szFakeName, pFakeFile, pWebFile->nSize >> 20);
+			if (strcmp(szFile, szFakeName) == 0)
+			{
+				return pWebFile->tLastModified;
+			}
+			pWebFile ++;
+		}
+	}
+#endif
+	
 	return 0;
 #endif
 }
@@ -118,9 +188,9 @@ int WEB_fseek(void* f, long offset)
 #if (LOCAL_FILE_SYSTEM > 0)
 	return LWIP_fseek(f, offset);
 #else
-	http_file_info* pWebFile = (http_file_info*)f;
-	if (pWebFile->nIndex < MAX_FILES)
-		g_FilePosition[pWebFile->nIndex] = offset; //read position
+	file_handle* pWebFile = (file_handle*)f;
+	if (pWebFile != NULL)
+		pWebFile->lReadPos = offset;
 	return offset;
 #endif
 }
@@ -130,9 +200,12 @@ void WEB_fclose(void* f)
 #if (LOCAL_FILE_SYSTEM > 0)
 	LWIP_fclose(f);
 #else
-	http_file_info* pWebFile = (http_file_info*)f;
-	if (pWebFile->nIndex < MAX_FILES)
-		g_FilePosition[pWebFile->nIndex] = 0; //read position
+	file_handle* pWebFile = (file_handle*)f;
+	if (pWebFile != NULL)
+	{
+		pWebFile->pFileInfo = NULL;
+		pWebFile->lReadPos = 0;
+	}
 #endif
 }
 
@@ -141,8 +214,10 @@ long WEB_fsize(void* f)
 #if (LOCAL_FILE_SYSTEM > 0)
 	return LWIP_fsize(f);
 #else
-	http_file_info* pWebFile = (http_file_info*)f;
-	return pWebFile->nSize;
+	file_handle* pWebFile = (file_handle*)f;
+	if ((pWebFile != NULL) && (pWebFile->pFileInfo != NULL))
+		return pWebFile->pFileInfo->nSize;
+	return 0;
 #endif
 }
 
@@ -152,15 +227,22 @@ int WEB_fread(void* f, char* buf, int count, unsigned int* bytes) //0=success
 	return LWIP_fread(f, buf, count, bytes);
 #else
 	int nCount = 0;
-	http_file_info* pWebFile = (http_file_info*)f;
-	if (pWebFile->nIndex < MAX_FILES)
+	file_handle* pWebFile = (file_handle*)f;
+	if ((pWebFile != NULL) && (pWebFile->pFileInfo != NULL))
 	{
-		nCount = pWebFile->nSize - g_FilePosition[pWebFile->nIndex];
+		nCount = pWebFile->pFileInfo->nSize - pWebFile->lReadPos;
 		if (nCount > count)
 			nCount = count;
-		memcpy(buf, (char*)(g_szWebRoot + pWebFile->nOffsetFileData + g_FilePosition[pWebFile->nIndex]), nCount);
-
-		g_FilePosition[pWebFile->nIndex] += nCount;
+		
+		if (pWebFile->pFileInfo->nOffsetFileData == 0)
+		{ //fake file
+			memset(buf, 'A', nCount);
+		}
+		else
+		{
+			memcpy(buf, (char*)(g_szWebRoot + pWebFile->pFileInfo->nOffsetFileData + pWebFile->lReadPos), nCount);
+		}
+		pWebFile->lReadPos += nCount;
 
 		*bytes = nCount;
 		return 0;
@@ -174,7 +256,11 @@ int WEB_fwrite(void* f, char* buf, int toWrite) //>0: success
 #if (LOCAL_FILE_SYSTEM > 0)
 	return LWIP_fwrite((FILE*)f, buf, toWrite);
 #else
+#if (FAKE_FS > 0)
+	return toWrite;
+#else
 	return -1;
+#endif
 #endif
 }
 
@@ -183,6 +269,25 @@ void* WEB_firstdir(void* filter, int* isFolder, char* name, int maxLen, int* siz
 #if (LOCAL_FILE_SYSTEM > 0)
 	return LWIP_firstdir(filter, isFolder, name, maxLen, size, (time_t*)date);
 #else
+#if (FAKE_FS > 0)
+	{	
+		int i;
+		for(i = 0; i < MAX_FILES; i ++)
+		{
+			if (g_FileOpened[i].pFileInfo == NULL)
+			{
+				g_FileOpened[i].lReadPos = 0;
+				g_FileOpened[i].pFileInfo = &fakeFiles[0];
+				
+				*isFolder = 0;
+				*size = fakeFiles[0].nSize;
+				*date = fakeFiles[0].tLastModified;
+				snprintf(name, maxLen, pFakeFile, (fakeFiles[0].nSize >> 20));
+				return (&g_FileOpened[i]);
+			}
+		}
+	}
+#endif	
 	return NULL;
 #endif
 }
@@ -192,6 +297,23 @@ int WEB_readdir(void* hFind, int* isFolder, char* name, int maxLen, int* size, u
 #if (LOCAL_FILE_SYSTEM > 0)
 	return LWIP_readdir(hFind, isFolder, name, maxLen, size, (time_t*)date);
 #else
+#if (FAKE_FS > 0)
+	file_handle* pWebFile = (file_handle*)hFind;
+	if (pWebFile != NULL)
+	{
+		pWebFile->lReadPos ++;
+		pWebFile->pFileInfo = &fakeFiles[pWebFile->lReadPos];
+
+		if (pWebFile->pFileInfo->nSize > 0)
+		{
+			*isFolder = 0;
+			*size = pWebFile->pFileInfo->nSize;
+			*date = pWebFile->pFileInfo->tLastModified;
+			snprintf(name, maxLen, pFakeFile, ((*size) >> 20));
+			return 1;
+		}
+	}
+#endif	
 	return 0;
 #endif
 }
@@ -201,5 +323,13 @@ void WEB_closedir(void* hFind)
 #if (LOCAL_FILE_SYSTEM > 0)
 	LWIP_closedir(hFind);
 #else
+#if (FAKE_FS > 0)
+	file_handle* pWebFile = (file_handle*)hFind;
+	if (pWebFile != NULL)
+	{
+		pWebFile->pFileInfo = NULL;
+		pWebFile->lReadPos = 0;
+	}
+#endif	
 #endif
 }

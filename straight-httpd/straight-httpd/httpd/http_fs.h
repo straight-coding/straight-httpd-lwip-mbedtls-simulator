@@ -9,17 +9,24 @@
 
 #define MAX_FILES	32
 
+#define ATTRI_GZIP	0x00000001
+
+#ifdef WIN32
+#define __attribute__(x)
+#endif
+
 typedef struct _http_file_info
 {
 	unsigned long nIndex; //index for read pointer
-	unsigned long tLastModified; //file date
 	unsigned long nSize; //file size
+	unsigned long long tLastModified; //file date
+	unsigned long nAttributes; //ATTRI_GZIP
+	unsigned long nReserved;   //padding for 4-byte alignment
 	unsigned long nOffsetFileData; //file content offset
 	unsigned long nOffsetNextFile; // ==> _http_file_info*
-	//char  szfilepath[0]; //file full path
-}http_file_info;
+}http_file_info __attribute__((aligned(4)));
 
-void WEB_fs_init(void);
+int WEB_fs_init(void);
 
 void* WEB_fopen(const char* szTemp, const char* mode);
 unsigned long WEB_ftime(char* fname, char* buf, int maxSize);
