@@ -124,7 +124,7 @@ struct member alignment 1 byte(/Zp1)
 ```
 
 # Structure for CGI mapping (定义请求路径、http接收事件与处理函数之间的绑定关系)
-
+ ![cgi-mapping](/work-flow.png)
 ```
     struct CGI_Mapping
     {
