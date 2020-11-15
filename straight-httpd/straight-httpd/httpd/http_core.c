@@ -35,7 +35,7 @@ extern void tcp_kill_timewait(void);
 static void LockContext(REQUEST_CONTEXT* context);		//locked the specified context
 static void UnlockContext(REQUEST_CONTEXT* context);	//unlocked the specified context
 
-static REQUEST_CONTEXT* GetHttpContext(void); //get a context for the new connection
+static REQUEST_CONTEXT* GetHttpContext(unsigned long ipRemote, int portRemote); //get a context for the new connection
 static void ResetHttpContext(REQUEST_CONTEXT* context);	//for HTTP pipeline (keep-alive), reset part of the context for the following request
 static void CloseHttpContext(REQUEST_CONTEXT* context);	//called when disconnected
 static void FreeHttpContext(REQUEST_CONTEXT* context);		//clear context
@@ -165,9 +165,26 @@ void SetupHttpContext(void)
 	CGI_SetupMapping();
 }
 
-static REQUEST_CONTEXT* GetHttpContext(void)
+static REQUEST_CONTEXT* GetHttpContext(unsigned long ipRemote, int portRemote)
 {
 	int i;
+	int nCount = 0;
+	
+#if (MAX_CONN_PER_IP > 0)
+	for(i = 0; i < MAX_CONNECTIONS; i ++)
+	{
+		if (g_httpContext[i]._pcb != NULL)
+		{
+			if (g_httpContext[i]._ipRemote == ipRemote)
+			{
+				nCount ++;
+				if (nCount >= MAX_CONN_PER_IP)
+					return NULL;
+			}
+		}
+	}
+#endif
+	
 	for(i = 0; i < MAX_CONNECTIONS; i ++)
 	{
 		if (g_httpContext[i]._pcb == NULL)
@@ -482,11 +499,20 @@ int OnHttpAccept(void *pcbListener, struct altcp_pcb *pcbAccepted, err_t errIn) 
 	//altcp_nagle_enable(pcbAccepted); //clear TF_NODELAY
 
 	/* Allocate memory for the structure that holds the state of the connection - initialized by that function. */
-	context = GetHttpContext();
+	context = GetHttpContext(remote_ip->addr, remote_port);
 	if (context == NULL)
 	{
-		LogPrint(LOG_DEBUG_ONLY, ("http_accept: Out of memory, RST\n"));
-		return ERR_MEM; //abort pcbAccepted after return
+		err_t err;
+		
+		LogPrint(LOG_DEBUG_ONLY, ("http_accept: Out of limit, RST\n"));
+		err = altcp_close(pcbAccepted); //retry to close
+		if (err != ERR_OK) 
+		{
+			LogPrint(0, "OnHttpPoll error %d closing %p again, abort", err, (void *)pcbAccepted);
+			altcp_abort(pcbAccepted);
+			err = ERR_ABRT;
+		}
+		return err; //abort pcbAccepted after return
 	}
 
 	context->_pcb = pcbAccepted;

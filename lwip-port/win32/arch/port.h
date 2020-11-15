@@ -39,7 +39,7 @@ void LwipInit(void);
 void LwipStop(void);
 
 extern int tcpip_inloop(void);
-void InitDevInfo(void);
+void InitDevInfo(unsigned long* cpuSN);
 
 struct packet_wrapper* DMA_pop();
 void DMA_free(struct packet_wrapper* pkt);

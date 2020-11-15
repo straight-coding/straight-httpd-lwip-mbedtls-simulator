@@ -50,7 +50,7 @@ static sys_mutex_t g_devInfoMutex;
 static DeviceConfig g_WorkConfig;
 static DeviceConfig g_TempConfig;
 
-void InitDevInfo(void)
+void InitDevInfo(u32_t* cpuSN)
 {
 	memset(&g_WorkConfig, 0, sizeof(g_WorkConfig));
 

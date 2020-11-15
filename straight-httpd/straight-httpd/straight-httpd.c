@@ -412,7 +412,7 @@ extern void tcp_kill_all(void);
 
 DWORD WINAPI AppThread(void* data)
 {
-	InitDevInfo(); //initiate device settings
+	InitDevInfo(NULL); //initiate device settings
 
 	WEB_fs_init();	//initiate file system in memory
 

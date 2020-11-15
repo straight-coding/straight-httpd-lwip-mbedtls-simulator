@@ -10,7 +10,7 @@
 
 extern void LogPrint(int level, char* format, ... );
 extern int  Strnicmp(char *str1, char *str2, int n);
-extern void InitDevInfo(void);
+extern void InitDevInfo(u32_t* cpuSN);
 extern unsigned long GetMyIP(void);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -255,7 +255,7 @@ void CGI_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo) //set 
 
 	//redirect header
 	if (context->_result == CODE_REDIRECT)
-		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, "200 OK", "text/html", strlen(redirect_body1) + strlen(redirect_body2) + strlen(context->_responsePath), CONNECTION_HEADER);
+		LWIP_sprintf(context->ctxResponse._sendBuffer, (char*)header_generic, "200 OK", "text/html", strlen(redirect_body1) + strlen(redirect_body2) + strlen(context->_responsePath), "close");
 
 	if ((context->handler != NULL) && (context->handler->SetResponseHeaders != NULL))
 		context->handler->SetResponseHeaders(context, HttpCodeInfo);
@@ -274,6 +274,7 @@ void CGI_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo) //set 
 		strcat(context->ctxResponse._sendBuffer, date);
 	}
 #endif
+
 #ifdef SERVER_HEADER
 	strcat(context->ctxResponse._sendBuffer, "Server: ");
 	strcat(context->ctxResponse._sendBuffer, SERVER_HEADER);
