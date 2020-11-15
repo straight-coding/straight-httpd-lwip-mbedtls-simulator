@@ -23,6 +23,7 @@
     <ClCompile Include="..\..\lwip-port\win32\arch\port_file.c" />
     <ClCompile Include="..\..\lwip-port\win32\arch\sys_arch.c" />
     <ClCompile Include="..\..\lwip-port\win32\lwip_api.c" />
+    <ClCompile Include="..\..\lwip-port\win32\lwip_cert.c" />
     <ClCompile Include="..\..\lwip\src\api\api_lib.c" />
     <ClCompile Include="..\..\lwip\src\api\api_msg.c" />
     <ClCompile Include="..\..\lwip\src\api\err.c" />

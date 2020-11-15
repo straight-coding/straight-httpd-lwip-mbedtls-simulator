@@ -30,10 +30,16 @@
 
 #include "mbedtls/config.h"
 
+extern const char *privkey;
+extern const char *cert;
+
+static const char *privkey_pass = "";
+/*
+
+//moved to lwip_cert.c
+
 #if (LWIP_ALTCP_TLS > 0)
 #define KEYSIZE		512
-
-static const char *privkey_pass = "straight";
 
 #if (KEYSIZE == 512)
 static const char *privkey = "-----BEGIN ENCRYPTED PRIVATE KEY-----\n"\
@@ -96,6 +102,7 @@ static const char *cert = "-----BEGIN CERTIFICATE-----\n"\
 #endif
 
 #endif
+*/
 
 extern sys_mbox_t tcpip_mbox;
 

@@ -435,6 +435,9 @@
     <ClCompile Include="httpd\http_fs.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\lwip-port\win32\lwip_cert.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\lwip-port\win32\lwipopts.h">

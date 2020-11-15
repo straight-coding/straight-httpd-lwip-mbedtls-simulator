@@ -47,7 +47,11 @@
 #define CODE_ENTITYTOOLARGE	-413	//Payload Too Large (RFC 7231)
 #define CODE_URITOOLONG		-414	//URI Too Long (RFC 7231)
 
+#ifdef WIN32
+#define CONNECTION_HEADER	"close"
+#else
 #define CONNECTION_HEADER	"keep-alive" //"close"
+#endif
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // Function replacement
 #ifndef WIN32
