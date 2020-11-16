@@ -62,6 +62,7 @@ This project creates a `Virtual Device` on `Computer B`. Since the browser on `C
 
 # Self-signed certificate for HTTPS
 
+* The simplest way is to use the tool [**EmbedTools**](https://github.com/straight-coding/EmbedTools), which can generate the pem file named `lwip_cert.c`.
 * If you want to create your customized certificate, run `makecert.bat`. Both the certificate and the private key will be saved in the file `server.pfx`.
 *	Use [**OpenSSL**](https://slproweb.com/products/Win32OpenSSL.html) or other tools to convert PFX file to PEM format.
 ```
