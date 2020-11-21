@@ -251,6 +251,7 @@ struct member alignment 1 byte(/Zp1)
 
 # Example for sign-in UI
 
+* This example applies to devices that require login or exclusive use.
 * `/auth/login.html` is the default page before authentication. The user must provide the username and password. All web pages are physically located in the folder defined by `LOCAL_WEBROOT`.
 ```
 #define LOCAL_WEBROOT	"D:/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/"
