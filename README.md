@@ -289,7 +289,7 @@ struct CGI_Mapping g_cgiAuth = {
 
 # Example for status and information
 
-* This example is applicable to all static or SSI web pages.
+* This example is applicable to all static or SSI (with extensions: *.shtml;*.shtm;*.ssi) web pages.
 * `/app/index.shtml` is the home page after authentication.
 * `cgi_web.c` responds to all requests with prefix `/app/*` after authentication.
 * CGI mapping:
