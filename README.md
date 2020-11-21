@@ -259,6 +259,28 @@ struct member alignment 1 byte(/Zp1)
 * `/auth/session_check.cgi` checks if the current session has timed out.
 * `/auth/logout.cgi` signs out the user and frees the session context.
 * Default user: `admin`, password: `password`
+* CGI mapping:
+```
+struct CGI_Mapping g_cgiAuth = {
+	"/auth/*", //char* path;
+	CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED,//Options ===> GET login page, then POST username/password;
+
+	NULL, //void (*OnCancel)(REQUEST_CONTEXT* context);
+	NULL, //int (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line);
+	
+	Auth_OnHeaders, //void (*OnHeadersReceived)(REQUEST_CONTEXT* context); ===> prepare buffer to receive username/password
+	Auth_OnPostData, //int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size); ===> receive posted data (username/password)
+	Auth_OnRequestReceived, //void (*OnRequestReceived)(REQUEST_CONTEXT* context); ===> POST: check username and password, create session and cookie; 
+	                                                                               ===> GET: check session timeout;
+	                                                                               ===> GET: logout and kill session;
+	Auth_SetResponseHeaders, //void (*SetResponseHeader)(REQUEST_CONTEXT* context, char* HttpCode); ===> response with session cookie
+	WEB_ReadContent, //int  (*ReadContent)(REQUEST_CONTEXT* context, char* buffer, int maxSize); ===> default processing
+	WEB_AllSent, //int  (*OnAllSent)(REQUEST_CONTEXT* context);                                  ===> default processing
+	WEB_Finished, //void (*OnFinished)(REQUEST_CONTEXT* context);                                ===> default processing
+
+	NULL //struct CGI_Mapping* next;
+};
+```
 ```
     int CheckUser(char* u, char* p);
 ```
