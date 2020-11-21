@@ -405,15 +405,15 @@ struct CGI_Mapping g_cgiFiles = {
 	NULL //struct CGI_Mapping* next;
 };
 ```
-* Makes preparations before response.
+* Make preparations before response.
 ```
    static void Files_OnRequestReceived(REQUEST_CONTEXT* context);
 ```
-* Generates response header with `chunked` header.
+* Generate response header with `chunked` header.
 ```
    static void Files_SetResponseHeader(REQUEST_CONTEXT* context, char* HttpCodeInfo);
 ```
-* Generates one small `chunk` on each call. 
+* Generate one small `chunk` on each call. 
    * `static int Files_ReadOneFileInfo(REQUEST_CONTEXT* context, char* buffer, int maxSize);`
    * This function is a callback from lwip stack when it is ready to send the next `chunk`.
    * There are two variables in the context that could be used for the progress control.
@@ -458,8 +458,30 @@ response with JSON including 9 chunks:
 
 # Example for configuration form
 
-* `/app/form.shtml` is a demo for modifying parameters. All parameters are processed by `cgi_ssi.c`.
+* This is a typical form example: GET the existing settings then POST the modifications to device.
+* `/app/form.shtml` is a form page for modifying parameters. All parameters are processed by `cgi_ssi.c`.
 * `cgi_form.c` provides general processing for all forms. All parameters and types are defined in `cgi_ssi.c`.
+* CGI mapping
+```
+struct CGI_Mapping g_cgiForm = {
+	"/app/form.shtml", //char* path;
+	CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED,// unsigned long options; ===> enable GET and POST, login required
+
+	NULL, //void (*OnCancel)(REQUEST_CONTEXT* context);
+
+	NULL, //int (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line);
+	Form_OnHeadersReceived, //void (*OnHeadersReceived)(REQUEST_CONTEXT* context); ===> prepare for the following getting or setting
+	WEB_OnFormReceived, //int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size);  ===> default processing for POSTed data
+	Form_OnRequestReceived, //void (*OnRequestReceived)(REQUEST_CONTEXT* context); ===> apply the POSTed modification
+
+	Form_SetResponseHeaders, //void (*SetResponseHeader)(REQUEST_CONTEXT* context, char* HttpCode);  ===> just call default processing if no further processing
+	WEB_ReadContent, //int  (*ReadContent)(REQUEST_CONTEXT* context, char* buffer, int maxSize);  ===> default processing
+	Form_AllSent, //int  (*OnAllSent)(REQUEST_CONTEXT* context);  ===> just call default processing WEB_AllSent() if no further processing
+	NULL, //void (*OnFinished)(REQUEST_CONTEXT* context);
+
+	NULL //struct CGI_Mapping* next;
+};
+```
 * `cgi_ssi.c` includes all infomation getters and setters.
 ```
     static SSI_Tag g_Getters[] = {
