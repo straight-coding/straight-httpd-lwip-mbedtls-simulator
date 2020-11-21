@@ -21,7 +21,7 @@ static void Form_AllSent(REQUEST_CONTEXT* context);
 
 struct CGI_Mapping g_cgiForm = {
 	"/app/form.shtml", //char* path;
-	CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED,// unsigned long options;
+	CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED | CGI_OPT_POST_ENABLED,// unsigned long options;
 
 	NULL, //void (*OnCancel)(REQUEST_CONTEXT* context);
 
@@ -40,16 +40,18 @@ struct CGI_Mapping g_cgiForm = {
 
 static void Form_OnHeadersReceived(REQUEST_CONTEXT* context)
 {
-	LoadConfig4Edit();
+	if (context->_requestMethod == METHOD_GET)
+		LoadConfig4Edit();
 
-	WEB_OnFormHeaders(context);
+	WEB_OnFormHeaders(context); //default for both GET and POST
 }
 
 static void Form_OnRequestReceived(REQUEST_CONTEXT* context)
 {
-	WEB_RequestReceived(context);
+	WEB_RequestReceived(context); //default for both GET and POST
 
-	AppyConfig(); //apply the new values for the following function WEB_ReadContent
+	if (context->_requestMethod == METHOD_POST)
+		AppyConfig(); //apply the new values for the following function WEB_ReadContent
 
 	memset(context->ctxResponse._sendBuffer, 0, sizeof(context->ctxResponse._sendBuffer));
 	context->ctxResponse._bytesLeft = 0;
@@ -57,12 +59,12 @@ static void Form_OnRequestReceived(REQUEST_CONTEXT* context)
 
 static void Form_SetResponseHeaders(REQUEST_CONTEXT* context, char* HttpCodeInfo)
 { //clear send buffer for response use
-	WEB_AppendHeaders(context, HttpCodeInfo);
+	WEB_AppendHeaders(context, HttpCodeInfo); //default for both GET and POST
 }
 
 static void Form_AllSent(REQUEST_CONTEXT* context)
 {
-	WEB_AllSent(context);
+	WEB_AllSent(context); //default for both GET and POST
 
 	//form done
 }
