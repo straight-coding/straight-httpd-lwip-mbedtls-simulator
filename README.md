@@ -289,8 +289,29 @@ struct CGI_Mapping g_cgiAuth = {
 
 # Example for status and information
 
+* This example is applicable to all static or SSI web pages.
 * `/app/index.shtml` is the home page after authentication.
 * `cgi_web.c` responds to all requests with prefix `/app/*` after authentication.
+* CGI mapping:
+```
+struct CGI_Mapping g_cgiWebApp = {
+	"/app/*", //char* path;
+	CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED,// unsigned long options; ===> Login to access; GET only
+	NULL, //void (*OnCancel)(REQUEST_CONTEXT* context);
+	NULL, //int (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line);
+	NULL, //void (*OnHeadersReceived)(REQUEST_CONTEXT* context);
+	NULL, //int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size);
+	WEB_RequestReceived, //void (*OnRequestReceived)(REQUEST_CONTEXT* context); ===> check request (SSI? gzip? chunked? modified?) and prepare to response
+	
+	WEB_AppendHeaders, //void (*SetResponseHeader)(REQUEST_CONTEXT* context, char* HttpCode); ===> set response headers (gzip? chunked? Last-Modified?)
+	WEB_ReadContent, //int  (*ReadContent)(REQUEST_CONTEXT* context, char* buffer, int maxSize); ===> replace SSI and send response block by block or chunk by chunk
+	
+	WEB_AllSent, //int  (*OnAllSent)(REQUEST_CONTEXT* context); ===> close file
+	WEB_Finished, //void (*OnFinished)(REQUEST_CONTEXT* context); ===> close file
+	
+	NULL //struct CGI_Mapping* next;
+};
+```
 * `cgi_ssi.c` includes all infomation getters.
 ```
     char* GetVendor(void);
