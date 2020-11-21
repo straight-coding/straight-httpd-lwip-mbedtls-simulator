@@ -341,16 +341,38 @@ struct CGI_Mapping g_cgiWebApp = {
 
 # Example for uploading
 
+* This example is applicable to device firmware upgrade.
 * `/app/upload.shtml` and `/app/plugin/fileTransfer/fileTransfer.js` provide a demo for uploading files. The destination folder is defined by `UPLOAD_TO_FOLDER`.
 ```
 #define UPLOAD_TO_FOLDER "D:/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/app/cache/"
 ```
 * `cgi_upload.c` responds to the request URL `/api/upload.cgi`.
+* CGI mapping
 ```
-    long Upload_Start(void* context, char* szFileName, long nFileSize);
-    long Upload_GetFreeSize(unsigned long askForSize);
-    long Upload_Received(REQUEST_CONTEXT* context, unsigned char* pData, unsigned long dwLen);
-    void Upload_AllReceived(REQUEST_CONTEXT* context);
+struct CGI_Mapping g_cgiUpload = {
+	"/api/upload.cgi",
+	CGI_OPT_AUTH_REQUIRED | CGI_OPT_POST_ENABLED,// unsigned long options; ===> Login to access; POST only
+
+	Upload_OnCancel, //void (*OnCancel)(REQUEST_CONTEXT* context); ===> callback when connection is down, clean the uploaded data or file
+
+	Upload_OnHeaderReceived, //int (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line); ===> special header processing
+	Upload_OnHeadersReceived, //void (*OnHeadersReceived)(REQUEST_CONTEXT* context); ===> request received, and check condition: busy? oversized?
+	Upload_OnContentReceived, //int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size); ===> receive and save data block by block with flow control
+	Upload_AllReceived, //void (*OnRequestReceived)(REQUEST_CONTEXT* context); ===> all post data received, close file
+
+	NULL, //void (*SetResponseHeader)(REQUEST_CONTEXT* context, char* HttpCode);
+	NULL, //int  (*ReadContent)(REQUEST_CONTEXT* context, char* buffer, int maxSize);
+	
+	NULL, //int  (*OnAllSent)(REQUEST_CONTEXT* context);
+	NULL, //void (*OnFinished)(REQUEST_CONTEXT* context);
+	
+	NULL //struct CGI_Mapping* next;
+};
+
+long Upload_Start(void* context, char* szFileName, long nFileSize);
+long Upload_GetFreeSize(unsigned long askForSize);
+long Upload_Received(REQUEST_CONTEXT* context, unsigned char* pData, unsigned long dwLen);
+void Upload_AllReceived(REQUEST_CONTEXT* context);
 ```
   ![upload](/upload.png)
 
