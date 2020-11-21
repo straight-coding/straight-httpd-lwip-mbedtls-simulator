@@ -384,8 +384,26 @@ void Upload_AllReceived(REQUEST_CONTEXT* context);
 #define FOLDER_TO_LIST	"D:/straight/straight-httpd/straight-httpd/straight-httpd/httpd/cncweb/app/cache/"
 ```
 * `cgi_files.c` responds to the request with URL `/api/files.cgi`. 
+* CGI mapping
 ```
-    context->_options |= CGI_OPT_CHUNK_ENABLED;
+struct CGI_Mapping g_cgiFiles = {
+	"/api/files.cgi",
+	CGI_OPT_AUTH_REQUIRED | CGI_OPT_GET_ENABLED,// unsigned long options; ===> Login to access; GET only
+
+	NULL, //void (*OnCancel)(REQUEST_CONTEXT* context);
+	NULL, //int (*OnHeaderReceived)(REQUEST_CONTEXT* context, char* header_line);
+	NULL, //void (*OnHeadersReceived)(REQUEST_CONTEXT* context);
+	NULL, //int  (*OnContentReceived)(REQUEST_CONTEXT* context, char* buffer, int size);
+	Files_OnRequestReceived, //void (*OnRequestReceived)(REQUEST_CONTEXT* context);
+	
+	Files_SetResponseHeader, //void (*SetResponseHeader)(REQUEST_CONTEXT* context, char* HttpCode);
+	Files_ReadOneFileInfo, //int  (*ReadContent)(REQUEST_CONTEXT* context, char* buffer, int maxSize);
+	
+	NULL, //int  (*OnAllSent)(REQUEST_CONTEXT* context);
+	NULL, //void (*OnFinished)(REQUEST_CONTEXT* context);
+	
+	NULL //struct CGI_Mapping* next;
+};
 ```
 * Makes preparations before response.
 ```
