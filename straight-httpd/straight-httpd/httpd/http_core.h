@@ -84,10 +84,11 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define MAX_CONNECTIONS 				4			//max concurrent socket connections, >=5 is better for Chrome/Edge
-#define MAX_REQ_BUF_SIZE				TCP_MSS		//TCP_MSS, length of the request header is up to MAX_REQ_BUF_SIZE bytes
-#define MAX_SEND_BUF_SIZE				2*TCP_MSS
-#define MAX_APP_CONTEXT_SIZE			256			//reserved buffer for app/cgi layer, such as SSI_Context peocessing, size of SSI_Context: 216
+#define MAX_CONNECTIONS 				4			//max concurrent tcp connections, some browsers may use up to 4 connections for one session.
+#define MAX_REQ_BUF_SIZE				TCP_MSS		//max. length of the header that can be recognized, and it must be bigger than the max.length of path.
+													//the larger the receiving buffer, the faster the uploading speed.
+#define MAX_SEND_BUF_SIZE				2*TCP_MSS	//the larger sending buffer, the faster the downloading speed.
+#define MAX_APP_CONTEXT_SIZE			256			//reserved buffer for app/cgi layer, such as SSI_Context peocessing, >= size of SSI_Context: 216
 
 #define TO_RECV							60*1000
 #define TO_SENT							60*1000

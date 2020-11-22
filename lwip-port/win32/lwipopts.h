@@ -81,7 +81,8 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* TCP Maximum segment size. http://lwip.wikia.com/wiki/Tuning_TCP */
 #undef TCP_MSS
-#define TCP_MSS                 800//(1500 - 40)	  /* TCP_MSS = (Ethernet MTU - IP header size - TCP header size) */
+//for HTTPS, at least 800; for HTTP can be smaller
+#define TCP_MSS                 800	 /* TCP_MSS = (Ethernet MTU - IP header size - TCP header size) */
 
 /* TCP receive window. */
 #undef TCP_WND
