@@ -995,7 +995,7 @@ static signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //alway
 					if ((buffer[i] != '\r') || ((buffer[i+1] != '\n')))
 						continue;
 					
-					//found a line
+					//found a line, for some browsers, there are header lines longer than 256
 					if (i == nLinePos)
 					{ //empty line
 						if (context->_requestMethod < 0)
@@ -1197,12 +1197,22 @@ static signed char HttpRequestProc(REQUEST_CONTEXT* context, int caller) //alway
 					}
 					nLinePos = (i + 2); //pos for the next line, consumed bytes
 				} //for loop through [size] bytes in buffer
-				
 				size -= nLinePos;
-				
+
 				LockContext(context);
-				if (nLinePos > 0)
+				if (nLinePos == 0)
 				{
+					if (context->request_length >= context->max_level)
+					{ //this line may be a oversized header, truncated it to half
+						nLinePos = context->request_length/2;
+						context->request_length -= nLinePos;
+						memmove(context->http_request_buffer, context->http_request_buffer+nLinePos, context->request_length);
+
+						LogPrint(LOG_DEBUG_ONLY, "Oversized header truncated %d bytes, @%d", nLinePos, context->_sid);
+					}
+				}
+				else if (nLinePos > 0)
+				{ //shift out the line that was already processed
 					context->request_length -= nLinePos;
 					if (context->request_length > 0)
 						memmove(context->http_request_buffer, context->http_request_buffer+nLinePos, context->request_length);
