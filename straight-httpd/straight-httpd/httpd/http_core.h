@@ -79,14 +79,15 @@
 
 #define HTTP_STATE_REQUEST_END			11 //response completely sent out
 
-#define SERVER_HEADER	"straight/1.1"
-#define DATE_HEADER		1
+#define SERVER_HEADER					"straight/1.1"
+#define DATE_HEADER						1
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define MAX_CONNECTIONS 				4		//max concurrent socket connections, >=5 is better for Chrome/Edge
-#define MAX_REQ_BUF_SIZE				128		//TCP_MSS	//length of the request header is up to MAX_REQ_BUF_SIZE bytes
-#define MAX_APP_CONTEXT_SIZE			256		//reserved buffer for app/cgi layer, such as SSI_Context peocessing, size of SSI_Context: 216
+#define MAX_CONNECTIONS 				4			//max concurrent socket connections, >=5 is better for Chrome/Edge
+#define MAX_REQ_BUF_SIZE				TCP_MSS		//TCP_MSS, length of the request header is up to MAX_REQ_BUF_SIZE bytes
+#define MAX_SEND_BUF_SIZE				2*TCP_MSS
+#define MAX_APP_CONTEXT_SIZE			256			//reserved buffer for app/cgi layer, such as SSI_Context peocessing, size of SSI_Context: 216
 
 #define TO_RECV							60*1000
 #define TO_SENT							60*1000
@@ -121,7 +122,7 @@ typedef struct _RESPONSE_CONTEXT
 	unsigned long _nSendTimeout; 	//60*1000, for http_core.c
 	
 	int 	_bytesLeft;				//remaining data length, for http_core.c
-	char 	_sendBuffer[2*TCP_MSS];	//remaining data, for http_core.c
+	char 	_sendBuffer[MAX_SEND_BUF_SIZE];	//remaining data, for http_core.c
 	
 	char	_appContext[MAX_APP_CONTEXT_SIZE]; //additional context for app layer to save anything, e.g. file read/write info
 }RESPONSE_CONTEXT;
