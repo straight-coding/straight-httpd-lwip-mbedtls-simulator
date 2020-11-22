@@ -242,35 +242,35 @@ struct member alignment 1 byte(/Zp1)
 
 # Performance Tuning
 
-* `MEM_SIZE` in file `lwipopts.h`
+* `MEM_SIZE` in file `lwipopts.h`, large memory for more connections.
 ```
 #if (ENABLE_HTTPS > 0)
-#define MEM_SIZE                (130*1024) 
+#define MEM_SIZE  (130*1024) //for Chrome, at least 130kB 
 #else
-#define MEM_SIZE                (24*1024) 
+#define MEM_SIZE  (24*1024)  //for HTTP only
 #endif
 ```
-* `TCP_MSS` in file `lwipopts.h`
+* `TCP_MSS` in file `lwipopts.h`, the bigger the TCP_MSS, the higher the throughput, but the more the memory.
 ```
-#define TCP_MSS                 800 /* TCP_MSS = (Ethernet MTU - IP header size - TCP header size) */
+#define TCP_MSS   800 //for HTTPS, at least 800; for HTTP can be smaller 
 ```
 * `TCP_WND` in file `lwipopts.h`
 ```
 #if (ENABLE_HTTPS > 0)
-#define TCP_WND  (22 * TCP_MSS) //TCP_WND >= MBEDTLS_SSL_MAX_CONTENT_LEN
+#define TCP_WND  (22 * TCP_MSS) //for HTTPS, should be greater than MBEDTLS_SSL_MAX_CONTENT_LEN
 #else
-#define TCP_WND  (4 * TCP_MSS) //TCP_WND >= MBEDTLS_SSL_MAX_CONTENT_LEN
+#define TCP_WND  (4 * TCP_MSS) //for HTTP, default value is OK
 #endif
 ```
 * `MAX_CONNECTIONS` in http_core.h
 ```
-#define MAX_CONNECTIONS 4	//max concurrent socket connections, >=5 is better for Chrome/Edge
+#define MAX_CONNECTIONS  4 //max concurrent tcp connections, some browsers may use up to 4 connections for one session.
 ```
-* `MAX_REQ_BUF_SIZE` in http_core.h
+* `MAX_REQ_BUF_SIZE` in http_core.h, the larger the receiving buffer, the faster the uploading speed.
 ```
-#define MAX_REQ_BUF_SIZE TCP_MSS //TCP_MSS, length of the request header is up to MAX_REQ_BUF_SIZE bytes
+#define MAX_REQ_BUF_SIZE TCP_MSS //max. length of the header that can be recognized, and it must be bigger than the max.length of path.
 ```
-* `MAX_SEND_BUF_SIZE` in http_core.h
+* `MAX_SEND_BUF_SIZE` in http_core.h, the larger sending buffer, the faster the downloading speed.
 ```
 #define MAX_SEND_BUF_SIZE 2*TCP_MSS
 ```
