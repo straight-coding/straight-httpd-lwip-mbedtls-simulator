@@ -262,15 +262,15 @@ struct member alignment 1 byte(/Zp1)
 #define TCP_WND  (4 * TCP_MSS) //for HTTP, default value is OK
 #endif
 ```
-* `MAX_CONNECTIONS` in http_core.h
+* `MAX_CONNECTIONS` in `http_core.h`
 ```
 #define MAX_CONNECTIONS  4 //max concurrent tcp connections, some browsers may use up to 4 connections for one session.
 ```
-* `MAX_REQ_BUF_SIZE` in http_core.h, the larger the receiving buffer, the faster the uploading speed.
+* `MAX_REQ_BUF_SIZE` in `http_core.h`, the larger the receiving buffer, the faster the uploading speed.
 ```
 #define MAX_REQ_BUF_SIZE TCP_MSS //max. length of the header that can be recognized, and it must be bigger than the max.length of path.
 ```
-* `MAX_SEND_BUF_SIZE` in http_core.h, the larger sending buffer, the faster the downloading speed.
+* `MAX_SEND_BUF_SIZE` in `http_core.h`, the larger sending buffer, the faster the downloading speed.
 ```
 #define MAX_SEND_BUF_SIZE 2*TCP_MSS
 ```
