@@ -240,6 +240,41 @@ struct member alignment 1 byte(/Zp1)
 | When connection disconnected or -500	| CGI_Finish(context)		| For additional cleanup	| 
 | lwip error, request error, timeout, <=-400	| CGI_Cancel(context)		| For additional cleanup	| 
 
+# Performance Tuning
+
+* `MEM_SIZE` in file `lwipopts.h`
+```
+#if (ENABLE_HTTPS > 0)
+#define MEM_SIZE                (130*1024) 
+#else
+#define MEM_SIZE                (24*1024) 
+#endif
+```
+* `TCP_MSS` in file `lwipopts.h`
+```
+#define TCP_MSS                 800 /* TCP_MSS = (Ethernet MTU - IP header size - TCP header size) */
+```
+* `TCP_WND` in file `lwipopts.h`
+```
+#if (ENABLE_HTTPS > 0)
+#define TCP_WND  (22 * TCP_MSS) //TCP_WND >= MBEDTLS_SSL_MAX_CONTENT_LEN
+#else
+#define TCP_WND  (4 * TCP_MSS) //TCP_WND >= MBEDTLS_SSL_MAX_CONTENT_LEN
+#endif
+```
+* `MAX_CONNECTIONS` in http_core.h
+```
+#define MAX_CONNECTIONS 4	//max concurrent socket connections, >=5 is better for Chrome/Edge
+```
+* `MAX_REQ_BUF_SIZE` in http_core.h
+```
+#define MAX_REQ_BUF_SIZE TCP_MSS //TCP_MSS, length of the request header is up to MAX_REQ_BUF_SIZE bytes
+```
+* `MAX_SEND_BUF_SIZE` in http_core.h
+```
+#define MAX_SEND_BUF_SIZE 2*TCP_MSS
+```
+
 # Example for SSDP response
 
 * cgi_ssdp.c processes SSDP requests. 
