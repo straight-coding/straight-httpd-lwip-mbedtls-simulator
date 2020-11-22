@@ -47,7 +47,7 @@
 #define CODE_ENTITYTOOLARGE	-413	//Payload Too Large (RFC 7231)
 #define CODE_URITOOLONG		-414	//URI Too Long (RFC 7231)
 
-#ifdef WIN32
+#if defined(WIN32) || (ENABLE_HTTPS == 0)
 #define CONNECTION_HEADER	"close"
 #else
 #define CONNECTION_HEADER	"keep-alive" //"close"
